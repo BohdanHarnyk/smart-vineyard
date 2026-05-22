@@ -297,73 +297,91 @@
                 </div>
 
                 <!-- Interactive Disease Risk Predictor -->
-                <div class="lg:col-span-6 bg-stone-900 text-white p-8 rounded-[40px] shadow-2xl relative overflow-hidden flex flex-col justify-between">
-                    <div class="absolute -right-4 -top-4 text-[100px] opacity-10 pointer-events-none">⚠️</div>
+                <div class="lg:col-span-3 bg-stone-900 text-white p-5 rounded-[40px] shadow-2xl relative overflow-hidden flex flex-col justify-between border border-emerald-500/10">
+                    <div class="absolute -right-4 -top-4 text-[100px] opacity-5 pointer-events-none">⚠️</div>
                     
                     <div>
-                        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
-                                <div class="flex items-center gap-4">
-                                    <span class="text-4xl">🌦️</span>
-                                    <div>
-                                        <h3 class="text-2xl font-black">Калькулятор ризику хвороб</h3>
-                                        <p class="text-xs text-emerald-400 font-bold uppercase tracking-widest">Агрокліматичні порогові тригери</p>
-                                    </div>
+                        <div class="flex flex-col xl:flex-row xl:items-center justify-between gap-3 mb-4">
+                            <div class="flex items-center gap-3">
+                                <span class="text-3xl">🌦️</span>
+                                <div>
+                                    <h3 class="text-lg font-black leading-tight">Калькулятор хвороб</h3>
+                                    <p class="text-[10px] text-emerald-400 font-bold uppercase tracking-widest">Агрокліматичні ризики</p>
                                 </div>
-                                <button id="btn-sync-current-weather" onclick="syncCurrentWeather()" class="bg-white/10 hover:bg-white/20 text-emerald-400 hover:text-emerald-300 px-3.5 py-2.5 rounded-2xl text-xs font-black transition-all flex items-center justify-center gap-1.5 border border-white/10 whitespace-nowrap self-start sm:self-auto">
-                                    <span id="sync-current-spinner" class="hidden animate-spin">⏳</span>
-                                    <span>🌍 Погода з API</span>
-                                </button>
                             </div>
+                            <button id="btn-sync-current-weather" onclick="syncCurrentWeather()" class="bg-white/10 hover:bg-white/20 text-emerald-400 hover:text-emerald-300 px-3 py-1.5 rounded-xl text-[10px] font-black transition-all flex items-center justify-center gap-1 border border-white/10 whitespace-nowrap self-start">
+                                <span id="sync-current-spinner" class="hidden animate-spin">⏳</span>
+                                <span>🌍 Погода API</span>
+                            </button>
+                        </div>
                         
                         <!-- Weather Inputs -->
-                        <div class="grid grid-cols-3 gap-3 mb-6 bg-white/5 p-4 rounded-3xl border border-white/10">
+                        <div class="grid grid-cols-3 gap-2 mb-4 bg-white/5 p-3 rounded-2xl border border-white/10">
                             <div>
-                                <label class="text-[9px] font-black uppercase text-stone-400 block mb-1">t° повітря</label>
-                                <div class="flex items-center gap-1.5">
-                                    <input type="number" id="disease-temp" value="20" min="0" max="45" oninput="calculateDiseaseRisk()" class="w-full bg-white/10 border border-white/10 rounded-xl p-2 text-sm font-bold text-white text-center outline-none focus:border-emerald-500">
-                                    <span class="text-xs text-stone-400">°C</span>
+                                <label class="text-[8px] font-black uppercase text-stone-400 block mb-0.5">t° повітря</label>
+                                <div class="flex items-center gap-1">
+                                    <input type="number" id="disease-temp" value="20" min="0" max="45" oninput="calculateDiseaseRisk()" class="w-full bg-white/10 border border-white/10 rounded-lg p-1.5 text-xs font-bold text-white text-center outline-none focus:border-emerald-500">
                                 </div>
                             </div>
                             <div>
-                                <label class="text-[9px] font-black uppercase text-stone-400 block mb-1">Опади за 24г</label>
-                                <div class="flex items-center gap-1.5">
-                                    <input type="number" id="disease-rain" value="0" min="0" max="100" oninput="calculateDiseaseRisk()" class="w-full bg-white/10 border border-white/10 rounded-xl p-2 text-sm font-bold text-white text-center outline-none focus:border-emerald-500">
-                                    <span class="text-xs text-stone-400">мм</span>
+                                <label class="text-[8px] font-black uppercase text-stone-400 block mb-0.5">Опади 24г</label>
+                                <div class="flex items-center gap-1">
+                                    <input type="number" id="disease-rain" value="0" min="0" max="100" oninput="calculateDiseaseRisk()" class="w-full bg-white/10 border border-white/10 rounded-lg p-1.5 text-xs font-bold text-white text-center outline-none focus:border-emerald-500">
                                 </div>
                             </div>
                             <div>
-                                <label class="text-[9px] font-black uppercase text-stone-400 block mb-1">Вологість</label>
-                                <div class="flex items-center gap-1.5">
-                                    <input type="number" id="disease-humidity" value="60" min="10" max="100" oninput="calculateDiseaseRisk()" class="w-full bg-white/10 border border-white/10 rounded-xl p-2 text-sm font-bold text-white text-center outline-none focus:border-emerald-500">
-                                    <span class="text-xs text-stone-400">%</span>
+                                <label class="text-[8px] font-black uppercase text-stone-400 block mb-0.5">Вологість</label>
+                                <div class="flex items-center gap-1">
+                                    <input type="number" id="disease-humidity" value="60" min="10" max="100" oninput="calculateDiseaseRisk()" class="w-full bg-white/10 border border-white/10 rounded-lg p-1.5 text-xs font-bold text-white text-center outline-none focus:border-emerald-500">
                                 </div>
                             </div>
                         </div>
 
                         <!-- Real-time disease risks output -->
-                        <div class="space-y-4">
+                        <div class="space-y-2.5">
                             <!-- Mildew -->
-                            <div class="p-4 rounded-3xl border transition-all duration-300" id="mildew-risk-card">
-                                <div class="flex justify-between items-center">
+                            <div class="p-3 rounded-2xl border transition-all duration-300" id="mildew-risk-card">
+                                <div class="flex justify-between items-start gap-1.5">
                                     <div>
-                                        <h4 class="font-black text-sm uppercase">Мілдью (Несправжня борошниста роса)</h4>
-                                        <p class="text-[10px] opacity-70 mt-0.5">Тригер інкубації: правило 6-6-26 (опади >6мм, t° 6-26°С)</p>
+                                        <h4 class="font-black text-xs uppercase leading-tight">Мілдью</h4>
+                                        <p class="text-[9px] opacity-70 mt-0.5 leading-tight">Опади >6мм, t° 6-26°С</p>
                                     </div>
-                                    <span class="px-3 py-1 rounded-full text-[10px] font-black uppercase border" id="mildew-badge">Низький</span>
+                                    <span class="px-2 py-0.5 rounded-md text-[9px] font-black uppercase border whitespace-nowrap" id="mildew-badge">Низький</span>
                                 </div>
-                                <p class="text-[11px] mt-2 opacity-90 italic" id="mildew-advice">Умови безпечні. Профілактичні заходи за календарем фаз.</p>
+                                <p class="text-[10px] mt-1.5 opacity-90 italic leading-tight" id="mildew-advice">Умови безпечні.</p>
                             </div>
                             
                             <!-- Oidium -->
-                            <div class="p-4 rounded-3xl border transition-all duration-300" id="oidium-risk-card">
-                                <div class="flex justify-between items-center">
+                            <div class="p-3 rounded-2xl border transition-all duration-300" id="oidium-risk-card">
+                                <div class="flex justify-between items-start gap-1.5">
                                     <div>
-                                        <h4 class="font-black text-sm uppercase">Оїдіум (Справжня борошниста роса)</h4>
-                                        <p class="text-[10px] opacity-70 mt-0.5">Тригер спороношення: висока вологість при t° 15-25°С</p>
+                                        <h4 class="font-black text-xs uppercase leading-tight">Оїдіум</h4>
+                                        <p class="text-[9px] opacity-70 mt-0.5 leading-tight">Вологість, t° 15-25°С</p>
                                     </div>
-                                    <span class="px-3 py-1 rounded-full text-[10px] font-black uppercase border" id="oidium-badge">Низький</span>
+                                    <span class="px-2 py-0.5 rounded-md text-[9px] font-black uppercase border whitespace-nowrap" id="oidium-badge">Низький</span>
                                 </div>
-                                <p class="text-[11px] mt-2 opacity-90 italic" id="oidium-advice">Умови безпечні. Профілактика сіркою за планом.</p>
+                                <p class="text-[10px] mt-1.5 opacity-90 italic leading-tight" id="oidium-advice">Умови безпечні.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Frost Warning Prediction -->
+                <div class="lg:col-span-3 bg-stone-900 text-white p-5 rounded-[40px] shadow-2xl relative overflow-hidden flex flex-col justify-between border border-blue-500/10">
+                    <div class="absolute -right-4 -top-4 text-[100px] opacity-5 pointer-events-none">❄️</div>
+                    
+                    <div>
+                        <div class="flex items-center gap-3 mb-4">
+                            <span class="text-3xl">❄️</span>
+                            <div>
+                                <h3 class="text-lg font-black leading-tight">Приморозки</h3>
+                                <p class="text-[10px] text-blue-400 font-bold uppercase tracking-widest">Прогноз на 14 днів</p>
+                            </div>
+                        </div>
+                        
+                        <div id="frost-forecast-container" class="space-y-3">
+                            <div class="p-3.5 rounded-2xl bg-white/5 border border-white/10 text-center py-6">
+                                <span class="animate-pulse text-stone-400 text-xs">Очікування синхронізації...</span>
                             </div>
                         </div>
                     </div>
@@ -1179,7 +1197,7 @@
                 
                 let forecastJson = null;
                 if (isCurrentYear) {
-                    const forecastUrl = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&daily=temperature_2m_mean&past_days=7&forecast_days=14&timezone=auto`;
+                    const forecastUrl = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&daily=temperature_2m_mean,temperature_2m_min&past_days=7&forecast_days=14&timezone=auto`;
                     const forecastRes = await fetch(forecastUrl);
                     if (forecastRes.ok) {
                         forecastJson = await forecastRes.json();
@@ -1187,6 +1205,7 @@
                 }
                 
                 const mergedData = new Map();
+                const mergedMinData = new Map();
                 
                 if (archiveJson && archiveJson.daily && archiveJson.daily.time) {
                     for (let i = 0; i < archiveJson.daily.time.length; i++) {
@@ -1204,6 +1223,12 @@
                         const temp = forecastJson.daily.temperature_2m_mean[i];
                         if (temp !== null && temp !== undefined) {
                             mergedData.set(date, temp);
+                        }
+                        if (forecastJson.daily.temperature_2m_min) {
+                            const minTemp = forecastJson.daily.temperature_2m_min[i];
+                            if (minTemp !== null && minTemp !== undefined) {
+                                mergedMinData.set(date, minTemp);
+                            }
                         }
                     }
                 }
@@ -1229,9 +1254,11 @@
                             });
                         }
                     } else {
+                        const minTemp = mergedMinData.get(date);
                         newForecastDailyTemps.push({
                             rawDate: date,
-                            temp: temp
+                            temp: temp,
+                            minTemp: minTemp !== undefined ? minTemp : temp
                         });
                     }
                 });
@@ -1247,6 +1274,7 @@
                 localStorage.setItem('forecastDailyTemps', JSON.stringify(forecastDailyTemps));
                 
                 recalculateSAT();
+                updateFrostWarning();
                 alert(`Синхронізація САТ завершена успішно! Отримано ${satHistory.length} днів спостережень.`);
                 
             } catch (err) {
@@ -1490,6 +1518,100 @@
                     </div>
                 </div>
             `).join('');
+        }
+
+        function updateFrostWarning() {
+            const container = document.getElementById('frost-forecast-container');
+            if (!container) return;
+            
+            if (!forecastDailyTemps || forecastDailyTemps.length === 0) {
+                container.innerHTML = `
+                    <div class="p-3.5 rounded-2xl bg-white/5 border border-white/10 text-center py-6">
+                        <p class="text-xs text-stone-400">Синхронізуйте погоду з API, щоб отримати прогноз приморозків</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            const hasMinTemp = forecastDailyTemps.some(f => f.minTemp !== undefined);
+            if (!hasMinTemp) {
+                container.innerHTML = `
+                    <div class="p-3.5 rounded-2xl bg-white/5 border border-white/10 text-center py-6">
+                        <p class="text-xs text-stone-400">Синхронізуйте погоду з API, щоб активувати прогноз приморозків</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            // Find all days in the forecast with minTemp <= 2.0
+            const frostDays = forecastDailyTemps.filter(f => f.minTemp !== undefined && f.minTemp <= 2.0);
+            
+            if (frostDays.length > 0) {
+                // Sort by temperature ascending to find the most severe frost
+                const worstDay = [...frostDays].sort((a, b) => a.minTemp - b.minTemp)[0];
+                const dateObj = new Date(worstDay.rawDate);
+                const formattedDate = dateObj.toLocaleDateString('uk-UA', { day: '2-digit', month: '2-digit' });
+                
+                const isCritical = worstDay.minTemp <= 0;
+                const badgeClass = isCritical ? 'bg-rose-500 text-white border-rose-600' : 'bg-amber-500 text-stone-900 border-amber-600';
+                const cardClass = isCritical ? 'bg-rose-500/10 border-rose-500/30 text-rose-200' : 'bg-amber-500/10 border-amber-500/30 text-amber-200';
+                const statusTitle = isCritical ? 'КРИТИЧНИЙ РИЗИК!' : 'РИЗИК ПРИМОРОЗКУ!';
+                
+                let detailsHTML = frostDays.map(f => {
+                    const d = new Date(f.rawDate).toLocaleDateString('uk-UA', { day: '2-digit', month: '2-digit' });
+                    const color = f.minTemp <= 0 ? 'text-rose-400' : 'text-amber-400';
+                    return `<div class="flex justify-between text-[11px] font-bold py-1 border-b border-white/5 last:border-0">
+                        <span>${d}</span>
+                        <span class="${color}">${f.minTemp}°C</span>
+                    </div>`;
+                }).join('');
+                
+                container.innerHTML = `
+                    <div class="p-3.5 rounded-2xl border ${cardClass} space-y-2">
+                        <div class="flex justify-between items-center">
+                            <span class="text-xs font-black uppercase tracking-wider">${statusTitle}</span>
+                            <span class="px-2 py-0.5 rounded-md text-[9px] font-black uppercase border ${badgeClass}">${worstDay.minTemp}°C</span>
+                        </div>
+                        <p class="text-[10px] opacity-90 leading-tight">
+                            Очікується зниження температури до ${worstDay.minTemp}°C (найнижча ${formattedDate}). Запустіть екстрений протокол захисту!
+                        </p>
+                        <div class="mt-2 pt-2 border-t border-white/10">
+                            <p class="text-[9px] font-black uppercase text-stone-400 mb-1">Прогноз ризикових днів:</p>
+                            <div class="max-h-[100px] overflow-y-auto pr-1 custom-scrollbar">
+                                ${detailsHTML}
+                            </div>
+                        </div>
+                    </div>
+                `;
+            } else {
+                // Find minimum temperature in forecast to display reassuring info
+                const temps = forecastDailyTemps.map(f => f.minTemp !== undefined ? f.minTemp : 99).filter(t => t !== 99);
+                const minForecastTemp = temps.length > 0 ? Math.min(...temps) : null;
+                const minDay = minForecastTemp !== null ? forecastDailyTemps.find(f => f.minTemp === minForecastTemp) : null;
+                
+                let minInfoText = '';
+                if (minDay) {
+                    const dObj = new Date(minDay.rawDate);
+                    const fDate = dObj.toLocaleDateString('uk-UA', { day: '2-digit', month: '2-digit' });
+                    minInfoText = `Найхолодніша ніч: +${minForecastTemp}°C (${fDate}).`;
+                }
+                
+                container.innerHTML = `
+                    <div class="p-3.5 rounded-2xl border border-emerald-500/20 bg-emerald-500/5 text-emerald-200 space-y-2">
+                        <div class="flex justify-between items-center">
+                            <span class="text-xs font-black uppercase tracking-wider">ЗАГРОЗ НЕМАЄ</span>
+                            <span class="px-2 py-0.5 rounded-md text-[9px] font-black uppercase border border-emerald-500/30 bg-emerald-500/10">Безпечно</span>
+                        </div>
+                        <p class="text-[10px] opacity-90 leading-tight">
+                            У найближчі 14 днів заморозків не передбачається. Прогноз сприятливий для вегетації.
+                        </p>
+                        ${minInfoText ? `
+                        <div class="pt-2 border-t border-white/5 text-[10px] text-stone-400 flex justify-between font-bold">
+                            <span>${minInfoText}</span>
+                        </div>` : ''}
+                    </div>
+                `;
+            }
         }
 
         function updateMilestoneProgress() {
@@ -2159,6 +2281,7 @@
             runCalculations();
             calculateGA3();
             calculateDiseaseRisk();
+            updateFrostWarning();
             renderTodos();
             
             // Init cumulative temperature chart
