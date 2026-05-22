@@ -220,6 +220,33 @@
                             </div>
                         </div>
                         <div class="space-y-4">
+                            <!-- API Weather Settings & Sync -->
+                            <div class="bg-emerald-50/50 p-4 rounded-2xl border border-emerald-100/50 space-y-3">
+                                <h4 class="text-[10px] font-black uppercase tracking-widest text-emerald-800 flex items-center gap-1.5">
+                                    <span>🌐</span> Автоматична синхронізація з API
+                                </h4>
+                                <div class="grid grid-cols-2 gap-3">
+                                    <div>
+                                        <label class="text-[9px] font-black uppercase text-stone-400 block mb-1">Широта (Lat)</label>
+                                        <input type="number" id="weather-lat" value="49.23" step="0.01" min="-90" max="90" class="w-full p-2.5 rounded-xl bg-white border border-stone-200 outline-none font-bold text-xs text-stone-800 focus:border-emerald-500 transition-all">
+                                    </div>
+                                    <div>
+                                        <label class="text-[9px] font-black uppercase text-stone-400 block mb-1">Довгота (Lon)</label>
+                                        <input type="number" id="weather-lon" value="28.46" step="0.01" min="-180" max="180" class="w-full p-2.5 rounded-xl bg-white border border-stone-200 outline-none font-bold text-xs text-stone-800 focus:border-emerald-500 transition-all">
+                                    </div>
+                                </div>
+                                <button id="btn-sync-sat" onclick="syncWeather()" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white py-2.5 rounded-xl font-black transition-all text-xs uppercase tracking-wider flex items-center justify-center gap-2 shadow-sm hover:shadow">
+                                    <span id="sync-sat-spinner" class="hidden animate-spin">⏳</span>
+                                    <span>🔄 Завантажити погоду з API</span>
+                                </button>
+                            </div>
+                            
+                            <div class="relative flex py-1 items-center">
+                                <div class="flex-grow border-t border-stone-200"></div>
+                                <span class="flex-shrink mx-4 text-[9px] font-black text-stone-400 uppercase tracking-widest">Або ручне введення</span>
+                                <div class="flex-grow border-t border-stone-200"></div>
+                            </div>
+
                             <div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
                                 <div class="col-span-1">
                                     <label class="text-[9px] font-black uppercase text-stone-400 block mb-1">Дата</label>
@@ -274,13 +301,19 @@
                     <div class="absolute -right-4 -top-4 text-[100px] opacity-10 pointer-events-none">⚠️</div>
                     
                     <div>
-                        <div class="flex items-center gap-4 mb-6">
-                            <span class="text-4xl">🌦️</span>
-                            <div>
-                                <h3 class="text-2xl font-black">Калькулятор ризику хвороб</h3>
-                                <p class="text-xs text-emerald-400 font-bold uppercase tracking-widest">Агрокліматичні порогові тригери</p>
+                        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
+                                <div class="flex items-center gap-4">
+                                    <span class="text-4xl">🌦️</span>
+                                    <div>
+                                        <h3 class="text-2xl font-black">Калькулятор ризику хвороб</h3>
+                                        <p class="text-xs text-emerald-400 font-bold uppercase tracking-widest">Агрокліматичні порогові тригери</p>
+                                    </div>
+                                </div>
+                                <button id="btn-sync-current-weather" onclick="syncCurrentWeather()" class="bg-white/10 hover:bg-white/20 text-emerald-400 hover:text-emerald-300 px-3.5 py-2.5 rounded-2xl text-xs font-black transition-all flex items-center justify-center gap-1.5 border border-white/10 whitespace-nowrap self-start sm:self-auto">
+                                    <span id="sync-current-spinner" class="hidden animate-spin">⏳</span>
+                                    <span>🌍 Погода з API</span>
+                                </button>
                             </div>
-                        </div>
                         
                         <!-- Weather Inputs -->
                         <div class="grid grid-cols-3 gap-3 mb-6 bg-white/5 p-4 rounded-3xl border border-white/10">
@@ -635,6 +668,7 @@
 
         // Persistent data loading on init
         let satHistory = [];
+        let forecastDailyTemps = [];
         let phaseChecklists = {};
         let phaseNutritionChecklists = {};
         let phaseChecklistDates = {};
@@ -1027,7 +1061,6 @@
 
         function getPhasePrediction(phaseId) {
             const target = phaseSatTargets[phaseId];
-            const rate = getAverageSatRate();
             const current = totalSAT;
             
             if (current >= target) {
@@ -1037,21 +1070,235 @@
                 };
             }
             
-            const diff = target - current;
-            const days = Math.ceil(diff / rate);
+            let accumulated = current;
+            let reachedDayIndex = -1;
+            let estDate = null;
             
-            const baseDate = satHistory.length > 0 ? new Date(satHistory[satHistory.length - 1].rawDate) : new Date();
-            const estDate = new Date(baseDate.getTime() + days * 24 * 60 * 60 * 1000);
-            const estDateString = estDate.toLocaleDateString('uk-UA', { day: '2-digit', month: '2-digit', year: 'numeric' });
+            // Loop through forecast days
+            for (let i = 0; i < forecastDailyTemps.length; i++) {
+                const f = forecastDailyTemps[i];
+                if (f.temp > 10) {
+                    accumulated += (f.temp - 10);
+                }
+                if (accumulated >= target) {
+                    reachedDayIndex = i;
+                    estDate = new Date(f.rawDate);
+                    break;
+                }
+            }
             
-            return {
-                reached: false,
-                days: days,
-                dateStr: estDateString,
-                rate: rate,
-                target: target,
-                text: `Очікується ${estDateString} (через ${days} дн. при темпі +${rate.toFixed(1)}°C/день)`
-            };
+            let daysNeeded = 0;
+            let text = "";
+            const rate = getAverageSatRate();
+            
+            if (reachedDayIndex !== -1 && estDate) {
+                daysNeeded = reachedDayIndex + 1;
+                const estDateString = estDate.toLocaleDateString('uk-UA', { day: '2-digit', month: '2-digit', year: 'numeric' });
+                text = `Очікується ${estDateString} (через ${daysNeeded} дн. за прогнозом погоди)`;
+                return {
+                    reached: false,
+                    days: daysNeeded,
+                    dateStr: estDateString,
+                    rate: rate,
+                    target: target,
+                    text: text
+                };
+            } else {
+                const diff = target - accumulated;
+                const extraDays = Math.ceil(diff / rate);
+                daysNeeded = forecastDailyTemps.length + extraDays;
+                
+                let baseDate;
+                if (forecastDailyTemps.length > 0) {
+                    baseDate = new Date(forecastDailyTemps[forecastDailyTemps.length - 1].rawDate);
+                } else {
+                    baseDate = satHistory.length > 0 ? new Date(satHistory[satHistory.length - 1].rawDate) : new Date();
+                }
+                
+                estDate = new Date(baseDate.getTime() + extraDays * 24 * 60 * 60 * 1000);
+                const estDateString = estDate.toLocaleDateString('uk-UA', { day: '2-digit', month: '2-digit', year: 'numeric' });
+                
+                const forecastText = forecastDailyTemps.length > 0 ? `прогнозом + ` : ``;
+                text = `Очікується ${estDateString} (через ${daysNeeded} дн., ${forecastText}темп +${rate.toFixed(1)}°C/день)`;
+                return {
+                    reached: false,
+                    days: daysNeeded,
+                    dateStr: estDateString,
+                    rate: rate,
+                    target: target,
+                    text: text
+                };
+            }
+        }
+
+        async function syncWeather() {
+            const latInput = document.getElementById('weather-lat');
+            const lonInput = document.getElementById('weather-lon');
+            const lat = parseFloat(latInput.value) || 49.23;
+            const lon = parseFloat(lonInput.value) || 28.46;
+            
+            localStorage.setItem('weather-lat', lat);
+            localStorage.setItem('weather-lon', lon);
+            
+            const btn = document.getElementById('btn-sync-sat');
+            const spinner = document.getElementById('sync-sat-spinner');
+            
+            if (btn) btn.disabled = true;
+            if (spinner) spinner.classList.remove('hidden');
+            
+            try {
+                const todayObj = new Date();
+                let year = todayObj.getFullYear();
+                
+                let isCurrentYear = true;
+                if (todayObj.getMonth() < 3) {
+                    year = year - 1;
+                    isCurrentYear = false;
+                }
+                
+                const startDate = `${year}-04-01`;
+                let endArchiveDate;
+                
+                if (isCurrentYear) {
+                    const threeDaysAgoObj = new Date(todayObj.getTime() - 3 * 24 * 60 * 60 * 1000);
+                    endArchiveDate = threeDaysAgoObj.toISOString().split('T')[0];
+                } else {
+                    endArchiveDate = `${year}-10-31`;
+                }
+                
+                let archiveJson = null;
+                if (endArchiveDate >= startDate) {
+                    const archiveUrl = `https://archive-api.open-meteo.com/v1/archive?latitude=${lat}&longitude=${lon}&start_date=${startDate}&end_date=${endArchiveDate}&daily=temperature_2m_mean&timezone=auto`;
+                    const archiveRes = await fetch(archiveUrl);
+                    if (archiveRes.ok) {
+                        archiveJson = await archiveRes.json();
+                    } else {
+                        console.warn('Failed to fetch from Archive API, trying Forecast API only.');
+                    }
+                }
+                
+                let forecastJson = null;
+                if (isCurrentYear) {
+                    const forecastUrl = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&daily=temperature_2m_mean&past_days=7&forecast_days=14&timezone=auto`;
+                    const forecastRes = await fetch(forecastUrl);
+                    if (forecastRes.ok) {
+                        forecastJson = await forecastRes.json();
+                    }
+                }
+                
+                const mergedData = new Map();
+                
+                if (archiveJson && archiveJson.daily && archiveJson.daily.time) {
+                    for (let i = 0; i < archiveJson.daily.time.length; i++) {
+                        const date = archiveJson.daily.time[i];
+                        const temp = archiveJson.daily.temperature_2m_mean[i];
+                        if (temp !== null && temp !== undefined) {
+                            mergedData.set(date, temp);
+                        }
+                    }
+                }
+                
+                if (forecastJson && forecastJson.daily && forecastJson.daily.time) {
+                    for (let i = 0; i < forecastJson.daily.time.length; i++) {
+                        const date = forecastJson.daily.time[i];
+                        const temp = forecastJson.daily.temperature_2m_mean[i];
+                        if (temp !== null && temp !== undefined) {
+                            mergedData.set(date, temp);
+                        }
+                    }
+                }
+                
+                const todayStr = todayObj.toISOString().split('T')[0];
+                const sortedDates = Array.from(mergedData.keys()).sort();
+                
+                const newSatHistory = [];
+                const newForecastDailyTemps = [];
+                
+                sortedDates.forEach(date => {
+                    const temp = mergedData.get(date);
+                    if (date <= todayStr) {
+                        if (temp > 10) {
+                            const contribution = parseFloat((temp - 10).toFixed(1));
+                            const dateObj = new Date(date);
+                            const formattedDate = dateObj.toLocaleDateString('uk-UA', { day: '2-digit', month: '2-digit' });
+                            newSatHistory.push({
+                                rawDate: date,
+                                date: formattedDate,
+                                temp: temp,
+                                contribution: contribution
+                            });
+                        }
+                    } else {
+                        newForecastDailyTemps.push({
+                            rawDate: date,
+                            temp: temp
+                        });
+                    }
+                });
+                
+                if (newSatHistory.length === 0 && newForecastDailyTemps.length === 0) {
+                    throw new Error('Отримано порожні дані погоди.');
+                }
+                
+                satHistory = newSatHistory;
+                forecastDailyTemps = newForecastDailyTemps;
+                
+                localStorage.setItem('satHistory', JSON.stringify(satHistory));
+                localStorage.setItem('forecastDailyTemps', JSON.stringify(forecastDailyTemps));
+                
+                recalculateSAT();
+                alert(`Синхронізація САТ завершена успішно! Отримано ${satHistory.length} днів спостережень.`);
+                
+            } catch (err) {
+                console.error(err);
+                alert(`Не вдалося синхронізувати дані САТ: ${err.message}`);
+            } finally {
+                if (btn) btn.disabled = false;
+                if (spinner) spinner.classList.add('hidden');
+            }
+        }
+
+        async function syncCurrentWeather() {
+            const lat = parseFloat(document.getElementById('weather-lat').value) || 49.23;
+            const lon = parseFloat(document.getElementById('weather-lon').value) || 28.46;
+            
+            const btn = document.getElementById('btn-sync-current-weather');
+            const spinner = document.getElementById('sync-current-spinner');
+            
+            if (btn) btn.disabled = true;
+            if (spinner) spinner.classList.remove('hidden');
+            
+            try {
+                const url = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,relative_humidity_2m&daily=precipitation_sum&timezone=auto`;
+                const res = await fetch(url);
+                if (!res.ok) throw new Error('Помилка сервера погоди');
+                const data = await res.json();
+                
+                if (data.current) {
+                    const temp = Math.round(data.current.temperature_2m);
+                    const humidity = Math.round(data.current.relative_humidity_2m);
+                    let rain = 0;
+                    if (data.daily && data.daily.precipitation_sum && data.daily.precipitation_sum.length > 0) {
+                        rain = Math.round(data.daily.precipitation_sum[0]);
+                    }
+                    
+                    document.getElementById('disease-temp').value = temp;
+                    document.getElementById('disease-rain').value = rain;
+                    document.getElementById('disease-humidity').value = humidity;
+                    
+                    calculateDiseaseRisk();
+                    
+                    alert(`Дані погоди оновлено успішно!\nТемпература: ${temp}°C\nВологість: ${humidity}%\nОпади за сьогодні: ${rain} мм`);
+                } else {
+                    throw new Error('Невірний формат відповіді API');
+                }
+            } catch (err) {
+                console.error(err);
+                alert(`Не вдалося завантажити поточну погоду: ${err.message}`);
+            } finally {
+                if (btn) btn.disabled = false;
+                if (spinner) spinner.classList.add('hidden');
+            }
         }
 
         function togglePhaseStep(phaseId, stepIdx) {
@@ -1879,6 +2126,26 @@
                 applyJournalCollapseState();
             }
             
+            // Load weather lat/lon from localStorage
+            const cachedLat = localStorage.getItem('weather-lat');
+            const cachedLon = localStorage.getItem('weather-lon');
+            if (cachedLat) document.getElementById('weather-lat').value = cachedLat;
+            if (cachedLon) document.getElementById('weather-lon').value = cachedLon;
+            
+            // Add listeners to save changes
+            document.getElementById('weather-lat').addEventListener('change', (e) => {
+                localStorage.setItem('weather-lat', e.target.value);
+            });
+            document.getElementById('weather-lon').addEventListener('change', (e) => {
+                localStorage.setItem('weather-lon', e.target.value);
+            });
+            
+            // Load Forecast Daily Temps
+            const cachedForecast = localStorage.getItem('forecastDailyTemps');
+            if (cachedForecast) {
+                forecastDailyTemps = JSON.parse(cachedForecast);
+            }
+
             // Setup default dates to today
             document.getElementById('sat-date').valueAsDate = new Date();
             document.getElementById('todo-due-date').valueAsDate = new Date();
