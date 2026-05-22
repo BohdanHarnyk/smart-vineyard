@@ -617,6 +617,7 @@
         // Persistent data loading on init
         let satHistory = [];
         let phaseChecklists = {};
+        let phaseNutritionChecklists = {};
 
         const varietyData = {
             "Аватар": { rip: "115-125 дн.", col: "B", taste: "Гармонійний", bunch: "700-1200 г", seed: "Безкіст.", care: "⚠️ Потребує ГК зануренням. Схильний до осипання. На зиму ретельно вкривати." },
@@ -744,13 +745,69 @@
         };
 
         const phasesData = {
-            1: { title: "Пробудження бруньок", time: "Квітень", mix: "Нордокс (4г) / Медян Екстра (5г). pH 6.0", steps: ["Очищення штамбів від старої кори", "Обробка лози мідьвмісними препаратами", "Внесення колоїдної сірки під кущ проти кліща"], nutrition: "Сухе внесення в ґрунт: Аміачна селітра (30г/кущ) + YaraMila Complex. рН поливної води: 6.0", icon: "❄️" },
-            2: { title: "Старт вегетації (3-5 листків)", time: "Травень", mix: "Хорус (0.3г) + Пенкоцеб (2г) + Санмайт (1г) на 1л води. pH 5.5", steps: ["День 1: Обприскування баковою сумішшю (Захист)", "Пауза 2 дні перед іншими роботами", "Проливання ґрунту Триходермою проти грибків"], nutrition: "Позакореневе (по листу): Карбамід (15г/10л) + Агріфлекс (2г/10л) як стимулятор. рН води: 6.0", icon: "🌿" },
-            3: { title: "Перед цвітінням", time: "Кінець Травня", mix: "Акробат (2г) + Фалькон (0.5мл) + Кораген (0.15мл) + Вертімек (1мл) на 1л. pH 5.5", steps: ["День 1: Повна бакова обробка на випередження хвороб", "Підкислення води лимонною кислотою перед додаванням Бору", "Ретельне дрібнодисперсне обприскування суцвіть"], nutrition: "Крапельне підживлення: Агріфлекс. По листу: Бор (15г/10л) + Плантафол 10-54-10 (високий фосфор). рН: 5.5", icon: "🌼" },
-            4: { title: "Формування ягоди (Горошина)", time: "Червень", mix: "Танос (0.6г) + Луна Експірієнс (1.5мл) на 1л води. pH 5.5", steps: ["День 1: Обробка від оїдіуму та мілдью", "Припинення внесення Азоту в ґрунт (щоб уникнути жирування лози)", "Застосування біостимуляторів поділу клітин (Бенефіт)"], nutrition: "Крапельно: NPK 15-5-30 (20г/кущ). По листу: Benefit PZ (25мл/10л) для росту ягід. рН: 6.0", icon: "🟢" },
-            5: { title: "Змикання ягід у гроні", time: "Липень", mix: "Свіч (1г) + Проклейм (0.4г) на 1л води. pH 5.5", steps: ["Пряме обприскування зони грон всередину проти сірої гнилі", "Освітлення грон (видалення листя навколо грона для вентиляції)", "Позакореневе внесення Калію для прискорення дозрівання лози"], nutrition: "Крапельно: Монофосфат Калію (30г/кущ). По листу: Плантафол 5-15-45 (високий калій). рН: 6.0", icon: "🍇" },
-            6: { title: "Дозрівання ягід", time: "Серпень", mix: "Скала (1мл) + Тіовіт Джет (4г) на 1л води. pH 6.5", steps: ["Фінішний захист від сірої гнилі (короткий термін очікування)", "Строгий контроль поливу (обмеження для запобігання тріску)", "Обробка Тіовітом тільки при температурі повітря < 30°C"], nutrition: "Крапельно: Сульфат Калію (30г/кущ). По листу: Хелат Кальцію (Брексил Са) проти розтріскування. рН: 6.0", icon: "☀️" },
-            7: { title: "Осіння підготовка & лоза", time: "Жовтень - Листопад", mix: "Залізний купорос (300-400г на 10л води) по голій лозі. pH 4.0", steps: ["Вологозарядний полив під кущі (50-80л на дорослий кущ)", "Осіння обрізка лози з видаленням до 85% річного приросту", "Укриття кущів агроволокном або прикопування землею на зиму"], nutrition: "Внесення під перекопування: Суперфосфат (40г/м²) + перепрілий перегній. рН: 6.5", icon: "❄️" }
+            1: { 
+                title: "Пробудження бруньок", 
+                time: "Квітень", 
+                mix: "Нордокс (4г) / Медян Екстра (5г). pH 6.0", 
+                steps: ["Очищення штамбів від старої кори", "Обробка лози мідьвмісними препаратами", "Внесення колоїдної сірки під кущ проти кліща"], 
+                nutrition: "Сухе внесення в ґрунт: Аміачна селітра (30г/кущ) + YaraMila Complex. рН поливної води: 6.0",
+                nutritionSteps: ["Сухе внесення в ґрунт: Аміачна селітра (30г/кущ)", "Внесення комплексного YaraMila Complex", "Контроль рН поливної води (цільовий pH 6.0)"],
+                icon: "❄️" 
+            },
+            2: { 
+                title: "Старт вегетації (3-5 листків)", 
+                time: "Травень", 
+                mix: "Хорус (0.3г) + Пенкоцеб (2г) + Санмайт (1г) на 1л води. pH 5.5", 
+                steps: ["День 1: Обприскування баковою сумішшю (Захист)", "Пауза 2 дні перед іншими роботами", "Проливання ґрунту Триходермою проти грибків"], 
+                nutrition: "Позакореневе (по листу): Карбамід (15г/10л) + Агріфлекс (2г/10л) як стимулятор. рН води: 6.0",
+                nutritionSteps: ["Позакореневе підживлення: Карбамід (15г/10л)", "Стимулятор Агріфлекс (2г/10л) по листу", "Підготовка води з рівнем pH 6.0"],
+                icon: "🌿" 
+            },
+            3: { 
+                title: "Перед цвітінням", 
+                time: "Кінець Травня", 
+                mix: "Акробат (2г) + Фалькон (0.5мл) + Кораген (0.15мл) + Вертімек (1мл) на 1л. pH 5.5", 
+                steps: ["День 1: Повна бакова обробка на випередження хвороб", "Підкислення води лимонною кислотою перед додаванням Бору", "Ретельне дрібнодисперсне обприскування суцвіть"], 
+                nutrition: "Крапельне підживлення: Агріфлекс. По листу: Бор (15г/10л) + Плантафол 10-54-10 (високий фосфор). рН: 5.5",
+                nutritionSteps: ["Крапельне підживлення препаратом Агріфлекс", "Позакореневе підживлення Бор (15г/10л)", "Позакореневе підживлення Плантафол 10-54-10 (високий фосфор)", "Підкислення води лимонною кислотою (pH 5.5)"],
+                icon: "🌼" 
+            },
+            4: { 
+                title: "Формування ягоди (Горошина)", 
+                time: "Червень", 
+                mix: "Танос (0.6г) + Луна Експірієнс (1.5мл) на 1л води. pH 5.5", 
+                steps: ["День 1: Обробка від оїдіуму та мілдью", "Припинення внесення Азоту в ґрунт (щоб уникнути жирування лози)", "Застосування біостимуляторів поділу клітин (Бенефіт)"], 
+                nutrition: "Крапельно: NPK 15-5-30 (20г/кущ). По листу: Benefit PZ (25мл/10л) для росту ягід. рН: 6.0",
+                nutritionSteps: ["Крапельне внесення NPK 15-5-30 (20г/кущ)", "Позакоренева обробка Benefit PZ (25мл/10л)", "Контроль рН робочого розчину (pH 6.0)"],
+                icon: "🟢" 
+            },
+            5: { 
+                title: "Змикання ягід у гроні", 
+                time: "Липень", 
+                mix: "Свіч (1г) + Проклейм (0.4г) на 1л води. pH 5.5", 
+                steps: ["Пряме обприскування зони грон всередину проти сірої гнилі", "Освітлення грон (видалення листя навколо грона для вентиляції)", "Позакореневе внесення Калію для прискорення дозрівання лози"], 
+                nutrition: "Крапельно: Монофосфат Калію (30г/кущ). По листу: Плантафол 5-15-45 (високий калій). рН: 6.0",
+                nutritionSteps: ["Крапельне внесення Монофосфату Калію (30г/кущ)", "Позакореневе внесення Плантафол 5-15-45 (високий калій)", "Контроль рН розчину (pH 6.0)"],
+                icon: "🍇" 
+            },
+            6: { 
+                title: "Дозрівання ягід", 
+                time: "Серпень", 
+                mix: "Скала (1мл) + Тіовіт Джет (4г) на 1л води. pH 6.5", 
+                steps: ["Фінішний захист від сірої гнилі (короткий термін очікування)", "Строгий контроль поливу (обмеження для запобігання тріску)", "Обробка Тіовітом тільки при температурі повітря < 30°C"], 
+                nutrition: "Крапельно: Сульфат Калію (30г/кущ). По листу: Хелат Кальцію (Брексил Са) проти розтріскування. рН: 6.0",
+                nutritionSteps: ["Крапельне внесення Сульфату Калію (30г/кущ)", "По листу: Хелат Кальцію (Брексил Са) для міцності шкірки", "Контроль рН перед внесенням (pH 6.0)"],
+                icon: "☀️" 
+            },
+            7: { 
+                title: "Осіння підготовка & лоза", 
+                time: "Жовтень - Листопад", 
+                mix: "Залізний купорос (300-400г на 10л води) по голій лозі. pH 4.0", 
+                steps: ["Вологозарядний полив під кущі (50-80л на дорослий кущ)", "Осіння обрізка лози з видаленням до 85% річного приросту", "Укриття кущів агроволокном або прикопування землею на зиму"], 
+                nutrition: "Внесення під перекопування: Суперфосфат (40г/м²) + перепрілий перегній. рН: 6.5",
+                nutritionSteps: ["Внесення Суперфосфату (40г/м²) під перекопування", "Внесення перепрілого перегною під кущі", "Контроль рН ґрунту восени (цільовий pH 6.5)"],
+                icon: "❄️" 
+            }
         };
 
         const colorMap = { "W": "#84cc16", "R": "#f43f5e", "B": "#7e22ce" };
@@ -775,6 +832,16 @@
         }
 
         // --- SEASONS & PHASES CHECKLIST LOGIC ---
+        function getRecommendedPhaseId(sat) {
+            if (sat < 200) return 1;
+            if (sat < 450) return 2;
+            if (sat < 800) return 3;
+            if (sat < 1000) return 4;
+            if (sat < 1500) return 5;
+            if (sat < 2000) return 6;
+            return 7;
+        }
+
         function selectStep(id) {
             currentActivePhase = Number(id);
             renderPhaseNav();
@@ -784,9 +851,15 @@
             if (!phaseChecklists[id]) {
                 phaseChecklists[id] = Array(s.steps.length).fill(false);
             }
+            if (!phaseNutritionChecklists[id]) {
+                phaseNutritionChecklists[id] = Array(s.nutritionSteps.length).fill(false);
+            }
             
             const checkedCount = phaseChecklists[id].filter(Boolean).length;
             const percent = s.steps.length ? Math.round((checkedCount / s.steps.length) * 100) : 0;
+
+            const nutritionCheckedCount = phaseNutritionChecklists[id].filter(Boolean).length;
+            const nutritionPercent = s.nutritionSteps.length ? Math.round((nutritionCheckedCount / s.nutritionSteps.length) * 100) : 0;
 
             document.getElementById('phase-content').innerHTML = `
                 <div class="fade-in h-full flex flex-col justify-between">
@@ -828,9 +901,29 @@
                             
                             <!-- Right: Nutrition, pH, and notes -->
                             <div class="bg-emerald-50/50 p-6 rounded-[30px] border border-emerald-100/80 flex flex-col justify-between">
-                                <div>
-                                    <span class="text-[10px] font-black uppercase text-emerald-700 block mb-3 tracking-widest">💧 Кореневе & Позакореневе Живлення</span>
-                                    <p class="text-xs text-stone-700 leading-relaxed font-semibold bg-white p-5 rounded-2xl border border-emerald-100 shadow-sm">${s.nutrition}</p>
+                                <div class="space-y-4">
+                                    <div>
+                                        <span class="text-[10px] font-black uppercase text-emerald-700 block mb-2 tracking-widest">💧 Кореневе & Позакореневе Живлення</span>
+                                        <p class="text-xs text-stone-700 leading-relaxed font-semibold bg-white p-4 rounded-2xl border border-emerald-100 shadow-sm">${s.nutrition}</p>
+                                    </div>
+                                    
+                                    <div>
+                                        <div class="flex justify-between items-center mb-3">
+                                            <span class="text-xs font-black uppercase text-stone-500 tracking-wider">📋 Схема підживлення</span>
+                                            <span class="text-xs font-black text-emerald-600">${nutritionPercent}% виконано</span>
+                                        </div>
+                                        <ul class="space-y-2.5">
+                                            ${s.nutritionSteps.map((st, idx) => {
+                                                const isChecked = phaseNutritionChecklists[id][idx] ? 'checked' : '';
+                                                return `
+                                                    <li class="flex items-start gap-3 bg-white p-3.5 rounded-2xl border border-stone-200/60 hover:bg-emerald-50/20 transition-all cursor-pointer select-none" onclick="toggleNutritionPhaseStep(${id}, ${idx})">
+                                                        <input type="checkbox" ${isChecked} class="w-4 h-4 mt-0.5 rounded border-stone-300 text-emerald-600 focus:ring-emerald-500 pointer-events-none">
+                                                        <span class="text-xs text-stone-700 font-medium ${isChecked ? 'line-through opacity-50' : ''}">${st}</span>
+                                                    </li>
+                                                `;
+                                            }).join('')}
+                                        </ul>
+                                    </div>
                                 </div>
                                 <div class="mt-6 bg-white/60 p-4 rounded-2xl border border-emerald-100 text-[10px] text-emerald-800 font-medium italic">
                                     💡 Рекомендація: Завжди заміряйте рН робочого розчину перед обприскуванням. Оптимальний рівень для бакових сумішей: 5.5 - 6.0.
@@ -848,6 +941,12 @@
             selectStep(phaseId);
         }
 
+        function toggleNutritionPhaseStep(phaseId, stepIdx) {
+            phaseNutritionChecklists[phaseId][stepIdx] = !phaseNutritionChecklists[phaseId][stepIdx];
+            localStorage.setItem('phaseNutritionChecklists', JSON.stringify(phaseNutritionChecklists));
+            selectStep(phaseId);
+        }
+
         function renderPhaseNav() {
             const nav = document.getElementById('phase-nav-container');
             nav.innerHTML = Object.keys(phasesData).map(k => {
@@ -856,8 +955,15 @@
                 
                 // Calculate completion
                 if (!phaseChecklists[k]) phaseChecklists[k] = Array(s.steps.length).fill(false);
-                const checkedCount = phaseChecklists[k].filter(Boolean).length;
-                const percent = s.steps.length ? Math.round((checkedCount / s.steps.length) * 100) : 0;
+                if (!phaseNutritionChecklists[k]) phaseNutritionChecklists[k] = Array(s.nutritionSteps.length).fill(false);
+                
+                const totalSteps = s.steps.length + s.nutritionSteps.length;
+                const checkedCount = phaseChecklists[k].filter(Boolean).length + phaseNutritionChecklists[k].filter(Boolean).length;
+                const percent = totalSteps ? Math.round((checkedCount / totalSteps) * 100) : 0;
+                
+                const recPhaseId = getRecommendedPhaseId(totalSAT);
+                const isRecommended = Number(k) === recPhaseId;
+                const recommendedBadge = isRecommended ? `<span class="bg-amber-500 text-white text-[9px] font-black px-1.5 py-0.5 rounded-md animate-pulse ml-2">🎯 Рекомендовано</span>` : '';
                 
                 return `
                     <button onclick="selectStep(${k})" class="w-full text-left p-4 rounded-[26px] border-2 transition-all ${active ? 'step-active border-emerald-600 bg-white' : 'border-transparent bg-stone-100/50 hover:bg-stone-100'}">
@@ -865,7 +971,10 @@
                             <div class="flex items-center gap-3">
                                 <span class="text-2xl">${s.icon}</span>
                                 <div>
-                                    <p class="text-[9px] font-black uppercase text-emerald-600">Фаза ${k}</p>
+                                    <div class="flex items-center">
+                                        <p class="text-[9px] font-black uppercase text-emerald-600">Фаза ${k}</p>
+                                        ${recommendedBadge}
+                                    </div>
                                     <p class="text-xs font-bold text-emerald-950">${s.title}</p>
                                 </div>
                             </div>
@@ -943,6 +1052,7 @@
             renderSATLog();
             updateChart();
             updateMilestoneProgress();
+            renderPhaseNav();
         }
 
         // --- UPDATE DISPLAY ---
@@ -1496,7 +1606,7 @@
                                     <div class="mt-1">${dateBadge}</div>
                                 </div>
                             </div>
-                            <button onclick="deleteTodoItem(${t.id})" class="text-stone-300 hover:text-rose-500 font-black transition-all">✕</button>
+                            <button onclick="deleteTodoItem(${t.id}); event.stopPropagation();" class="text-stone-300 hover:text-rose-500 font-black transition-all">✕</button>
                         </div>
                     `;
                 }).join('');
@@ -1508,15 +1618,18 @@
             } else {
                 completedList.innerHTML = completedTasks.map(t => {
                     return `
-                        <div class="flex justify-between items-center bg-white p-4 rounded-2xl border border-emerald-100/50 shadow-sm hover:border-emerald-300 transition-all">
-                            <div class="flex-grow">
-                                <p class="text-xs text-stone-500 line-through font-bold decoration-emerald-500/30">${t.text}</p>
-                                <div class="flex items-center gap-2 mt-1.5">
-                                    <span class="text-[9px] font-black uppercase text-emerald-700 bg-emerald-100/70 px-2 py-0.5 rounded-md">Виконано:</span>
-                                    <input type="date" value="${t.completedDate}" onchange="updateTodoCompletedDate(${t.id}, this.value)" class="bg-transparent border-0 p-0 text-emerald-800 text-[11px] font-black outline-none cursor-pointer focus:underline w-28">
+                        <div class="flex items-start justify-between bg-white p-4 rounded-2xl border border-emerald-100/50 shadow-sm hover:border-emerald-300 transition-all select-none">
+                            <div class="flex items-start gap-3 flex-grow mr-2 cursor-pointer" onclick="toggleTodoItem(${t.id})">
+                                <input type="checkbox" checked class="w-4.5 h-4.5 mt-0.5 rounded border-stone-300 text-emerald-600 focus:ring-emerald-500 pointer-events-none">
+                                <div class="flex-grow">
+                                    <p class="text-xs text-stone-500 line-through font-bold decoration-emerald-500/30">${t.text}</p>
+                                    <div class="flex items-center gap-2 mt-1.5" onclick="event.stopPropagation()">
+                                        <span class="text-[9px] font-black uppercase text-emerald-700 bg-emerald-100/70 px-2 py-0.5 rounded-md">Виконано:</span>
+                                        <input type="date" value="${t.completedDate}" onchange="updateTodoCompletedDate(${t.id}, this.value); event.stopPropagation();" class="bg-transparent border-0 p-0 text-emerald-800 text-[11px] font-black outline-none cursor-pointer focus:underline w-28">
+                                    </div>
                                 </div>
                             </div>
-                            <button onclick="deleteTodoItem(${t.id})" class="text-stone-300 hover:text-rose-500 font-black transition-all ml-2">✕</button>
+                            <button onclick="deleteTodoItem(${t.id}); event.stopPropagation();" class="text-stone-300 hover:text-rose-500 font-black transition-all ml-2">✕</button>
                         </div>
                     `;
                 }).join('');
@@ -1542,6 +1655,12 @@
             const cachedChecklists = localStorage.getItem('phaseChecklists');
             if (cachedChecklists) {
                 phaseChecklists = JSON.parse(cachedChecklists);
+            }
+
+            // Load Phase Nutrition Checklist
+            const cachedNutritionChecklists = localStorage.getItem('phaseNutritionChecklists');
+            if (cachedNutritionChecklists) {
+                phaseNutritionChecklists = JSON.parse(cachedNutritionChecklists);
             }
 
             // Load Todo List

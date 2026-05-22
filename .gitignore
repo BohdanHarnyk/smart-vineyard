@@ -1,0 +1,14 @@
+# Local agent files
+.agents/
+
+# Temporary files
+.tmp/
+index_clean.html
+
+# Environment and credentials
+.env
+credentials.json
+token.json
+
+# OS files
+.DS_Store
