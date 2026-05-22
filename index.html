@@ -492,97 +492,374 @@
 
         <!-- TAB: CALCULATORS -->
         <section id="tab-calculators" class="tab-content space-y-8">
-            <div class="bg-emerald-900 text-white p-10 rounded-[40px] shadow-2xl">
+            <div class="bg-emerald-900 text-white p-6 md:p-10 rounded-[40px] shadow-2xl">
                 <div class="text-center max-w-xl mx-auto mb-8">
-                    <h3 class="text-3xl font-black text-white">Smart Fertigation Calculator 🧮</h3>
-                    <p class="text-xs text-emerald-400 font-bold uppercase tracking-wider mt-1">Розрахунок добрив для підживлення виноградника</p>
+                    <h3 class="text-3xl font-black text-white">Калькулятори Виноградаря 🧮</h3>
+                    <p class="text-xs text-emerald-400 font-bold uppercase tracking-wider mt-1">Розрахунки добрив, оприскування та фертигації</p>
                 </div>
                 
-                <!-- Calculator Tabs Selector -->
+                <!-- Sub-tab Selector Menu -->
                 <div class="flex justify-center mb-8">
-                    <div class="bg-emerald-950 p-1.5 rounded-2xl flex gap-1 border border-emerald-800">
-                        <button onclick="switchCalcMode('simple')" id="calc-tab-simple" class="px-6 py-2.5 rounded-xl text-xs font-black transition-all bg-emerald-500 text-white shadow-md">
-                            1. Простий розрахунок (в грамах препарату)
+                    <div class="bg-emerald-950/80 p-1.5 rounded-2xl flex flex-wrap justify-center gap-1 border border-emerald-800/60 shadow-inner">
+                        <button onclick="switchSubCalc('npk')" id="subtab-btn-npk" class="px-6 py-2.5 rounded-xl text-xs font-black transition-all bg-emerald-500 text-white shadow-md">
+                            🧪 1. Сухі добрива NPK
                         </button>
-                        <button onclick="switchCalcMode('advanced')" id="calc-tab-advanced" class="px-6 py-2.5 rounded-xl text-xs font-black transition-all text-emerald-300 hover:text-white">
-                            2. Розрахунок за діючою речовиною (ДР)
+                        <button onclick="switchSubCalc('protection')" id="subtab-btn-protection" class="px-6 py-2.5 rounded-xl text-xs font-black transition-all text-emerald-300 hover:text-white">
+                            🌦️ 2. Захист & Оприскування
+                        </button>
+                        <button onclick="switchSubCalc('fertigation')" id="subtab-btn-fertigation" class="px-6 py-2.5 rounded-xl text-xs font-black transition-all text-emerald-300 hover:text-white">
+                            💧 3. Фертигація
                         </button>
                     </div>
                 </div>
 
-                <!-- Mode 1: Simple Calculator -->
-                <div id="calc-mode-simple" class="space-y-6">
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
-                        <div class="space-y-2">
-                            <label class="text-[10px] font-black uppercase tracking-widest text-emerald-400">Кількість кущів на винограднику</label>
-                            <input type="number" id="simple-bushes" value="10" min="1" class="w-full p-5 rounded-2xl bg-white/5 border border-white/20 outline-none text-2xl font-black text-white focus:bg-white/10 focus:border-emerald-400 transition-all">
-                            <p class="text-[10px] text-emerald-300/70 italic">Введіть загальну кількість лоз для поливу</p>
-                        </div>
-                        <div class="space-y-2">
-                            <label class="text-[10px] font-black uppercase tracking-widest text-emerald-400">Норма внесення сухого препарату (г/кущ)</label>
-                            <input type="number" id="simple-dose" value="25" min="1" class="w-full p-5 rounded-2xl bg-white/5 border border-white/20 outline-none text-2xl font-black text-white focus:bg-white/10 focus:border-emerald-400 transition-all">
-                            <p class="text-[10px] text-emerald-300/70 italic">Скільки фізичної маси добрива з пачки виділено на один кущ</p>
-                        </div>
-                    </div>
-                    
-                    <div class="mt-8 p-6 bg-emerald-950/50 rounded-3xl border border-emerald-800">
-                        <h4 class="text-[10px] font-black uppercase tracking-widest text-emerald-400 mb-2">Формула та пропорція:</h4>
-                        <p class="text-xs text-emerald-100/80 leading-relaxed font-medium">
-                            Фізична вага добрива = Кількість кущів × Норму сухої речовини на кущ.
-                            Не потрібно враховувати вміст NPK, розрахунок проводиться для готової комерційної дози.
-                        </p>
-                    </div>
-                </div>
-
-                <!-- Mode 2: Advanced Active Substance Calculator -->
-                <div id="calc-mode-advanced" class="space-y-6 hidden">
-                    <!-- Presets Selector -->
-                    <div class="bg-emerald-950/60 p-5 rounded-3xl border border-emerald-800 flex flex-col sm:flex-row items-center justify-between gap-4">
+                <!-- Shared Bushes Input widget -->
+                <div class="bg-emerald-950/40 p-4 rounded-2xl border border-emerald-800/40 mb-8 flex flex-col sm:flex-row items-center justify-between gap-4">
+                    <div class="flex items-center gap-3">
+                        <span class="text-xl">🍇</span>
                         <div>
-                            <h4 class="text-xs font-black text-white uppercase tracking-wider">Швидкі пресети добрив</h4>
-                            <p class="text-[10px] text-emerald-400/80">Виберіть зі списку для автоматичного заповнення % діючої речовини</p>
+                            <h4 class="text-xs font-black text-white uppercase tracking-wider">Масштаб виноградника</h4>
+                            <p class="text-[10px] text-emerald-400/80">Загальна кількість кущів, яка синхронізується між калькуляторами</p>
                         </div>
-                        <select id="fertilizer-preset" onchange="applyFertilizerPreset()" class="p-3.5 rounded-2xl bg-emerald-900 border border-emerald-700 outline-none font-bold text-xs text-white cursor-pointer hover:bg-emerald-800">
-                            <option value="custom">-- Власне дозування (Вручну) --</option>
-                            <option value="yaramila">YaraMila Complex (NPK 12-11-18) [Азот - 12%]</option>
-                            <option value="urea">Карбамід (Сечовина) [Азот - 46%]</option>
-                            <option value="nitrate">Аміачна селітра [Азот - 34%]</option>
-                            <option value="monopotassium">Монофосфат калію [Калій - 34% / Фосфор - 52%]</option>
-                            <option value="sulfate">Сульфат калію [Калій - 50%]</option>
-                            <option value="calcium">Кальцієва селітра [Кальцій - 26%]</option>
+                    </div>
+                    <div class="flex items-center gap-3">
+                        <label class="text-xs font-bold text-emerald-300 whitespace-nowrap">Кількість кущів:</label>
+                        <input type="number" id="shared-bushes" value="10" min="1" oninput="updateSharedBushes(this.value)" class="w-24 p-2.5 rounded-xl bg-white/5 border border-white/20 outline-none text-center text-lg font-black text-white focus:bg-white/10 focus:border-emerald-400 transition-all">
+                    </div>
+                </div>
+
+                <!-- SUBTAB 1: NPK DRY FERTILIZERS -->
+                <div id="subtab-npk" class="space-y-6">
+                    <!-- Preset Selector -->
+                    <div class="bg-emerald-950/60 p-5 rounded-3xl border border-emerald-800/60 flex flex-col sm:flex-row items-center justify-between gap-4">
+                        <div>
+                            <h4 class="text-xs font-black text-white uppercase tracking-wider">Швидкі пресети фаз розвитку</h4>
+                            <p class="text-[10px] text-emerald-400/80">Виберіть фазу для завантаження доз чистого N-P-K на кущ за сезон</p>
+                        </div>
+                        <select id="npk-phase-preset" onchange="applyNPKPhasePreset()" class="p-3.5 rounded-2xl bg-emerald-900 border border-emerald-700 outline-none font-bold text-xs text-white cursor-pointer hover:bg-emerald-800 transition-all">
+                            <option value="start">Старт вегетації (N: 15г, P: 5г, K: 5г)</option>
+                            <option value="prebloom">Перед цвітінням (N: 10г, P: 15г, K: 10г)</option>
+                            <option value="berry">Ріст ягід (N: 10г, P: 10г, K: 25г)</option>
+                            <option value="autumn">Визрівання лози / Осінь (N: 0г, P: 20г, K: 30г)</option>
+                            <option value="custom">-- Власний режим (Ручне редагування) --</option>
                         </select>
                     </div>
 
-                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-                        <div class="space-y-2">
-                            <label class="text-[10px] font-black uppercase tracking-widest text-emerald-400">Кількість кущів</label>
-                            <input type="number" id="calc-bushes" value="10" min="1" class="w-full p-5 rounded-2xl bg-white/5 border border-white/20 outline-none text-2xl font-black text-white focus:bg-white/10 transition-all">
+                    <!-- 3-Column Elements Inputs -->
+                    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                        <!-- Nitrogen (N) -->
+                        <div class="bg-emerald-950/40 p-5 rounded-3xl border border-emerald-800/40 space-y-4">
+                            <div class="border-b border-emerald-800/60 pb-2">
+                                <h4 class="text-sm font-black text-emerald-400">🧪 Азотне живлення (N)</h4>
+                            </div>
+                            <div class="space-y-2">
+                                <label class="text-[10px] font-black uppercase tracking-widest text-emerald-300/80">Потреба N (г/кущ)</label>
+                                <input type="number" id="npk-target-n" value="15" min="0" oninput="runNPKCalculations()" class="w-full p-4 rounded-xl bg-white/5 border border-white/20 outline-none text-xl font-black text-white focus:bg-white/10 focus:border-emerald-400 transition-all">
+                            </div>
+                            <div class="space-y-2">
+                                <label class="text-[10px] font-black uppercase tracking-widest text-emerald-300/80">Вибір добрива</label>
+                                <select id="npk-fertilizer-n" onchange="applyNPKFertilizerSelect('n')" class="w-full p-3.5 rounded-xl bg-emerald-900 border border-emerald-700 outline-none font-bold text-xs text-white cursor-pointer hover:bg-emerald-800 transition-all">
+                                    <option value="urea">Карбамід (Сечовина, 46% N)</option>
+                                    <option value="nitrate">Аміачна селітра (34% N)</option>
+                                    <option value="yaramila">YaraMila Complex (12% N)</option>
+                                    <option value="calcium">Кальцієва селітра (15% N)</option>
+                                    <option value="custom">-- Власне добриво (% N) --</option>
+                                </select>
+                            </div>
+                            <div class="space-y-2">
+                                <label class="text-[10px] font-black uppercase tracking-widest text-emerald-300/80">% Азоту (ДР)</label>
+                                <input type="number" id="npk-percent-n" value="46" min="1" max="100" oninput="runNPKCalculations()" class="w-full p-4 rounded-xl bg-white/5 border border-white/20 outline-none text-xl font-black text-white focus:bg-white/10 focus:border-emerald-400 transition-all">
+                            </div>
                         </div>
-                        <div class="space-y-2">
-                            <label class="text-[10px] font-black uppercase tracking-widest text-emerald-400">Норма г/кущ (діюча реч.)</label>
-                            <input type="number" id="calc-norm" value="10" min="1" class="w-full p-5 rounded-2xl bg-white/5 border border-white/20 outline-none text-2xl font-black text-white focus:bg-white/10 transition-all">
+
+                        <!-- Phosphorus (P) -->
+                        <div class="bg-emerald-950/40 p-5 rounded-3xl border border-emerald-800/40 space-y-4">
+                            <div class="border-b border-emerald-800/60 pb-2">
+                                <h4 class="text-sm font-black text-emerald-400">🧪 Фосфорне живлення (P)</h4>
+                            </div>
+                            <div class="space-y-2">
+                                <label class="text-[10px] font-black uppercase tracking-widest text-emerald-300/80">Потреба P (г/кущ)</label>
+                                <input type="number" id="npk-target-p" value="5" min="0" oninput="runNPKCalculations()" class="w-full p-4 rounded-xl bg-white/5 border border-white/20 outline-none text-xl font-black text-white focus:bg-white/10 focus:border-emerald-400 transition-all">
+                            </div>
+                            <div class="space-y-2">
+                                <label class="text-[10px] font-black uppercase tracking-widest text-emerald-300/80">Вибір добрива</label>
+                                <select id="npk-fertilizer-p" onchange="applyNPKFertilizerSelect('p')" class="w-full p-3.5 rounded-xl bg-emerald-900 border border-emerald-700 outline-none font-bold text-xs text-white cursor-pointer hover:bg-emerald-800 transition-all">
+                                    <option value="monopotassium">Монофосфат калію (52% P)</option>
+                                    <option value="yaramila">YaraMila Complex (11% P)</option>
+                                    <option value="custom">-- Власне добриво (% P) --</option>
+                                </select>
+                            </div>
+                            <div class="space-y-2">
+                                <label class="text-[10px] font-black uppercase tracking-widest text-emerald-300/80">% Фосфору (ДР)</label>
+                                <input type="number" id="npk-percent-p" value="52" min="1" max="100" oninput="runNPKCalculations()" class="w-full p-4 rounded-xl bg-white/5 border border-white/20 outline-none text-xl font-black text-white focus:bg-white/10 focus:border-emerald-400 transition-all">
+                            </div>
                         </div>
-                        <div class="space-y-2">
-                            <label class="text-[10px] font-black uppercase tracking-widest text-emerald-400">% ДР у вашому добриві</label>
-                            <input type="number" id="calc-percent" value="12" min="1" max="100" class="w-full p-5 rounded-2xl bg-white/5 border border-white/20 outline-none text-2xl font-black text-white focus:bg-white/10 transition-all">
+
+                        <!-- Potassium (K) -->
+                        <div class="bg-emerald-950/40 p-5 rounded-3xl border border-emerald-800/40 space-y-4">
+                            <div class="border-b border-emerald-800/60 pb-2">
+                                <h4 class="text-sm font-black text-emerald-400">🧪 Калійне живлення (K)</h4>
+                            </div>
+                            <div class="space-y-2">
+                                <label class="text-[10px] font-black uppercase tracking-widest text-emerald-300/80">Потреба K (г/кущ)</label>
+                                <input type="number" id="npk-target-k" value="5" min="0" oninput="runNPKCalculations()" class="w-full p-4 rounded-xl bg-white/5 border border-white/20 outline-none text-xl font-black text-white focus:bg-white/10 focus:border-emerald-400 transition-all">
+                            </div>
+                            <div class="space-y-2">
+                                <label class="text-[10px] font-black uppercase tracking-widest text-emerald-300/80">Вибір добрива</label>
+                                <select id="npk-fertilizer-k" onchange="applyNPKFertilizerSelect('k')" class="w-full p-3.5 rounded-xl bg-emerald-900 border border-emerald-700 outline-none font-bold text-xs text-white cursor-pointer hover:bg-emerald-800 transition-all">
+                                    <option value="monopotassium">Монофосфат калію (34% K)</option>
+                                    <option value="sulfate">Сульфат калію (50% K)</option>
+                                    <option value="yaramila">YaraMila Complex (18% K)</option>
+                                    <option value="custom">-- Власне добриво (% K) --</option>
+                                </select>
+                            </div>
+                            <div class="space-y-2">
+                                <label class="text-[10px] font-black uppercase tracking-widest text-emerald-300/80">% Калію (ДР)</label>
+                                <input type="number" id="npk-percent-k" value="34" min="1" max="100" oninput="runNPKCalculations()" class="w-full p-4 rounded-xl bg-white/5 border border-white/20 outline-none text-xl font-black text-white focus:bg-white/10 focus:border-emerald-400 transition-all">
+                            </div>
                         </div>
                     </div>
-                    
-                    <div class="mt-8 p-6 bg-emerald-950/50 rounded-3xl border border-emerald-800">
-                        <h4 class="text-[10px] font-black uppercase tracking-widest text-emerald-400 mb-2">Як це працює:</h4>
-                        <p class="text-xs text-emerald-100/80 leading-relaxed font-medium" id="calc-explanation-text">
-                            Для забезпечення 10 г чистої діючої речовини при вмісті 12% ДР, необхідно внести 83.3 г фізичного добрива на кожен кущ. На 10 кущів загальна потреба складе 833 г.
-                        </p>
+
+                    <!-- NPK Result Display -->
+                    <div class="mt-8 bg-emerald-950/60 p-6 md:p-8 rounded-3xl border border-emerald-800/80 space-y-4">
+                        <h4 class="text-xs font-black uppercase tracking-wider text-emerald-400">Розрахована фізична вага добрив для внесення:</h4>
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            <div class="bg-emerald-900/50 p-4 rounded-2xl border border-emerald-800 flex items-center justify-between">
+                                <div>
+                                    <p class="text-[10px] font-black text-emerald-400 uppercase tracking-widest">Азотне добриво (N)</p>
+                                    <p class="text-xs text-white/70 mt-0.5" id="npk-result-label-n">Карбамід (Сечовина)</p>
+                                </div>
+                                <span class="text-2xl font-black text-white" id="npk-result-n">0 г</span>
+                            </div>
+                            <div class="bg-emerald-900/50 p-4 rounded-2xl border border-emerald-800 flex items-center justify-between">
+                                <div>
+                                    <p class="text-[10px] font-black text-emerald-400 uppercase tracking-widest">Фосфорне добриво (P)</p>
+                                    <p class="text-xs text-white/70 mt-0.5" id="npk-result-label-p">Монофосфат калію</p>
+                                </div>
+                                <span class="text-2xl font-black text-white" id="npk-result-p">0 г</span>
+                            </div>
+                            <div class="bg-emerald-900/50 p-4 rounded-2xl border border-emerald-800 flex items-center justify-between">
+                                <div>
+                                    <p class="text-[10px] font-black text-emerald-400 uppercase tracking-widest">Калійне добриво (K)</p>
+                                    <p class="text-xs text-white/70 mt-0.5" id="npk-result-label-k">Монофосфат калію</p>
+                                </div>
+                                <span class="text-2xl font-black text-white" id="npk-result-k">0 г</span>
+                            </div>
+                        </div>
                     </div>
                 </div>
 
-                <!-- Result Box -->
-                <div class="mt-10 flex flex-col md:flex-row items-center justify-between bg-emerald-800/50 p-8 rounded-3xl border border-emerald-700">
-                    <div>
-                        <p class="text-lg font-bold mb-1" id="calc-result-title">Необхідна маса добрива на весь виноградник:</p>
-                        <p class="text-xs text-emerald-300 font-medium">Точна вага сухої речовини для розчинення або внесення</p>
+                <!-- SUBTAB 2: CROP PROTECTION (SPRAYING) -->
+                <div id="subtab-protection" class="space-y-6 hidden">
+                    <!-- Water Mode Selector & Volume Settings -->
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 bg-emerald-950/60 p-6 rounded-3xl border border-emerald-800/60">
+                        <div class="space-y-4">
+                            <h4 class="text-xs font-black text-white uppercase tracking-wider">Налаштування води</h4>
+                            <div class="flex bg-emerald-900 p-1 rounded-xl gap-1 border border-emerald-700 shadow-inner max-w-sm">
+                                <button onclick="switchWaterMode('bushes')" id="water-mode-btn-bushes" class="flex-1 py-2 rounded-lg text-[10px] font-black transition-all bg-emerald-500 text-white shadow">
+                                    За кущами
+                                </button>
+                                <button onclick="switchWaterMode('area')" id="water-mode-btn-area" class="flex-1 py-2 rounded-lg text-[10px] font-black transition-all text-emerald-300 hover:text-white">
+                                    За площею (сотки)
+                                </button>
+                            </div>
+
+                            <!-- Input widgets depending on active water mode -->
+                            <div id="water-inputs-bushes" class="space-y-2">
+                                <label class="text-[10px] font-black uppercase tracking-widest text-emerald-300/80">Фаза розвитку крони (норма на кущ)</label>
+                                <select id="protection-leaf-phase" onchange="runProtectionCalculations()" class="w-full p-3.5 rounded-xl bg-emerald-900 border border-emerald-700 outline-none font-bold text-xs text-white cursor-pointer hover:bg-emerald-800 transition-all">
+                                    <option value="0.3">Молоді пагони (0.3 л/кущ)</option>
+                                    <option value="0.7" selected>Перед цвітінням (0.7 л/кущ)</option>
+                                    <option value="1.2">Повне листя / Дозрівання (1.2 л/кущ)</option>
+                                </select>
+                            </div>
+                            
+                            <div id="water-inputs-area" class="grid grid-cols-2 gap-4 hidden">
+                                <div class="space-y-2">
+                                    <label class="text-[10px] font-black uppercase tracking-widest text-emerald-300/80">Площа (сотки)</label>
+                                    <input type="number" id="protection-area" value="1.5" min="0.1" step="0.1" oninput="runProtectionCalculations()" class="w-full p-3.5 rounded-xl bg-white/5 border border-white/20 outline-none text-base font-black text-white focus:bg-white/10 focus:border-emerald-400 transition-all">
+                                </div>
+                                <div class="space-y-2">
+                                    <label class="text-[10px] font-black uppercase tracking-widest text-emerald-300/80">Вилив (л/сотку)</label>
+                                    <input type="number" id="protection-spray-rate" value="6" min="1" step="0.5" oninput="runProtectionCalculations()" class="w-full p-3.5 rounded-xl bg-white/5 border border-white/20 outline-none text-base font-black text-white focus:bg-white/10 focus:border-emerald-400 transition-all">
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="flex flex-col justify-center items-center bg-emerald-900/40 p-6 rounded-2xl border border-emerald-850">
+                            <p class="text-[10px] font-black text-emerald-400 uppercase tracking-widest mb-1">Необхідний об'єм води:</p>
+                            <p class="text-4xl font-black text-white" id="protection-water-volume">7.0 л</p>
+                            <p class="text-[9px] text-emerald-300/70 mt-2 text-center" id="protection-water-explanation">Розраховано на основі 10 кущів по 0.7 л</p>
+                        </div>
                     </div>
-                    <div class="bg-emerald-400 text-emerald-950 px-8 py-4 rounded-2xl font-black text-4xl shadow-glow mt-4 md:mt-0" id="calc-result">250 г</div>
+
+                    <!-- Pesticides Mixer Table -->
+                    <div class="bg-emerald-950/40 p-6 rounded-3xl border border-emerald-800/40 space-y-4">
+                        <div class="flex items-center justify-between border-b border-emerald-800/60 pb-3">
+                            <div>
+                                <h4 class="text-sm font-black text-emerald-400">🌦️ Бакова суміш (препарати)</h4>
+                                <p class="text-[10px] text-emerald-300/70">Додайте пестициди та стимулятори для автоматичного пропорційного розрахунку</p>
+                            </div>
+                            <button onclick="addProtectionMixerRow()" class="px-4 py-2 bg-emerald-500 hover:bg-emerald-400 text-white rounded-xl text-[10px] font-black transition-all flex items-center gap-1 shadow-md">
+                                <span>＋</span> Додати препарат
+                            </button>
+                        </div>
+
+                        <!-- Header labels for dynamic fields -->
+                        <div class="hidden md:grid grid-cols-12 gap-4 text-[10px] font-black uppercase tracking-widest text-emerald-300/80 px-2">
+                            <div class="col-span-5">Назва препарату (напр. Хорус)</div>
+                            <div class="col-span-3 text-center">Доза</div>
+                            <div class="col-span-3">Тип дозування</div>
+                            <div class="col-span-1"></div>
+                        </div>
+
+                        <!-- Rows Container -->
+                        <div id="protection-mixer-rows" class="space-y-3">
+                            <!-- Dynamic rows injected here -->
+                        </div>
+                    </div>
+
+                    <!-- Protection Summary Results -->
+                    <div class="bg-emerald-950/60 p-6 md:p-8 rounded-3xl border border-emerald-800/80 space-y-6">
+                        <div class="flex flex-col sm:flex-row items-center justify-between border-b border-emerald-800/60 pb-4 gap-4">
+                            <div>
+                                <h4 class="text-xs font-black uppercase tracking-wider text-emerald-400">Підкислення та підготовка розчину:</h4>
+                                <p class="text-[10px] text-emerald-300/70 mt-1">Оптимальний pH для оприскування фунгіцидами/інсектицидами становить 5.5</p>
+                            </div>
+                            <div class="bg-emerald-900/50 px-5 py-3 rounded-2xl border border-emerald-800 flex items-center gap-3">
+                                🍋 <span class="text-xs font-bold text-emerald-200">Лимонна кислота:</span>
+                                <span class="text-xl font-black text-white" id="protection-acid-result">0.7 г</span>
+                            </div>
+                        </div>
+
+                        <div class="space-y-3">
+                            <h4 class="text-[10px] font-black uppercase tracking-widest text-emerald-400">Результуючий рецепт суміші:</h4>
+                            <div class="bg-emerald-900/30 rounded-2xl border border-emerald-850 p-4">
+                                <ul class="divide-y divide-emerald-800/40 text-xs font-medium text-emerald-100/90" id="protection-final-recipe-list">
+                                    <!-- Injected results list -->
+                                    <li class="py-2 text-center text-emerald-400/70">Суміш порожня. Додайте препарати вище.</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- SUBTAB 3: FERTIGATION (DRIP FEEDING) -->
+                <div id="subtab-fertigation" class="space-y-6 hidden">
+                    <!-- Grid input sections -->
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                        <!-- Column 1: Irrigation Parameters -->
+                        <div class="bg-emerald-950/40 p-5 rounded-3xl border border-emerald-800/40 space-y-4">
+                            <div class="border-b border-emerald-800/60 pb-2">
+                                <h4 class="text-sm font-black text-emerald-400">💧 Параметри поливу винограду</h4>
+                            </div>
+                            <div class="grid grid-cols-2 gap-4">
+                                <div class="space-y-2">
+                                    <label class="text-[10px] font-black uppercase tracking-widest text-emerald-300/80">Крапельниць на кущ</label>
+                                    <input type="number" id="fert-drippers" value="2" min="1" oninput="runFertigationCalculations()" class="w-full p-3.5 rounded-xl bg-white/5 border border-white/20 outline-none text-base font-black text-white focus:bg-white/10 focus:border-emerald-400 transition-all">
+                                </div>
+                                <div class="space-y-2">
+                                    <label class="text-[10px] font-black uppercase tracking-widest text-emerald-300/80">Вилив (л/год)</label>
+                                    <input type="number" id="fert-dripper-flow" value="2.0" min="0.5" step="0.5" oninput="runFertigationCalculations()" class="w-full p-3.5 rounded-xl bg-white/5 border border-white/20 outline-none text-base font-black text-white focus:bg-white/10 focus:border-emerald-400 transition-all">
+                                </div>
+                            </div>
+                            <div class="grid grid-cols-2 gap-4">
+                                <div class="space-y-2">
+                                    <label class="text-[10px] font-black uppercase tracking-widest text-emerald-300/80">Вода на 1 кущ (л)</label>
+                                    <input type="number" id="fert-water-target" value="15" min="1" oninput="runFertigationCalculations()" class="w-full p-3.5 rounded-xl bg-white/5 border border-white/20 outline-none text-base font-black text-white focus:bg-white/10 focus:border-emerald-400 transition-all">
+                                </div>
+                                <div class="space-y-2">
+                                    <label class="text-[10px] font-black uppercase tracking-widest text-emerald-300/80">Сухе добриво (г/кущ)</label>
+                                    <input type="number" id="fert-dry-dose" value="10" min="0" oninput="runFertigationCalculations()" class="w-full p-3.5 rounded-xl bg-white/5 border border-white/20 outline-none text-base font-black text-white focus:bg-white/10 focus:border-emerald-400 transition-all">
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Column 2: Venturi Injection Stock tank -->
+                        <div class="bg-emerald-950/40 p-5 rounded-3xl border border-emerald-800/40 space-y-4">
+                            <div class="border-b border-emerald-800/60 pb-2">
+                                <h4 class="text-sm font-black text-emerald-400">🧪 Дозатор Вентурі / Маточний бак</h4>
+                            </div>
+                            <div class="space-y-2">
+                                <label class="text-[10px] font-black uppercase tracking-widest text-emerald-300/80">Об'єм маточного бака (літри)</label>
+                                <input type="number" id="fert-stock-vol" value="10" min="1" oninput="runFertigationCalculations()" class="w-full p-3.5 rounded-xl bg-white/5 border border-white/20 outline-none text-base font-black text-white focus:bg-white/10 focus:border-emerald-400 transition-all">
+                            </div>
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                <div class="space-y-2">
+                                    <label class="text-[10px] font-black uppercase tracking-widest text-emerald-300/80">Всмоктування (ділення)</label>
+                                    <select id="fert-inject-ratio" onchange="applyFertInjectPreset()" class="w-full p-3.5 rounded-xl bg-emerald-900 border border-emerald-700 outline-none font-bold text-xs text-white cursor-pointer hover:bg-emerald-800 transition-all">
+                                        <option value="0.01">1:100 (1%)</option>
+                                        <option value="0.02">1:50 (2%)</option>
+                                        <option value="0.005">1:200 (0.5%)</option>
+                                        <option value="0.1">1:10 (10%)</option>
+                                        <option value="custom">-- Інший коефіцієнт --</option>
+                                    </select>
+                                </div>
+                                <div class="space-y-2">
+                                    <label class="text-[10px] font-black uppercase tracking-widest text-emerald-300/80">Коефіцієнт (K)</label>
+                                    <input type="number" id="fert-inject-k" value="0.01" min="0.0001" step="0.001" oninput="runFertigationCalculations()" class="w-full p-3.5 rounded-xl bg-white/5 border border-white/20 outline-none text-base font-black text-white focus:bg-white/10 focus:border-emerald-400 transition-all">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Salinity Alert Box -->
+                    <div id="fert-salinity-alert" class="transition-all duration-300">
+                        <!-- Injected salinity check alerts -->
+                    </div>
+
+                    <!-- Fertigation Outputs Grid -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
+                        <div class="bg-emerald-950/60 p-5 rounded-2xl border border-emerald-850">
+                            <h5 class="text-[10px] font-black uppercase tracking-widest text-emerald-400">💧 Параметри Води</h5>
+                            <div class="mt-2 flex items-baseline gap-1 text-white">
+                                <span class="text-2xl font-black" id="fert-res-water">150</span>
+                                <span class="text-xs font-bold text-emerald-300">літрів</span>
+                            </div>
+                            <div class="mt-1 flex items-baseline gap-1 text-emerald-200/70 text-[10px]">
+                                ⏱️ Час поливу: <span class="font-black text-white" id="fert-res-time">3 год 45 хв</span>
+                            </div>
+                            <div class="mt-1 flex items-baseline gap-1 text-emerald-200/70 text-[10px]">
+                                🥛 Готова суміш під кущ: <span class="font-black text-white" id="fert-res-bush-mix-vol">15 л</span>
+                            </div>
+                        </div>
+                        
+                        <div class="bg-emerald-950/60 p-5 rounded-2xl border border-emerald-850">
+                            <h5 class="text-[10px] font-black uppercase tracking-widest text-emerald-400">🧪 Суха Вага Живлення</h5>
+                            <div class="mt-2 flex items-baseline gap-1 text-white">
+                                <span class="text-2xl font-black" id="fert-res-mass">100</span>
+                                <span class="text-xs font-bold text-emerald-300">грам</span>
+                            </div>
+                            <div class="mt-1 flex items-baseline gap-1 text-emerald-200/70 text-[10px]">
+                                🥛 На 1 л води: <span class="font-black text-white" id="fert-res-conc">0.67 г/л</span>
+                            </div>
+                        </div>
+
+                        <div class="bg-emerald-950/60 p-5 rounded-2xl border border-emerald-850">
+                            <h5 class="text-[10px] font-black uppercase tracking-widest text-emerald-450">📊 Електропровідність (EC)</h5>
+                            <div class="mt-2 flex items-baseline gap-1 text-white">
+                                <span class="text-2xl font-black" id="fert-res-ec">0.80</span>
+                                <span class="text-xs font-bold text-emerald-300">mS/cm</span>
+                            </div>
+                            <div class="mt-1 flex items-baseline gap-1 text-emerald-200/70 text-[10px]">
+                                🛑 Поріг: <span class="font-black text-white">2.0 mS/cm</span>
+                            </div>
+                        </div>
+
+                        <div class="bg-emerald-950/60 p-5 rounded-2xl border border-emerald-850">
+                            <h5 class="text-[10px] font-black uppercase tracking-widest text-emerald-400">🧪 Розчин у Маточному Баку</h5>
+                            <div class="mt-2 flex items-baseline gap-1 text-white">
+                                <span class="text-2xl font-black" id="fert-res-stock">2.00</span>
+                                <span class="text-xs font-bold text-emerald-300">кг</span>
+                            </div>
+                            <div class="mt-1 flex items-baseline gap-1 text-emerald-200/70 text-[10px]">
+                                💧 Для бака: <span class="font-black text-white" id="fert-res-stock-vol">10 л</span>
+                            </div>
+                            <div class="mt-1 flex items-baseline gap-1 text-emerald-200/70 text-[10px]">
+                                🧪 Маточний розчин під кущ: <span class="font-black text-white" id="fert-res-bush-stock-vol">150 мл</span>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </section>
@@ -1934,87 +2211,466 @@
             renderVarietiesList();
         }
 
-        // --- DUAL-MODE FERTIGATION CALCULATOR LOGIC ---
-        function switchCalcMode(mode) {
-            calcMode = mode;
-            
-            // Tab active state toggle
-            document.getElementById('calc-tab-simple').className = mode === 'simple' 
-                ? 'px-6 py-2.5 rounded-xl text-xs font-black transition-all bg-emerald-500 text-white shadow-md' 
-                : 'px-6 py-2.5 rounded-xl text-xs font-black transition-all text-emerald-300 hover:text-white';
-            document.getElementById('calc-tab-advanced').className = mode === 'advanced' 
-                ? 'px-6 py-2.5 rounded-xl text-xs font-black transition-all bg-emerald-500 text-white shadow-md' 
-                : 'px-6 py-2.5 rounded-xl text-xs font-black transition-all text-emerald-300 hover:text-white';
-            
-            // Div visibility toggle
-            if (mode === 'simple') {
-                document.getElementById('calc-mode-simple').classList.remove('hidden');
-                document.getElementById('calc-mode-advanced').classList.add('hidden');
-                document.getElementById('calc-result-title').innerText = 'Необхідна маса готового добрива (з пачки):';
-            } else {
-                document.getElementById('calc-mode-simple').classList.add('hidden');
-                document.getElementById('calc-mode-advanced').classList.remove('hidden');
-                document.getElementById('calc-result-title').innerText = 'Необхідна маса комерційного добрива:';
-            }
-            
-            runCalculations();
+        // --- SPECIALIZED VITICULTURE CALCULATORS LOGIC ---
+        let activeSubCalc = 'npk';
+        let protectionWaterMode = 'bushes';
+        let protectionMixerItems = [];
+
+        function switchSubCalc(subtab) {
+            activeSubCalc = subtab;
+            const subtabs = ['npk', 'protection', 'fertigation'];
+            subtabs.forEach(t => {
+                const btn = document.getElementById(`subtab-btn-${t}`);
+                const tabContent = document.getElementById(`subtab-${t}`);
+                if (t === subtab) {
+                    btn.className = 'px-6 py-2.5 rounded-xl text-xs font-black transition-all bg-emerald-500 text-white shadow-md';
+                    tabContent.classList.remove('hidden');
+                } else {
+                    btn.className = 'px-6 py-2.5 rounded-xl text-xs font-black transition-all text-emerald-300 hover:text-white';
+                    tabContent.classList.add('hidden');
+                }
+            });
+            localStorage.setItem('activeSubCalc', subtab);
+            runAllCalculations();
         }
 
-        function applyFertilizerPreset() {
-            const val = document.getElementById('fertilizer-preset').value;
-            const percentInput = document.getElementById('calc-percent');
+        function updateSharedBushes(val) {
+            const numericVal = parseInt(val) || 1;
+            document.getElementById('shared-bushes').value = numericVal;
+            localStorage.setItem('viticulture-bushes-count', numericVal);
+            runAllCalculations();
+        }
+
+        const npkPresets = {
+            start: { n: 15, p: 5, k: 5 },
+            prebloom: { n: 10, p: 15, k: 10 },
+            berry: { n: 10, p: 10, k: 25 },
+            autumn: { n: 0, p: 20, k: 30 }
+        };
+
+        function applyNPKPhasePreset() {
+            const preset = document.getElementById('npk-phase-preset').value;
+            if (preset && preset !== 'custom') {
+                const values = npkPresets[preset];
+                document.getElementById('npk-target-n').value = values.n;
+                document.getElementById('npk-target-p').value = values.p;
+                document.getElementById('npk-target-k').value = values.k;
+            }
+            runNPKCalculations();
+        }
+
+        const fertPresets = {
+            urea: { label: 'Карбамід (Сечовина)', percent: 46 },
+            nitrate: { label: 'Аміачна селітра', percent: 34 },
+            yaramila_n: { label: 'YaraMila Complex', percent: 12 },
+            calcium: { label: 'Кальцієва селітра', percent: 15 },
+            monopotassium_p: { label: 'Монофосфат калію', percent: 52 },
+            yaramila_p: { label: 'YaraMila Complex', percent: 11 },
+            monopotassium_k: { label: 'Монофосфат калію', percent: 34 },
+            sulfate: { label: 'Сульфат калію', percent: 50 },
+            yaramila_k: { label: 'YaraMila Complex', percent: 18 }
+        };
+
+        function applyNPKFertilizerSelect(element) {
+            const selectVal = document.getElementById(`npk-fertilizer-${element}`).value;
+            const percentInput = document.getElementById(`npk-percent-${element}`);
+            const resultLabel = document.getElementById(`npk-result-label-${element}`);
             
-            const presets = {
-                yaramila: 12,
-                urea: 46,
-                nitrate: 34,
-                monopotassium: 34,
-                sulfate: 50,
-                calcium: 26
-            };
+            let presetKey = selectVal;
+            if (selectVal === 'yaramila') {
+                presetKey = `yaramila_${element}`;
+            } else if (selectVal === 'monopotassium') {
+                presetKey = `monopotassium_${element}`;
+            }
             
-            if (presets[val]) {
-                percentInput.value = presets[val];
+            if (fertPresets[presetKey]) {
+                percentInput.value = fertPresets[presetKey].percent;
                 percentInput.readOnly = true;
                 percentInput.classList.add('opacity-60');
+                resultLabel.innerText = fertPresets[presetKey].label;
             } else {
                 percentInput.readOnly = false;
                 percentInput.classList.remove('opacity-60');
+                resultLabel.innerText = 'Власне добриво';
             }
             
-            runCalculations();
+            runNPKCalculations();
         }
 
-        function runCalculations() {
-            let resultGrams = 0;
+        function runNPKCalculations() {
+            const bushes = parseInt(document.getElementById('shared-bushes').value) || 0;
             
-            if (calcMode === 'simple') {
-                const bushes = parseFloat(document.getElementById('simple-bushes').value) || 0;
-                const dose = parseFloat(document.getElementById('simple-dose').value) || 0;
+            // Nitrogen (N)
+            const targetN = parseFloat(document.getElementById('npk-target-n').value) || 0;
+            const percentN = parseFloat(document.getElementById('npk-percent-n').value) || 1;
+            const massN = (targetN * bushes * 100) / percentN;
+            document.getElementById('npk-result-n').innerText = massN >= 1000 
+                ? (massN / 1000).toFixed(2) + ' кг' 
+                : Math.round(massN) + ' г';
                 
-                resultGrams = bushes * dose;
+            // Phosphorus (P)
+            const targetP = parseFloat(document.getElementById('npk-target-p').value) || 0;
+            const percentP = parseFloat(document.getElementById('npk-percent-p').value) || 1;
+            const massP = (targetP * bushes * 100) / percentP;
+            document.getElementById('npk-result-p').innerText = massP >= 1000 
+                ? (massP / 1000).toFixed(2) + ' кг' 
+                : Math.round(massP) + ' г';
+                
+            // Potassium (K)
+            const targetK = parseFloat(document.getElementById('npk-target-k').value) || 0;
+            const percentK = parseFloat(document.getElementById('npk-percent-k').value) || 1;
+            const massK = (targetK * bushes * 100) / percentK;
+            document.getElementById('npk-result-k').innerText = massK >= 1000 
+                ? (massK / 1000).toFixed(2) + ' кг' 
+                : Math.round(massK) + ' г';
+
+            // Detect manual edit and set dropdown to Custom if target doesn't match phase
+            const currentPreset = document.getElementById('npk-phase-preset').value;
+            if (currentPreset && currentPreset !== 'custom') {
+                const presetVals = npkPresets[currentPreset];
+                if (presetVals && (presetVals.n !== targetN || presetVals.p !== targetP || presetVals.k !== targetK)) {
+                    document.getElementById('npk-phase-preset').value = 'custom';
+                }
+            }
+            saveCalculatorsState();
+        }
+
+        function switchWaterMode(mode) {
+            protectionWaterMode = mode;
+            const btnBushes = document.getElementById('water-mode-btn-bushes');
+            const btnArea = document.getElementById('water-mode-btn-area');
+            const inputsBushes = document.getElementById('water-inputs-bushes');
+            const inputsArea = document.getElementById('water-inputs-area');
+            
+            if (mode === 'bushes') {
+                btnBushes.className = 'flex-1 py-2 rounded-lg text-[10px] font-black transition-all bg-emerald-500 text-white shadow';
+                btnArea.className = 'flex-1 py-2 rounded-lg text-[10px] font-black transition-all text-emerald-300 hover:text-white';
+                inputsBushes.classList.remove('hidden');
+                inputsArea.classList.add('hidden');
             } else {
-                const bushes = parseFloat(document.getElementById('calc-bushes').value) || 0;
-                const norm = parseFloat(document.getElementById('calc-norm').value) || 0;
-                const percent = parseFloat(document.getElementById('calc-percent').value) || 1;
-                
-                resultGrams = (bushes * norm * 100) / percent;
-                
-                // Update explanation subtext
-                const singleBushFertilizer = ((norm * 100) / percent).toFixed(1);
-                document.getElementById('calc-explanation-text').innerText = 
-                    `Для забезпечення ${norm} г чистої діючої речовини при вмісті ${percent}% ДР, необхідно внести ${singleBushFertilizer} г фізичної ваги комерційного препарату на один кущ. На ${bushes} кущів загальна потреба складе ${resultGrams >= 1000 ? (resultGrams/1000).toFixed(2) + ' кг' : Math.round(resultGrams) + ' г'}.`;
+                btnBushes.className = 'flex-1 py-2 rounded-lg text-[10px] font-black transition-all text-emerald-300 hover:text-white';
+                btnArea.className = 'flex-1 py-2 rounded-lg text-[10px] font-black transition-all bg-emerald-500 text-white shadow';
+                inputsBushes.classList.add('hidden');
+                inputsArea.classList.remove('hidden');
             }
-            
-            document.getElementById('calc-result').innerText = resultGrams >= 1000 
-                ? (resultGrams / 1000).toFixed(2) + ' кг' 
-                : Math.round(resultGrams) + ' г';
+            runProtectionCalculations();
         }
 
-        // Add event listeners to input elements for real-time recalculation
-        document.querySelectorAll('#calc-mode-simple input, #calc-mode-advanced input').forEach(el => {
-            el.addEventListener('input', runCalculations);
-        });
+        function addProtectionMixerRow(name = '', dose = 3, unit = '10l') {
+            const id = Date.now() + Math.random().toString(36).substr(2, 9);
+            protectionMixerItems.push({ id, name, dose, unit });
+            renderProtectionMixer();
+            runProtectionCalculations();
+        }
+
+        function deleteProtectionMixerRow(id) {
+            protectionMixerItems = protectionMixerItems.filter(item => item.id !== id);
+            renderProtectionMixer();
+            runProtectionCalculations();
+        }
+
+        function updateMixerItem(id, field, value) {
+            const item = protectionMixerItems.find(i => i.id === id);
+            if (item) {
+                if (field === 'dose') {
+                    item[field] = parseFloat(value) || 0;
+                } else {
+                    item[field] = value;
+                }
+                runProtectionCalculations();
+            }
+        }
+
+        function renderProtectionMixer() {
+            const container = document.getElementById('protection-mixer-rows');
+            if (protectionMixerItems.length === 0) {
+                container.innerHTML = `
+                    <div class="text-center py-6 text-xs text-emerald-300/50 bg-emerald-900/20 rounded-2xl border border-dashed border-emerald-850">
+                        Бакова суміш порожня. Натисніть "+ Додати препарат", щоб додати препарати.
+                    </div>
+                `;
+                return;
+            }
+            
+            container.innerHTML = protectionMixerItems.map(item => `
+                <div class="grid grid-cols-1 md:grid-cols-12 gap-3 bg-emerald-900/30 p-3 rounded-2xl border border-emerald-850 items-center">
+                    <div class="col-span-12 md:col-span-5">
+                        <label class="block md:hidden text-[9px] font-black uppercase text-emerald-400 mb-1">Назва препарату</label>
+                        <input type="text" value="${item.name}" placeholder="напр. Хорус / Танос" oninput="updateMixerItem('${item.id}', 'name', this.value)" class="w-full px-4 py-2.5 rounded-xl bg-white/5 border border-white/10 outline-none text-xs font-bold text-white focus:bg-white/10 focus:border-emerald-400 transition-all">
+                    </div>
+                    <div class="col-span-6 md:col-span-3">
+                        <label class="block md:hidden text-[9px] font-black uppercase text-emerald-400 mb-1">Доза</label>
+                        <input type="number" value="${item.dose}" min="0.1" step="0.1" oninput="updateMixerItem('${item.id}', 'dose', this.value)" class="w-full px-4 py-2.5 rounded-xl bg-white/5 border border-white/10 outline-none text-xs font-bold text-white text-center focus:bg-white/10 focus:border-emerald-400 transition-all">
+                    </div>
+                    <div class="col-span-6 md:col-span-3">
+                        <label class="block md:hidden text-[9px] font-black uppercase text-emerald-400 mb-1">Тип дозування</label>
+                        <select onchange="updateMixerItem('${item.id}', 'unit', this.value)" class="w-full px-3 py-2.5 rounded-xl bg-emerald-900 border border-emerald-700 outline-none font-bold text-xs text-white cursor-pointer hover:bg-emerald-800 transition-all">
+                            <option value="10l" ${item.unit === '10l' ? 'selected' : ''}>г (мл) на 10 л води</option>
+                            <option value="sotka" ${item.unit === 'sotka' ? 'selected' : ''}>г (мл) на 1 сотку</option>
+                        </select>
+                    </div>
+                    <div class="col-span-12 md:col-span-1 text-right md:text-center mt-2 md:mt-0">
+                        <button onclick="deleteProtectionMixerRow('${item.id}')" class="p-2.5 rounded-xl bg-rose-950/40 text-rose-300 border border-rose-900/50 hover:bg-rose-900/40 transition-all text-xs font-bold w-full md:w-auto">
+                            ✕
+                        </button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function runProtectionCalculations() {
+            const bushes = parseInt(document.getElementById('shared-bushes').value) || 0;
+            let waterVolume = 0;
+            let areaSotka = 0;
+            
+            if (protectionWaterMode === 'bushes') {
+                const leafPhaseRate = parseFloat(document.getElementById('protection-leaf-phase').value) || 0.7;
+                waterVolume = bushes * leafPhaseRate;
+                areaSotka = waterVolume / 6.0;
+                document.getElementById('protection-water-explanation').innerText = `Розраховано на основі ${bushes} кущів по ${leafPhaseRate} л`;
+            } else {
+                areaSotka = parseFloat(document.getElementById('protection-area').value) || 1.5;
+                const sprayRate = parseFloat(document.getElementById('protection-spray-rate').value) || 6.0;
+                waterVolume = areaSotka * sprayRate;
+                document.getElementById('protection-water-explanation').innerText = `Розраховано для ${areaSotka} соток при нормі ${sprayRate} л/сотку`;
+            }
+            
+            document.getElementById('protection-water-volume').innerText = waterVolume.toFixed(1) + ' л';
+            
+            const acidMass = (waterVolume / 10.0) * 1.0;
+            document.getElementById('protection-acid-result').innerText = acidMass.toFixed(1) + ' г';
+            
+            const recipeList = document.getElementById('protection-final-recipe-list');
+            if (protectionMixerItems.length === 0) {
+                recipeList.innerHTML = `<li class="py-2 text-center text-emerald-400/70">Суміш порожня. Додайте препарати вище.</li>`;
+            } else {
+                recipeList.innerHTML = protectionMixerItems.map(item => {
+                    let computedWeight = 0;
+                    let calcDetail = '';
+                    
+                    if (item.unit === '10l') {
+                        computedWeight = (waterVolume / 10.0) * item.dose;
+                        calcDetail = `(${waterVolume.toFixed(1)} л / 10 л × ${item.dose} г/мл)`;
+                    } else {
+                        computedWeight = areaSotka * item.dose;
+                        calcDetail = `(${areaSotka.toFixed(2)} сотки × ${item.dose} г/мл)`;
+                    }
+                    
+                    const dosePerL = waterVolume > 0 ? (computedWeight / waterVolume) : 0;
+                    const dosePerLStr = dosePerL.toFixed(dosePerL < 0.01 ? 4 : 3).replace(/\.?0+$/, '');
+                    const itemNameHtml = item.name ? `<strong>${item.name}</strong>` : `<span class="italic text-white/50">Без назви</span>`;
+                    
+                    return `
+                        <li class="py-2.5 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-1">
+                            <div class="flex items-center gap-2">
+                                <span class="text-[10px] text-emerald-400">⚫</span>
+                                <div>
+                                    ${itemNameHtml}
+                                    <span class="text-[10px] text-emerald-300/60 ml-2">${calcDetail}</span>
+                                </div>
+                            </div>
+                            <div class="flex flex-col items-end self-end sm:self-auto mt-1 sm:mt-0">
+                                <span class="bg-emerald-800 text-white font-black px-3.5 py-1 rounded-xl text-xs border border-emerald-700/60">${computedWeight.toFixed(1)} г (мл)</span>
+                                <span class="text-[10px] text-emerald-300/70 mt-0.5">${dosePerLStr} г(мл) на 1 л води</span>
+                            </div>
+                        </li>
+                    `;
+                }).join('');
+            }
+            
+            saveCalculatorsState();
+        }
+
+        function applyFertInjectPreset() {
+            const val = document.getElementById('fert-inject-ratio').value;
+            const kInput = document.getElementById('fert-inject-k');
+            if (val !== 'custom') {
+                kInput.value = val;
+                kInput.readOnly = true;
+                kInput.classList.add('opacity-60');
+            } else {
+                kInput.readOnly = false;
+                kInput.classList.remove('opacity-60');
+            }
+            runFertigationCalculations();
+        }
+
+        function runFertigationCalculations() {
+            const bushes = parseInt(document.getElementById('shared-bushes').value) || 0;
+            const drippersPerBush = parseInt(document.getElementById('fert-drippers').value) || 2;
+            const flowRate = parseFloat(document.getElementById('fert-dripper-flow').value) || 2.0;
+            const targetWater = parseFloat(document.getElementById('fert-water-target').value) || 15;
+            const dryDose = parseFloat(document.getElementById('fert-dry-dose').value) || 10;
+            const stockVol = parseFloat(document.getElementById('fert-stock-vol').value) || 10;
+            const injectK = parseFloat(document.getElementById('fert-inject-k').value) || 0.01;
+            
+            const totalWater = bushes * targetWater;
+            document.getElementById('fert-res-water').innerText = totalWater;
+            
+            const runtimeHoursVal = targetWater / (drippersPerBush * flowRate);
+            const hours = Math.floor(runtimeHoursVal);
+            const minutes = Math.round((runtimeHoursVal - hours) * 60);
+            document.getElementById('fert-res-time').innerText = `${hours} год ${minutes} хв`;
+            
+            const totalMass = bushes * dryDose;
+            document.getElementById('fert-res-mass').innerText = totalMass >= 1000 
+                ? (totalMass / 1000).toFixed(2) + ' кг' 
+                : Math.round(totalMass) + ' г';
+                
+            const concVal = totalWater > 0 ? (totalMass / totalWater) : 0;
+            document.getElementById('fert-res-conc').innerText = concVal.toFixed(2) + ' г/л';
+            
+            const ecVal = concVal * 1.2;
+            document.getElementById('fert-res-ec').innerText = ecVal.toFixed(2);
+            
+            const alertBox = document.getElementById('fert-salinity-alert');
+            if (ecVal > 2.0) {
+                alertBox.innerHTML = `
+                    <div class="bg-rose-950/70 border border-rose-800/80 p-4 rounded-2xl flex items-start gap-3 mt-4 text-xs text-rose-200">
+                        <span class="text-xl">⚠️</span>
+                        <div>
+                            <strong class="text-rose-100 uppercase font-black">Критична солоність! Ризик хімічного опіку коріння солями (EC = ${ecVal.toFixed(2)} mS/cm)</strong>
+                            <p class="mt-1 opacity-90">Розраховане значення EC перевищує безпечний поріг 2.0 mS/cm. Рекомендуємо збільшити об'єм води на один кущ або знизити дозування сухого добрива.</p>
+                        </div>
+                    </div>
+                `;
+            } else {
+                alertBox.innerHTML = `
+                    <div class="bg-emerald-950/40 border border-emerald-800/40 p-4 rounded-2xl flex items-start gap-3 mt-4 text-xs text-emerald-300">
+                        <span class="text-xl">✅</span>
+                        <div>
+                            <strong class="text-emerald-100 uppercase font-black">Рівень солоності безпечний для коріння (EC = ${ecVal.toFixed(2)} mS/cm)</strong>
+                            <p class="mt-0.5 opacity-80">Поточна концентрація добрива підходить для поливу без ризику засолення грунту.</p>
+                        </div>
+                    </div>
+                `;
+            }
+            
+            const stockMassGrams = totalWater > 0 && injectK > 0 
+                ? (totalMass * stockVol) / (totalWater * injectK) 
+                : 0;
+            document.getElementById('fert-res-stock').innerText = stockMassGrams >= 1000 
+                ? (stockMassGrams / 1000).toFixed(2) + ' кг' 
+                : Math.round(stockMassGrams) + ' г';
+            document.getElementById('fert-res-stock-vol').innerText = stockVol + ' л';
+            
+            // Ready mixture and stock solution per bush
+            document.getElementById('fert-res-bush-mix-vol').innerText = targetWater.toFixed(1) + ' л';
+            const stockPerBushL = targetWater * injectK;
+            const stockPerBushStr = stockPerBushL < 1.0 
+                ? Math.round(stockPerBushL * 1000) + ' мл' 
+                : stockPerBushL.toFixed(2) + ' л';
+            document.getElementById('fert-res-bush-stock-vol').innerText = stockPerBushStr;
+            
+            saveCalculatorsState();
+        }
+
+        function runAllCalculations() {
+            runNPKCalculations();
+            runProtectionCalculations();
+            runFertigationCalculations();
+        }
+
+        function saveCalculatorsState() {
+            const state = {
+                npkPhasePreset: document.getElementById('npk-phase-preset').value,
+                npkTargetN: document.getElementById('npk-target-n').value,
+                npkTargetP: document.getElementById('npk-target-p').value,
+                npkTargetK: document.getElementById('npk-target-k').value,
+                npkFertilizerN: document.getElementById('npk-fertilizer-n').value,
+                npkFertilizerP: document.getElementById('npk-fertilizer-p').value,
+                npkFertilizerK: document.getElementById('npk-fertilizer-k').value,
+                npkPercentN: document.getElementById('npk-percent-n').value,
+                npkPercentP: document.getElementById('npk-percent-p').value,
+                npkPercentK: document.getElementById('npk-percent-k').value,
+                protectionWaterMode: protectionWaterMode,
+                protectionLeafPhase: document.getElementById('protection-leaf-phase').value,
+                protectionArea: document.getElementById('protection-area').value,
+                protectionSprayRate: document.getElementById('protection-spray-rate').value,
+                protectionMixerItems: protectionMixerItems,
+                fertDrippers: document.getElementById('fert-drippers').value,
+                fertDripperFlow: document.getElementById('fert-dripper-flow').value,
+                fertWaterTarget: document.getElementById('fert-water-target').value,
+                fertDryDose: document.getElementById('fert-dry-dose').value,
+                fertStockVol: document.getElementById('fert-stock-vol').value,
+                fertInjectRatio: document.getElementById('fert-inject-ratio').value,
+                fertInjectK: document.getElementById('fert-inject-k').value
+            };
+            localStorage.setItem('viticulture-calculators-state', JSON.stringify(state));
+        }
+
+        function loadCalculatorsState() {
+            const cachedBushes = localStorage.getItem('viticulture-bushes-count');
+            if (cachedBushes) {
+                document.getElementById('shared-bushes').value = cachedBushes;
+            }
+            
+            const cachedStateStr = localStorage.getItem('viticulture-calculators-state');
+            if (!cachedStateStr) {
+                protectionMixerItems = [
+                    { id: '1', name: 'Хорус', dose: 3, unit: '10l' },
+                    { id: '2', name: 'Топаз', dose: 4, unit: '10l' }
+                ];
+                renderProtectionMixer();
+                runAllCalculations();
+                return;
+            }
+            
+            try {
+                const state = JSON.parse(cachedStateStr);
+                
+                if (state.npkPhasePreset) document.getElementById('npk-phase-preset').value = state.npkPhasePreset;
+                if (state.npkTargetN) document.getElementById('npk-target-n').value = state.npkTargetN;
+                if (state.npkTargetP) document.getElementById('npk-target-p').value = state.npkTargetP;
+                if (state.npkTargetK) document.getElementById('npk-target-k').value = state.npkTargetK;
+                if (state.npkFertilizerN) document.getElementById('npk-fertilizer-n').value = state.npkFertilizerN;
+                if (state.npkFertilizerP) document.getElementById('npk-fertilizer-p').value = state.npkFertilizerP;
+                if (state.npkFertilizerK) document.getElementById('npk-fertilizer-k').value = state.npkFertilizerK;
+                if (state.npkPercentN) document.getElementById('npk-percent-n').value = state.npkPercentN;
+                if (state.npkPercentP) document.getElementById('npk-percent-p').value = state.npkPercentP;
+                if (state.npkPercentK) document.getElementById('npk-percent-k').value = state.npkPercentK;
+                
+                applyNPKFertilizerSelect('n');
+                applyNPKFertilizerSelect('p');
+                applyNPKFertilizerSelect('k');
+                
+                if (state.protectionWaterMode) {
+                    protectionWaterMode = state.protectionWaterMode;
+                    switchWaterMode(protectionWaterMode);
+                }
+                if (state.protectionLeafPhase) document.getElementById('protection-leaf-phase').value = state.protectionLeafPhase;
+                if (state.protectionArea) document.getElementById('protection-area').value = state.protectionArea;
+                if (state.protectionSprayRate) document.getElementById('protection-spray-rate').value = state.protectionSprayRate;
+                if (state.protectionMixerItems) {
+                    protectionMixerItems = state.protectionMixerItems;
+                } else {
+                    protectionMixerItems = [];
+                }
+                renderProtectionMixer();
+                
+                if (state.fertDrippers) document.getElementById('fert-drippers').value = state.fertDrippers;
+                if (state.fertDripperFlow) document.getElementById('fert-dripper-flow').value = state.fertDripperFlow;
+                if (state.fertWaterTarget) document.getElementById('fert-water-target').value = state.fertWaterTarget;
+                if (state.fertDryDose) document.getElementById('fert-dry-dose').value = state.fertDryDose;
+                if (state.fertStockVol) document.getElementById('fert-stock-vol').value = state.fertStockVol;
+                if (state.fertInjectRatio) document.getElementById('fert-inject-ratio').value = state.fertInjectRatio;
+                if (state.fertInjectK) document.getElementById('fert-inject-k').value = state.fertInjectK;
+                applyFertInjectPreset();
+                
+                const subtab = localStorage.getItem('activeSubCalc') || 'npk';
+                switchSubCalc(subtab);
+                
+            } catch (e) {
+                console.error("Error loading calculator state:", e);
+                protectionMixerItems = [
+                    { id: '1', name: 'Хорус', dose: 3, unit: '10l' },
+                    { id: '2', name: 'Топаз', dose: 4, unit: '10l' }
+                ];
+                renderProtectionMixer();
+            }
+            
+            runAllCalculations();
+        }
 
         // --- GIBBERELLIC ACID (GA3) CALCULATOR LOGIC ---
         function calculateGA3() {
@@ -2284,7 +2940,7 @@
             renderVarietiesList();
             updateSATDisplay();
             updateMilestoneProgress();
-            runCalculations();
+            loadCalculatorsState();
             calculateGA3();
             calculateDiseaseRisk();
             updateFrostWarning();
