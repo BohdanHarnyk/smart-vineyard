@@ -143,42 +143,51 @@
                     </span>
                 </div>
 
-                <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
-                    <!-- Left Column: Add Task and Active Tasks -->
-                    <div class="lg:col-span-6 space-y-6">
-                        <div class="bg-stone-50 p-6 rounded-3xl border border-stone-200/60">
-                            <h4 class="text-xs font-black uppercase tracking-wider text-emerald-800 mb-3">Додати нову операцію</h4>
-                            <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                                <div class="sm:col-span-2">
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 items-stretch">
+                    <!-- Column 1: Add Task Form -->
+                    <div class="bg-stone-50/80 p-6 rounded-3xl border border-stone-200/60 flex flex-col justify-between">
+                        <div>
+                            <h4 class="text-xs font-black uppercase tracking-wider text-emerald-800 mb-4 flex items-center gap-2">
+                                <span>➕</span> Додати нову операцію
+                            </h4>
+                            <div class="space-y-4">
+                                <div>
                                     <label class="text-[9px] font-black uppercase text-stone-400 block mb-1">Опис роботи / Пам'ятка</label>
-                                    <input type="text" id="todo-text" placeholder="напр. Обробити Луною від оїдіуму..." class="w-full p-3 rounded-xl bg-white border border-stone-200 focus:border-emerald-500 outline-none font-semibold text-sm text-stone-800">
+                                    <input type="text" id="todo-text" placeholder="напр. Обробити Луною від оїдіуму..." class="w-full p-3 rounded-xl bg-white border border-stone-200 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 outline-none font-semibold text-sm text-stone-800">
                                 </div>
-                                <div class="sm:col-span-1">
+                                <div>
                                     <label class="text-[9px] font-black uppercase text-stone-400 block mb-1">Термін</label>
-                                    <input type="date" id="todo-due-date" class="w-full p-3 rounded-xl bg-white border border-stone-200 outline-none font-bold text-sm text-stone-800">
+                                    <input type="date" id="todo-due-date" class="w-full p-3 rounded-xl bg-white border border-stone-200 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 outline-none font-bold text-sm text-stone-800">
                                 </div>
                             </div>
-                            <button onclick="addTodoItem()" class="w-full mt-4 bg-emerald-600 hover:bg-emerald-700 text-white py-3 rounded-xl font-black transition-all text-sm uppercase tracking-wider">
-                                Додати завдання ➕
-                            </button>
                         </div>
+                        <button onclick="addTodoItem()" class="w-full mt-6 bg-emerald-600 hover:bg-emerald-700 text-white py-3.5 rounded-xl font-black transition-all text-sm uppercase tracking-wider shadow-sm hover:shadow-md">
+                            Додати завдання
+                        </button>
+                    </div>
 
+                    <!-- Column 2: Active Tasks -->
+                    <div class="bg-white p-6 rounded-3xl border border-stone-200/60 flex flex-col justify-between">
                         <div>
-                            <h4 class="text-xs font-black uppercase tracking-wider text-stone-500 mb-3">Заплановані роботи</h4>
-                            <div id="todo-active-list" class="space-y-2.5 max-h-[300px] overflow-y-auto pr-2 custom-scrollbar">
+                            <h4 class="text-xs font-black uppercase tracking-wider text-stone-500 mb-4 flex items-center gap-2">
+                                <span>⏳</span> Заплановані роботи
+                            </h4>
+                            <div id="todo-active-list" class="space-y-2.5 h-[280px] overflow-y-auto pr-2 custom-scrollbar">
                                 <!-- Active tasks will be rendered here -->
                             </div>
                         </div>
                     </div>
 
-                    <!-- Right Column: Completed Operations with Execution Dates -->
-                    <div class="lg:col-span-6 bg-emerald-50/20 p-6 rounded-[30px] border border-emerald-100/50 flex flex-col justify-between">
+                    <!-- Column 3: Completed Operations -->
+                    <div class="bg-emerald-50/20 p-6 rounded-3xl border border-emerald-100/50 flex flex-col justify-between">
                         <div>
-                            <div class="flex justify-between items-center mb-3">
-                                <h4 class="text-xs font-black uppercase tracking-wider text-emerald-900">Журнал виконаних робіт</h4>
+                            <div class="flex justify-between items-center mb-4">
+                                <h4 class="text-xs font-black uppercase tracking-wider text-emerald-900 flex items-center gap-2">
+                                    <span>✅</span> Журнал виконаних робіт
+                                </h4>
                                 <button onclick="clearCompletedTodos()" class="text-[10px] font-bold text-rose-500 hover:underline">Очистити журнал</button>
                             </div>
-                            <div id="todo-completed-list" class="space-y-2.5 max-h-[360px] overflow-y-auto pr-2 custom-scrollbar">
+                            <div id="todo-completed-list" class="space-y-2.5 h-[280px] overflow-y-auto pr-2 custom-scrollbar">
                                 <!-- Completed tasks will be rendered here -->
                             </div>
                         </div>
@@ -618,6 +627,8 @@
         let satHistory = [];
         let phaseChecklists = {};
         let phaseNutritionChecklists = {};
+        let phaseChecklistDates = {};
+        let phaseNutritionChecklistDates = {};
 
         const varietyData = {
             "Аватар": { rip: "115-125 дн.", col: "B", taste: "Гармонійний", bunch: "700-1200 г", seed: "Безкіст.", care: "⚠️ Потребує ГК зануренням. Схильний до осипання. На зиму ретельно вкривати." },
@@ -861,13 +872,33 @@
             const nutritionCheckedCount = phaseNutritionChecklists[id].filter(Boolean).length;
             const nutritionPercent = s.nutritionSteps.length ? Math.round((nutritionCheckedCount / s.nutritionSteps.length) * 100) : 0;
 
+            // Forecast calculations
+            const prediction = getPhasePrediction(id);
+            let predictionHTML = '';
+            if (prediction.reached) {
+                predictionHTML = `
+                    <span class="inline-flex items-center gap-1 bg-emerald-100 text-emerald-800 text-[10px] font-black px-2.5 py-1 rounded-lg border border-emerald-200 mt-1">
+                        ✅ ${prediction.text}
+                    </span>
+                `;
+            } else {
+                predictionHTML = `
+                    <span class="inline-flex items-center gap-1 bg-amber-100 text-amber-800 text-[10px] font-black px-2.5 py-1 rounded-lg border border-amber-200 mt-1">
+                        ⏳ ${prediction.text}
+                    </span>
+                `;
+            }
+
             document.getElementById('phase-content').innerHTML = `
                 <div class="fade-in h-full flex flex-col justify-between">
                     <div>
                         <div class="flex justify-between items-start mb-6 border-b border-emerald-100 pb-6">
                             <div>
                                 <h2 class="text-3xl font-black text-emerald-950">${s.title}</h2>
-                                <p class="text-emerald-600 font-bold uppercase tracking-widest text-xs mt-1">📅 Орієнтовний термін: ${s.time}</p>
+                                <div class="flex flex-col gap-1 mt-1">
+                                    <p class="text-emerald-600 font-bold uppercase tracking-widest text-xs">📅 Орієнтовний термін: ${s.time}</p>
+                                    <div>${predictionHTML}</div>
+                                </div>
                             </div>
                             <span class="text-6xl opacity-20">${s.icon}</span>
                         </div>
@@ -888,10 +919,20 @@
                                     <ul class="space-y-2.5">
                                         ${s.steps.map((st, idx) => {
                                             const isChecked = phaseChecklists[id][idx] ? 'checked' : '';
+                                            const key = `${id}-${idx}`;
+                                            const dateVal = phaseChecklistDates[key] || '';
                                             return `
-                                                <li class="flex items-start gap-3 bg-stone-50 p-3.5 rounded-2xl border border-stone-200/60 hover:bg-emerald-50/20 transition-all cursor-pointer select-none" onclick="togglePhaseStep(${id}, ${idx})">
-                                                    <input type="checkbox" ${isChecked} class="w-4 h-4 mt-0.5 rounded border-stone-300 text-emerald-600 focus:ring-emerald-500 pointer-events-none">
-                                                    <span class="text-xs text-stone-700 font-medium ${isChecked ? 'line-through opacity-50' : ''}">${st}</span>
+                                                <li class="flex flex-col bg-stone-50 p-3.5 rounded-2xl border border-stone-200/60 hover:bg-emerald-50/20 transition-all select-none">
+                                                    <div class="flex items-start gap-3 cursor-pointer" onclick="togglePhaseStep(${id}, ${idx})">
+                                                        <input type="checkbox" ${isChecked} class="w-4 h-4 mt-0.5 rounded border-stone-300 text-emerald-600 focus:ring-emerald-500 pointer-events-none">
+                                                        <span class="text-xs text-stone-700 font-medium ${isChecked ? 'line-through opacity-50' : ''}">${st}</span>
+                                                    </div>
+                                                    ${isChecked ? `
+                                                    <div class="flex items-center gap-2 pl-7 mt-2" onclick="event.stopPropagation()">
+                                                        <span class="text-[9px] font-black uppercase text-emerald-700 bg-emerald-100/70 px-2 py-0.5 rounded-md">Дата виконання:</span>
+                                                        <input type="date" value="${dateVal}" onchange="updatePhaseStepDate(${id}, ${idx}, false, this.value); event.stopPropagation();" class="bg-transparent border-0 p-0 text-emerald-800 text-[11px] font-black outline-none cursor-pointer focus:underline w-28">
+                                                    </div>
+                                                    ` : ''}
                                                 </li>
                                             `;
                                         }).join('')}
@@ -915,10 +956,20 @@
                                         <ul class="space-y-2.5">
                                             ${s.nutritionSteps.map((st, idx) => {
                                                 const isChecked = phaseNutritionChecklists[id][idx] ? 'checked' : '';
+                                                const key = `${id}-${idx}`;
+                                                const dateVal = phaseNutritionChecklistDates[key] || '';
                                                 return `
-                                                    <li class="flex items-start gap-3 bg-white p-3.5 rounded-2xl border border-stone-200/60 hover:bg-emerald-50/20 transition-all cursor-pointer select-none" onclick="toggleNutritionPhaseStep(${id}, ${idx})">
-                                                        <input type="checkbox" ${isChecked} class="w-4 h-4 mt-0.5 rounded border-stone-300 text-emerald-600 focus:ring-emerald-500 pointer-events-none">
-                                                        <span class="text-xs text-stone-700 font-medium ${isChecked ? 'line-through opacity-50' : ''}">${st}</span>
+                                                    <li class="flex flex-col bg-white p-3.5 rounded-2xl border border-stone-200/60 hover:bg-emerald-50/20 transition-all select-none">
+                                                        <div class="flex items-start gap-3 cursor-pointer" onclick="toggleNutritionPhaseStep(${id}, ${idx})">
+                                                            <input type="checkbox" ${isChecked} class="w-4 h-4 mt-0.5 rounded border-stone-300 text-emerald-600 focus:ring-emerald-500 pointer-events-none">
+                                                            <span class="text-xs text-stone-700 font-medium ${isChecked ? 'line-through opacity-50' : ''}">${st}</span>
+                                                        </div>
+                                                        ${isChecked ? `
+                                                        <div class="flex items-center gap-2 pl-7 mt-2" onclick="event.stopPropagation()">
+                                                            <span class="text-[9px] font-black uppercase text-emerald-700 bg-emerald-100/70 px-2 py-0.5 rounded-md">Дата виконання:</span>
+                                                            <input type="date" value="${dateVal}" onchange="updatePhaseStepDate(${id}, ${idx}, true, this.value); event.stopPropagation();" class="bg-transparent border-0 p-0 text-emerald-800 text-[11px] font-black outline-none cursor-pointer focus:underline w-28">
+                                                        </div>
+                                                        ` : ''}
                                                     </li>
                                                 `;
                                             }).join('')}
@@ -935,15 +986,117 @@
             `;
         }
 
+        const phaseSatTargets = {
+            1: 0,
+            2: 200,
+            3: 450,
+            4: 800,
+            5: 1000,
+            6: 1500,
+            7: 2000
+        };
+
+        function getAverageSatRate() {
+            if (satHistory.length < 2) {
+                return 12; // default: +12°C active temp accumulation rate per day
+            }
+            const dates = satHistory.map(h => new Date(h.rawDate));
+            const minDate = new Date(Math.min(...dates));
+            const maxDate = new Date(Math.max(...dates));
+            const diffTime = Math.abs(maxDate - minDate);
+            const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+            
+            if (diffDays <= 0) {
+                return 12; // safety default
+            }
+            
+            const totalContr = satHistory.reduce((sum, h) => sum + h.contribution, 0);
+            const rate = totalContr / diffDays;
+            return rate > 0.5 ? rate : 12;
+        }
+
+        function getPhasePrediction(phaseId) {
+            const target = phaseSatTargets[phaseId];
+            const rate = getAverageSatRate();
+            const current = totalSAT;
+            
+            if (current >= target) {
+                return {
+                    reached: true,
+                    text: `САТ досягнуто (потрібно ${target}°C, зараз ${Math.round(current)}°C)`
+                };
+            }
+            
+            const diff = target - current;
+            const days = Math.ceil(diff / rate);
+            
+            const baseDate = satHistory.length > 0 ? new Date(satHistory[satHistory.length - 1].rawDate) : new Date();
+            const estDate = new Date(baseDate.getTime() + days * 24 * 60 * 60 * 1000);
+            const estDateString = estDate.toLocaleDateString('uk-UA', { day: '2-digit', month: '2-digit', year: 'numeric' });
+            
+            return {
+                reached: false,
+                days: days,
+                dateStr: estDateString,
+                rate: rate,
+                target: target,
+                text: `Очікується ${estDateString} (через ${days} дн. при темпі +${rate.toFixed(1)}°C/день)`
+            };
+        }
+
         function togglePhaseStep(phaseId, stepIdx) {
+            if (!phaseChecklists[phaseId]) {
+                phaseChecklists[phaseId] = [];
+            }
             phaseChecklists[phaseId][stepIdx] = !phaseChecklists[phaseId][stepIdx];
+            
+            const key = `${phaseId}-${stepIdx}`;
+            if (phaseChecklists[phaseId][stepIdx]) {
+                const today = new Date();
+                const yyyy = today.getFullYear();
+                const mm = String(today.getMonth() + 1).padStart(2, '0');
+                const dd = String(today.getDate()).padStart(2, '0');
+                phaseChecklistDates[key] = `${yyyy}-${mm}-${dd}`;
+            } else {
+                delete phaseChecklistDates[key];
+            }
+            
             localStorage.setItem('phaseChecklists', JSON.stringify(phaseChecklists));
+            localStorage.setItem('phaseChecklistDates', JSON.stringify(phaseChecklistDates));
             selectStep(phaseId);
         }
 
         function toggleNutritionPhaseStep(phaseId, stepIdx) {
+            if (!phaseNutritionChecklists[phaseId]) {
+                phaseNutritionChecklists[phaseId] = [];
+            }
             phaseNutritionChecklists[phaseId][stepIdx] = !phaseNutritionChecklists[phaseId][stepIdx];
+            
+            const key = `${phaseId}-${stepIdx}`;
+            if (phaseNutritionChecklists[phaseId][stepIdx]) {
+                const today = new Date();
+                const yyyy = today.getFullYear();
+                const mm = String(today.getMonth() + 1).padStart(2, '0');
+                const dd = String(today.getDate()).padStart(2, '0');
+                phaseNutritionChecklistDates[key] = `${yyyy}-${mm}-${dd}`;
+            } else {
+                delete phaseNutritionChecklistDates[key];
+            }
+            
             localStorage.setItem('phaseNutritionChecklists', JSON.stringify(phaseNutritionChecklists));
+            localStorage.setItem('phaseNutritionChecklistDates', JSON.stringify(phaseNutritionChecklistDates));
+            selectStep(phaseId);
+        }
+
+        function updatePhaseStepDate(phaseId, stepIdx, isNutrition, newDate) {
+            const key = `${phaseId}-${stepIdx}`;
+            if (isNutrition) {
+                phaseNutritionChecklistDates[key] = newDate;
+                localStorage.setItem('phaseNutritionChecklistDates', JSON.stringify(phaseNutritionChecklistDates));
+            } else {
+                phaseChecklistDates[key] = newDate;
+                localStorage.setItem('phaseChecklistDates', JSON.stringify(phaseChecklistDates));
+            }
             selectStep(phaseId);
         }
 
@@ -1052,7 +1205,7 @@
             renderSATLog();
             updateChart();
             updateMilestoneProgress();
-            renderPhaseNav();
+            selectStep(currentActivePhase);
         }
 
         // --- UPDATE DISPLAY ---
@@ -1657,10 +1810,22 @@
                 phaseChecklists = JSON.parse(cachedChecklists);
             }
 
+            // Load Phase Checklist Dates
+            const cachedChecklistDates = localStorage.getItem('phaseChecklistDates');
+            if (cachedChecklistDates) {
+                phaseChecklistDates = JSON.parse(cachedChecklistDates);
+            }
+
             // Load Phase Nutrition Checklist
             const cachedNutritionChecklists = localStorage.getItem('phaseNutritionChecklists');
             if (cachedNutritionChecklists) {
                 phaseNutritionChecklists = JSON.parse(cachedNutritionChecklists);
+            }
+
+            // Load Phase Nutrition Checklist Dates
+            const cachedNutritionChecklistDates = localStorage.getItem('phaseNutritionChecklistDates');
+            if (cachedNutritionChecklistDates) {
+                phaseNutritionChecklistDates = JSON.parse(cachedNutritionChecklistDates);
             }
 
             // Load Todo List
