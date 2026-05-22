@@ -1,0 +1,1573 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Smart Vineyard | Вінниччина Professional</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap');
+        
+        body { 
+            font-family: 'Plus Jakarta Sans', sans-serif; 
+            background-color: #f0f4f0; 
+            color: #1e293b; 
+        }
+
+        .green-gradient { 
+            background: linear-gradient(135deg, #064e3b 0%, #022c22 100%); 
+        }
+        
+        .nav-btn {
+            border-bottom-width: 4px;
+            border-color: transparent;
+            transition: all 0.3s ease;
+        }
+        .nav-btn.active {
+            border-color: #10b981; 
+            color: #065f46; 
+            font-weight: 700;
+        }
+
+        .step-active { 
+            border-color: #059669; 
+            background-color: #ffffff; 
+            box-shadow: 0 10px 15px -3px rgba(4, 120, 87, 0.1); 
+        }
+
+        .variety-grid-btn {
+            transition: all 0.2s ease;
+        }
+        .variety-grid-btn.selected {
+            background-color: #84cc16; 
+            color: white;
+            border-color: #65a30d; 
+            transform: scale(1.02);
+            box-shadow: 0 4px 10px rgba(132, 204, 22, 0.3);
+        }
+
+        .custom-shadow { box-shadow: 0 10px 30px -5px rgba(0,0,0,0.05); }
+        
+        .tab-content { display: none; }
+        .tab-content.active { display: block; animation: fadeIn 0.4s ease-out; }
+
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        
+        input[type="number"]::-webkit-inner-spin-button,
+        input[type="number"]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
+        
+        /* Custom scrollbar for variety grid */
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 6px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: #f1f5f9;
+            border-radius: 8px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 8px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
+        }
+    </style>
+</head>
+<body class="flex flex-col min-h-screen">
+
+    <header class="green-gradient text-white py-10 px-6 shadow-xl relative overflow-hidden">
+        <div class="absolute top-0 right-0 p-10 opacity-10 pointer-events-none">
+            <span class="text-[150px]">🍇</span>
+        </div>
+        <div class="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-6 relative z-10">
+            <div>
+                <div class="inline-block bg-emerald-500/20 backdrop-blur-md px-4 py-1.5 rounded-full text-xs font-bold uppercase tracking-widest mb-3 border border-emerald-400/30">
+                    Precision Viticulture • Вінницька область
+                </div>
+                <h1 class="text-4xl md:text-5xl font-black tracking-tighter">Smart <span class="text-emerald-400 text-shadow-glow">Vineyard</span></h1>
+                <p class="text-emerald-100/80 mt-2 font-light text-lg">Цифрова агрономічна система управління колекційним виноградником</p>
+            </div>
+            <div class="flex gap-4">
+                <div class="bg-white/10 backdrop-blur-xl p-4 rounded-3xl border border-white/10 text-center min-w-[120px]">
+                    <span class="block text-2xl font-black text-emerald-300" id="current-sat-display">0°</span>
+                    <span class="text-[10px] uppercase tracking-widest opacity-60">Поточний САТ</span>
+                </div>
+                <div class="bg-white/10 backdrop-blur-xl p-4 rounded-3xl border border-white/10 text-center min-w-[120px]">
+                    <span class="block text-2xl font-black text-emerald-300">122</span>
+                    <span class="text-[10px] uppercase tracking-widest opacity-60">Сорти в базі</span>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <nav class="bg-white border-b border-emerald-100 sticky top-0 z-50 shadow-md">
+        <div class="max-w-7xl mx-auto px-4 flex overflow-x-auto no-scrollbar py-1">
+            <button onclick="switchTab('phases')" id="nav-phases" class="nav-btn active flex-shrink-0 px-6 py-4 font-bold text-stone-500 hover:text-emerald-700">📅 Календар Фаз</button>
+            <button onclick="switchTab('analytics')" id="nav-analytics" class="nav-btn flex-shrink-0 px-6 py-4 font-bold text-stone-500 hover:text-emerald-700">📊 Смарт-Аналітика</button>
+            <button onclick="switchTab('varieties')" id="nav-varieties" class="nav-btn flex-shrink-0 px-6 py-4 font-bold text-stone-500 hover:text-emerald-700">🍇 Енциклопедія 122</button>
+            <button onclick="switchTab('calculators')" id="nav-calculators" class="nav-btn flex-shrink-0 px-6 py-4 font-bold text-stone-500 hover:text-emerald-700">🧮 Калькулятори</button>
+            <button onclick="switchTab('safety')" id="nav-safety" class="nav-btn flex-shrink-0 px-6 py-4 font-bold text-stone-500 hover:text-emerald-700">🧪 Лабораторія & ГК</button>
+        </div>
+    </nav>
+
+    <main class="flex-grow max-w-7xl mx-auto w-full px-4 py-8">
+
+        <!-- TAB: PHASES -->
+        <section id="tab-phases" class="tab-content active space-y-8">
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+                <div class="lg:col-span-4 space-y-3" id="phase-nav-container">
+                    <!-- Dynamic phases buttons -->
+                </div>
+                <div class="lg:col-span-8 bg-white p-8 rounded-[40px] custom-shadow border border-emerald-100 min-h-[600px] flex flex-col justify-between" id="phase-content">
+                    <!-- Dynamic phase details -->
+            </div>
+
+            <!-- TO DO LIST & JOURNAL OF OPERATIONS -->
+            <div class="bg-white p-8 rounded-[40px] border border-emerald-100 custom-shadow mt-8">
+                <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6 border-b border-emerald-100 pb-6">
+                    <div>
+                        <div class="flex items-center gap-3">
+                            <span class="text-3xl">📋</span>
+                            <div>
+                                <h3 class="text-2xl font-black text-emerald-950">Журнал операцій & To-Do</h3>
+                                <p class="text-xs text-stone-500 uppercase tracking-widest font-bold">Органайзер сезонних робіт та фіксація дат виконання</p>
+                            </div>
+                        </div>
+                    </div>
+                    <span class="bg-emerald-100 text-emerald-800 text-xs font-black px-4 py-2 rounded-2xl border border-emerald-200" id="todo-stats">
+                        Виконано: 0 з 0
+                    </span>
+                </div>
+
+                <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+                    <!-- Left Column: Add Task and Active Tasks -->
+                    <div class="lg:col-span-6 space-y-6">
+                        <div class="bg-stone-50 p-6 rounded-3xl border border-stone-200/60">
+                            <h4 class="text-xs font-black uppercase tracking-wider text-emerald-800 mb-3">Додати нову операцію</h4>
+                            <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                                <div class="sm:col-span-2">
+                                    <label class="text-[9px] font-black uppercase text-stone-400 block mb-1">Опис роботи / Пам'ятка</label>
+                                    <input type="text" id="todo-text" placeholder="напр. Обробити Луною від оїдіуму..." class="w-full p-3 rounded-xl bg-white border border-stone-200 focus:border-emerald-500 outline-none font-semibold text-sm text-stone-800">
+                                </div>
+                                <div class="sm:col-span-1">
+                                    <label class="text-[9px] font-black uppercase text-stone-400 block mb-1">Термін</label>
+                                    <input type="date" id="todo-due-date" class="w-full p-3 rounded-xl bg-white border border-stone-200 outline-none font-bold text-sm text-stone-800">
+                                </div>
+                            </div>
+                            <button onclick="addTodoItem()" class="w-full mt-4 bg-emerald-600 hover:bg-emerald-700 text-white py-3 rounded-xl font-black transition-all text-sm uppercase tracking-wider">
+                                Додати завдання ➕
+                            </button>
+                        </div>
+
+                        <div>
+                            <h4 class="text-xs font-black uppercase tracking-wider text-stone-500 mb-3">Заплановані роботи</h4>
+                            <div id="todo-active-list" class="space-y-2.5 max-h-[300px] overflow-y-auto pr-2 custom-scrollbar">
+                                <!-- Active tasks will be rendered here -->
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Right Column: Completed Operations with Execution Dates -->
+                    <div class="lg:col-span-6 bg-emerald-50/20 p-6 rounded-[30px] border border-emerald-100/50 flex flex-col justify-between">
+                        <div>
+                            <div class="flex justify-between items-center mb-3">
+                                <h4 class="text-xs font-black uppercase tracking-wider text-emerald-900">Журнал виконаних робіт</h4>
+                                <button onclick="clearCompletedTodos()" class="text-[10px] font-bold text-rose-500 hover:underline">Очистити журнал</button>
+                            </div>
+                            <div id="todo-completed-list" class="space-y-2.5 max-h-[360px] overflow-y-auto pr-2 custom-scrollbar">
+                                <!-- Completed tasks will be rendered here -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- TAB: ANALYTICS -->
+        <section id="tab-analytics" class="tab-content space-y-8">
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+                <!-- SAT Tracker -->
+                <div class="lg:col-span-6 bg-white p-8 rounded-[40px] border border-emerald-100 custom-shadow flex flex-col justify-between">
+                    <div>
+                        <div class="flex items-center gap-4 mb-6">
+                            <span class="text-4xl">🌡️</span>
+                            <div>
+                                <h3 class="text-2xl font-black text-emerald-900">Трекер САТ</h3>
+                                <p class="text-xs text-stone-500 uppercase tracking-widest font-bold">Сума Активних Температур (t° > 10°C)</p>
+                            </div>
+                        </div>
+                        <div class="space-y-4">
+                            <div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                                <div class="col-span-1">
+                                    <label class="text-[9px] font-black uppercase text-stone-400 block mb-1">Дата</label>
+                                    <input type="date" id="sat-date" class="w-full p-3 rounded-xl bg-stone-50 border border-stone-200 outline-none font-bold text-sm">
+                                </div>
+                                <div class="col-span-1">
+                                    <label class="text-[9px] font-black uppercase text-stone-400 block mb-1">t° сер.добова</label>
+                                    <input type="number" id="sat-input" placeholder="напр. 22" min="10.1" step="0.1" class="w-full p-3 rounded-xl bg-stone-50 border border-stone-200 focus:border-emerald-500 outline-none transition-all font-bold text-sm">
+                                </div>
+                                <div class="col-span-1 flex items-end">
+                                    <button onclick="addSAT()" class="w-full bg-emerald-600 text-white py-3 rounded-xl font-black hover:bg-emerald-700 transition-all text-sm">ДОДАТИ</button>
+                                </div>
+                            </div>
+                            
+                            <div class="p-6 bg-emerald-50 rounded-3xl border-2 border-emerald-100/50">
+                                <p class="text-xs text-emerald-800 font-black uppercase mb-1">Накопичений САТ сезону:</p>
+                                <div class="flex items-end justify-between">
+                                    <span class="text-5xl font-black text-emerald-900" id="sat-total">0°C</span>
+                                    <div class="text-right">
+                                        <span class="text-[10px] text-stone-500 font-bold block" id="sat-status-label">Очікування весни</span>
+                                        <span class="text-[9px] text-emerald-700 italic font-medium block">Базова температура старту: 10°C</span>
+                                    </div>
+                                </div>
+                                <!-- Milestone Progress -->
+                                <div class="mt-4">
+                                    <div class="flex justify-between text-[9px] font-black text-emerald-800 uppercase mb-1">
+                                        <span id="milestone-name">До прокидання бруньки (200°С)</span>
+                                        <span id="milestone-percent">0%</span>
+                                    </div>
+                                    <div class="w-full bg-emerald-200/50 h-2.5 rounded-full overflow-hidden">
+                                        <div id="milestone-progress-bar" class="bg-emerald-600 h-full rounded-full transition-all duration-500" style="width: 0%"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Entries Log -->
+                    <div class="mt-6 border-t border-stone-100 pt-4">
+                        <div class="flex justify-between items-center mb-2">
+                            <h4 class="text-xs font-black uppercase tracking-wider text-stone-500">Історія спостережень</h4>
+                            <button onclick="resetSAT()" class="text-[10px] font-bold text-rose-500 hover:underline">Скинути сезон</button>
+                        </div>
+                        <div class="max-h-[150px] overflow-y-auto pr-2 custom-scrollbar space-y-1.5" id="sat-log-container">
+                            <p class="text-xs text-stone-400 italic text-center py-4">Немає записів за цей сезон</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Interactive Disease Risk Predictor -->
+                <div class="lg:col-span-6 bg-stone-900 text-white p-8 rounded-[40px] shadow-2xl relative overflow-hidden flex flex-col justify-between">
+                    <div class="absolute -right-4 -top-4 text-[100px] opacity-10 pointer-events-none">⚠️</div>
+                    
+                    <div>
+                        <div class="flex items-center gap-4 mb-6">
+                            <span class="text-4xl">🌦️</span>
+                            <div>
+                                <h3 class="text-2xl font-black">Калькулятор ризику хвороб</h3>
+                                <p class="text-xs text-emerald-400 font-bold uppercase tracking-widest">Агрокліматичні порогові тригери</p>
+                            </div>
+                        </div>
+                        
+                        <!-- Weather Inputs -->
+                        <div class="grid grid-cols-3 gap-3 mb-6 bg-white/5 p-4 rounded-3xl border border-white/10">
+                            <div>
+                                <label class="text-[9px] font-black uppercase text-stone-400 block mb-1">t° повітря</label>
+                                <div class="flex items-center gap-1.5">
+                                    <input type="number" id="disease-temp" value="20" min="0" max="45" oninput="calculateDiseaseRisk()" class="w-full bg-white/10 border border-white/10 rounded-xl p-2 text-sm font-bold text-white text-center outline-none focus:border-emerald-500">
+                                    <span class="text-xs text-stone-400">°C</span>
+                                </div>
+                            </div>
+                            <div>
+                                <label class="text-[9px] font-black uppercase text-stone-400 block mb-1">Опади за 24г</label>
+                                <div class="flex items-center gap-1.5">
+                                    <input type="number" id="disease-rain" value="0" min="0" max="100" oninput="calculateDiseaseRisk()" class="w-full bg-white/10 border border-white/10 rounded-xl p-2 text-sm font-bold text-white text-center outline-none focus:border-emerald-500">
+                                    <span class="text-xs text-stone-400">мм</span>
+                                </div>
+                            </div>
+                            <div>
+                                <label class="text-[9px] font-black uppercase text-stone-400 block mb-1">Вологість</label>
+                                <div class="flex items-center gap-1.5">
+                                    <input type="number" id="disease-humidity" value="60" min="10" max="100" oninput="calculateDiseaseRisk()" class="w-full bg-white/10 border border-white/10 rounded-xl p-2 text-sm font-bold text-white text-center outline-none focus:border-emerald-500">
+                                    <span class="text-xs text-stone-400">%</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Real-time disease risks output -->
+                        <div class="space-y-4">
+                            <!-- Mildew -->
+                            <div class="p-4 rounded-3xl border transition-all duration-300" id="mildew-risk-card">
+                                <div class="flex justify-between items-center">
+                                    <div>
+                                        <h4 class="font-black text-sm uppercase">Мілдью (Несправжня борошниста роса)</h4>
+                                        <p class="text-[10px] opacity-70 mt-0.5">Тригер інкубації: правило 6-6-26 (опади >6мм, t° 6-26°С)</p>
+                                    </div>
+                                    <span class="px-3 py-1 rounded-full text-[10px] font-black uppercase border" id="mildew-badge">Низький</span>
+                                </div>
+                                <p class="text-[11px] mt-2 opacity-90 italic" id="mildew-advice">Умови безпечні. Профілактичні заходи за календарем фаз.</p>
+                            </div>
+                            
+                            <!-- Oidium -->
+                            <div class="p-4 rounded-3xl border transition-all duration-300" id="oidium-risk-card">
+                                <div class="flex justify-between items-center">
+                                    <div>
+                                        <h4 class="font-black text-sm uppercase">Оїдіум (Справжня борошниста роса)</h4>
+                                        <p class="text-[10px] opacity-70 mt-0.5">Тригер спороношення: висока вологість при t° 15-25°С</p>
+                                    </div>
+                                    <span class="px-3 py-1 rounded-full text-[10px] font-black uppercase border" id="oidium-badge">Низький</span>
+                                </div>
+                                <p class="text-[11px] mt-2 opacity-90 italic" id="oidium-advice">Умови безпечні. Профілактика сіркою за планом.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Cumulative Chart -->
+                <div class="lg:col-span-12 bg-white p-8 rounded-[40px] border border-emerald-100 custom-shadow">
+                    <div class="flex justify-between items-center mb-6">
+                        <div>
+                            <h3 class="text-2xl font-black text-emerald-900">Графік накопичення САТ</h3>
+                            <p class="text-xs text-stone-500 uppercase tracking-widest font-bold">Накопичувальна крива активних температур сезону</p>
+                        </div>
+                        <div class="bg-emerald-50 border border-emerald-200 px-4 py-2 rounded-2xl text-xs font-bold text-emerald-800">
+                            Milestones: 200°C (Брунька) • 800°C (Цвітіння) • 1000°C (Ягода)
+                        </div>
+                    </div>
+                    <div class="h-[280px] w-full">
+                        <canvas id="sat-chart"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Frost Protocol -->
+            <div class="bg-rose-600 text-white p-10 rounded-[40px] shadow-xl relative overflow-hidden">
+                <div class="absolute right-0 top-0 p-10 opacity-10 pointer-events-none text-9xl">❄️</div>
+                <div class="flex flex-col md:flex-row justify-between items-center gap-6 relative z-10">
+                    <div class="max-w-2xl">
+                        <h2 class="text-3xl font-black mb-2">🚨 Екстрений протокол: Заморозки</h2>
+                        <p class="text-rose-100 font-light italic">Для Вінниччина ризик весняних приморозків зберігається до 17 травня. Якщо прогноз температури падає нижче +2°C:</p>
+                        <ul class="mt-4 space-y-1.5 text-xs text-rose-100 font-medium">
+                            <li>• <strong class="text-white">За 20 годин:</strong> Anti-stress по листу (Мегафол 25 мл + Калійне добриво 20 г на 10 л води).</li>
+                            <li>• <strong class="text-white">За 3 години:</strong> Увімкнути дрібнодисперсне дощування або запалити димові купи з підвітряного боку.</li>
+                            <li>• <strong class="text-white">Під час приморозку:</strong> Безперервний полив міжрядь для виділення тепла від води.</li>
+                        </ul>
+                    </div>
+                    <div class="flex gap-4 flex-shrink-0">
+                        <div class="bg-white/20 backdrop-blur-md p-5 rounded-3xl text-center border border-white/30 min-w-[130px]">
+                            <span class="block font-black text-lg">ЗА 20 ГОДИН</span>
+                            <span class="text-[9px] uppercase tracking-widest opacity-80 block mt-1">Мегафол + Калій</span>
+                        </div>
+                        <div class="bg-white/20 backdrop-blur-md p-5 rounded-3xl text-center border border-white/30 min-w-[130px]">
+                            <span class="block font-black text-lg">ЗА 3 ГОДИНИ</span>
+                            <span class="text-[9px] uppercase tracking-widest opacity-80 block mt-1">Полив / Димлення</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- TAB: VARIETIES -->
+        <section id="tab-varieties" class="tab-content space-y-6">
+            <div class="bg-white p-8 rounded-[40px] custom-shadow border border-emerald-100">
+                <div class="flex flex-col xl:flex-row justify-between items-stretch xl:items-center gap-6 mb-10">
+                    <div>
+                        <h2 class="text-3xl font-black text-emerald-900">Енциклопедія 122 Сортів</h2>
+                        <p class="text-stone-500 font-bold uppercase text-[10px] tracking-[0.2em]">Колекційна база виноградника</p>
+                    </div>
+                    
+                    <!-- Advanced Filters & Sorting -->
+                    <div class="flex flex-col sm:flex-row gap-3 items-stretch sm:items-center flex-grow max-w-4xl justify-end">
+                        <!-- Search -->
+                        <div class="relative flex-grow max-w-md">
+                            <input type="text" id="var-search" onkeyup="filterVarieties()" placeholder="Пошук сорту (Аватар, Велес)..." class="w-full p-4 pl-11 rounded-2xl bg-stone-50 border-2 border-stone-100 focus:border-emerald-500 outline-none font-bold text-sm shadow-inner transition-all">
+                            <span class="absolute left-4 top-1/2 -translate-y-1/2 text-stone-400">🔍</span>
+                        </div>
+                        
+                        <!-- Color Filter Buttons -->
+                        <div class="flex bg-stone-100 p-1.5 rounded-2xl gap-1" id="color-filter-group">
+                            <button onclick="setColorFilter('all')" id="cf-all" class="px-3.5 py-2 text-xs font-black rounded-xl bg-white text-emerald-900 shadow-sm transition-all">Всі <span class="opacity-40" id="count-all">122</span></button>
+                            <button onclick="setColorFilter('W')" id="cf-W" class="px-3.5 py-2 text-xs font-black rounded-xl text-stone-600 hover:text-emerald-950 transition-all">Білі <span class="opacity-40" id="count-W">0</span></button>
+                            <button onclick="setColorFilter('R')" id="cf-R" class="px-3.5 py-2 text-xs font-black rounded-xl text-stone-600 hover:text-emerald-950 transition-all">Рожеві <span class="opacity-40" id="count-R">0</span></button>
+                            <button onclick="setColorFilter('B')" id="cf-B" class="px-3.5 py-2 text-xs font-black rounded-xl text-stone-600 hover:text-emerald-950 transition-all">Чорні <span class="opacity-40" id="count-B">0</span></button>
+                        </div>
+                        
+                        <!-- Sort Selector -->
+                        <div class="flex items-center gap-2">
+                            <span class="text-xs font-bold text-stone-400 uppercase tracking-wider whitespace-nowrap">Сортування:</span>
+                            <select id="var-sort" onchange="sortVarieties()" class="p-3 rounded-2xl bg-stone-50 border border-stone-200 outline-none font-bold text-xs text-stone-700">
+                                <option value="name">За алфавітом</option>
+                                <option value="rip">Термін дозрівання</option>
+                                <option value="bunch">Вага грона</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+                    <!-- Left: Scrollable Grid -->
+                    <div class="lg:col-span-8 h-[600px] overflow-y-auto pr-4 custom-scrollbar" id="var-grid-container">
+                        <!-- Varieties will be injected here -->
+                    </div>
+                    <!-- Right: Sticky Details Panel -->
+                    <div class="lg:col-span-4 bg-emerald-50/50 p-8 rounded-[40px] border-2 border-emerald-100/50 sticky top-24 h-fit" id="var-details-panel">
+                        <div class="text-center text-stone-300 py-32">
+                            <span class="text-7xl block mb-4 opacity-20">📖</span>
+                            <p class="font-black text-sm uppercase tracking-widest opacity-40">Виберіть сорт зі списку</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- TAB: CALCULATORS -->
+        <section id="tab-calculators" class="tab-content space-y-8">
+            <div class="bg-emerald-900 text-white p-10 rounded-[40px] shadow-2xl">
+                <div class="text-center max-w-xl mx-auto mb-8">
+                    <h3 class="text-3xl font-black text-white">Smart Fertigation Calculator 🧮</h3>
+                    <p class="text-xs text-emerald-400 font-bold uppercase tracking-wider mt-1">Розрахунок добрив для підживлення виноградника</p>
+                </div>
+                
+                <!-- Calculator Tabs Selector -->
+                <div class="flex justify-center mb-8">
+                    <div class="bg-emerald-950 p-1.5 rounded-2xl flex gap-1 border border-emerald-800">
+                        <button onclick="switchCalcMode('simple')" id="calc-tab-simple" class="px-6 py-2.5 rounded-xl text-xs font-black transition-all bg-emerald-500 text-white shadow-md">
+                            1. Простий розрахунок (в грамах препарату)
+                        </button>
+                        <button onclick="switchCalcMode('advanced')" id="calc-tab-advanced" class="px-6 py-2.5 rounded-xl text-xs font-black transition-all text-emerald-300 hover:text-white">
+                            2. Розрахунок за діючою речовиною (ДР)
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Mode 1: Simple Calculator -->
+                <div id="calc-mode-simple" class="space-y-6">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                        <div class="space-y-2">
+                            <label class="text-[10px] font-black uppercase tracking-widest text-emerald-400">Кількість кущів на винограднику</label>
+                            <input type="number" id="simple-bushes" value="10" min="1" class="w-full p-5 rounded-2xl bg-white/5 border border-white/20 outline-none text-2xl font-black text-white focus:bg-white/10 focus:border-emerald-400 transition-all">
+                            <p class="text-[10px] text-emerald-300/70 italic">Введіть загальну кількість лоз для поливу</p>
+                        </div>
+                        <div class="space-y-2">
+                            <label class="text-[10px] font-black uppercase tracking-widest text-emerald-400">Норма внесення сухого препарату (г/кущ)</label>
+                            <input type="number" id="simple-dose" value="25" min="1" class="w-full p-5 rounded-2xl bg-white/5 border border-white/20 outline-none text-2xl font-black text-white focus:bg-white/10 focus:border-emerald-400 transition-all">
+                            <p class="text-[10px] text-emerald-300/70 italic">Скільки фізичної маси добрива з пачки виділено на один кущ</p>
+                        </div>
+                    </div>
+                    
+                    <div class="mt-8 p-6 bg-emerald-950/50 rounded-3xl border border-emerald-800">
+                        <h4 class="text-[10px] font-black uppercase tracking-widest text-emerald-400 mb-2">Формула та пропорція:</h4>
+                        <p class="text-xs text-emerald-100/80 leading-relaxed font-medium">
+                            Фізична вага добрива = Кількість кущів × Норму сухої речовини на кущ.
+                            Не потрібно враховувати вміст NPK, розрахунок проводиться для готової комерційної дози.
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Mode 2: Advanced Active Substance Calculator -->
+                <div id="calc-mode-advanced" class="space-y-6 hidden">
+                    <!-- Presets Selector -->
+                    <div class="bg-emerald-950/60 p-5 rounded-3xl border border-emerald-800 flex flex-col sm:flex-row items-center justify-between gap-4">
+                        <div>
+                            <h4 class="text-xs font-black text-white uppercase tracking-wider">Швидкі пресети добрив</h4>
+                            <p class="text-[10px] text-emerald-400/80">Виберіть зі списку для автоматичного заповнення % діючої речовини</p>
+                        </div>
+                        <select id="fertilizer-preset" onchange="applyFertilizerPreset()" class="p-3.5 rounded-2xl bg-emerald-900 border border-emerald-700 outline-none font-bold text-xs text-white cursor-pointer hover:bg-emerald-800">
+                            <option value="custom">-- Власне дозування (Вручну) --</option>
+                            <option value="yaramila">YaraMila Complex (NPK 12-11-18) [Азот - 12%]</option>
+                            <option value="urea">Карбамід (Сечовина) [Азот - 46%]</option>
+                            <option value="nitrate">Аміачна селітра [Азот - 34%]</option>
+                            <option value="monopotassium">Монофосфат калію [Калій - 34% / Фосфор - 52%]</option>
+                            <option value="sulfate">Сульфат калію [Калій - 50%]</option>
+                            <option value="calcium">Кальцієва селітра [Кальцій - 26%]</option>
+                        </select>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                        <div class="space-y-2">
+                            <label class="text-[10px] font-black uppercase tracking-widest text-emerald-400">Кількість кущів</label>
+                            <input type="number" id="calc-bushes" value="10" min="1" class="w-full p-5 rounded-2xl bg-white/5 border border-white/20 outline-none text-2xl font-black text-white focus:bg-white/10 transition-all">
+                        </div>
+                        <div class="space-y-2">
+                            <label class="text-[10px] font-black uppercase tracking-widest text-emerald-400">Норма г/кущ (діюча реч.)</label>
+                            <input type="number" id="calc-norm" value="10" min="1" class="w-full p-5 rounded-2xl bg-white/5 border border-white/20 outline-none text-2xl font-black text-white focus:bg-white/10 transition-all">
+                        </div>
+                        <div class="space-y-2">
+                            <label class="text-[10px] font-black uppercase tracking-widest text-emerald-400">% ДР у вашому добриві</label>
+                            <input type="number" id="calc-percent" value="12" min="1" max="100" class="w-full p-5 rounded-2xl bg-white/5 border border-white/20 outline-none text-2xl font-black text-white focus:bg-white/10 transition-all">
+                        </div>
+                    </div>
+                    
+                    <div class="mt-8 p-6 bg-emerald-950/50 rounded-3xl border border-emerald-800">
+                        <h4 class="text-[10px] font-black uppercase tracking-widest text-emerald-400 mb-2">Як це працює:</h4>
+                        <p class="text-xs text-emerald-100/80 leading-relaxed font-medium" id="calc-explanation-text">
+                            Для забезпечення 10 г чистої діючої речовини при вмісті 12% ДР, необхідно внести 83.3 г фізичного добрива на кожен кущ. На 10 кущів загальна потреба складе 833 г.
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Result Box -->
+                <div class="mt-10 flex flex-col md:flex-row items-center justify-between bg-emerald-800/50 p-8 rounded-3xl border border-emerald-700">
+                    <div>
+                        <p class="text-lg font-bold mb-1" id="calc-result-title">Необхідна маса добрива на весь виноградник:</p>
+                        <p class="text-xs text-emerald-300 font-medium">Точна вага сухої речовини для розчинення або внесення</p>
+                    </div>
+                    <div class="bg-emerald-400 text-emerald-950 px-8 py-4 rounded-2xl font-black text-4xl shadow-glow mt-4 md:mt-0" id="calc-result">250 г</div>
+                </div>
+            </div>
+        </section>
+
+        <!-- TAB: SAFETY & GIBBERELLIN -->
+        <section id="tab-safety" class="tab-content space-y-8">
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+                <!-- Column 1: Phytotoxicity & Lemon Acid -->
+                <div class="lg:col-span-6 space-y-8">
+                    <div class="bg-white p-10 rounded-[40px] custom-shadow border border-emerald-100">
+                        <h3 class="text-2xl font-black text-emerald-900 mb-6">🧪 Фітотоксичність & Резистентність</h3>
+                        <div class="space-y-6">
+                            <div class="p-6 bg-rose-50 border-l-8 border-rose-500 rounded-2xl">
+                                <h4 class="font-black text-rose-800 text-sm uppercase mb-1">Мідь + Амінокислоти</h4>
+                                <p class="text-xs text-rose-700 leading-relaxed">Медян Екстра / Нордокс + Мегафол = 100% хімічний опік лози. Мідьвмісні препарати слід вносити суворо окремо або виключно в суміші з інертними речовинами без додавання органічних амінокислотних антистресантів.</p>
+                            </div>
+                            <div class="p-6 bg-amber-50 border-l-8 border-amber-500 rounded-2xl">
+                                <h4 class="font-black text-amber-800 text-sm uppercase mb-1">Правило Санмайту</h4>
+                                <p class="text-xs text-amber-700 leading-relaxed">Лише ОДНА обробка Санмайтом за вегетаційний сезон. Кліщ виробляє резистентність до діючої речовини миттєво. Наступні обробки проти кліща проводяться виключно іншими групами (наприклад, Вертімек).</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="bg-stone-900 text-white p-10 rounded-[40px] shadow-2xl">
+                        <h3 class="text-2xl font-black mb-6">🍋 Секретний рН-агент: Лимонна кислота</h3>
+                        <p class="text-sm opacity-70 mb-6 leading-relaxed">Більшість сучасних системних фунгіцидів та інсектицидів (Фалькон, Кораген) стрімко деградують і втрачають ефективність при лужному рН води (> 7.0). Особливо критично підкислювати бакову суміш перед внесенням лужного БОРУ.</p>
+                        <div class="bg-white/10 p-6 rounded-3xl border border-white/10">
+                            <span class="block font-black text-emerald-400 text-xs uppercase mb-2">Золота пропорція підкислення</span>
+                            <p class="text-xl font-bold">1 грам лимонної кислоти на 10 л води ➔ знижує рН до оптимальних 5.5</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Column 2: Gibberellic Acid (GA3) Calculator & Info -->
+                <div class="lg:col-span-6 bg-white p-10 rounded-[40px] custom-shadow border border-emerald-100 flex flex-col justify-between">
+                    <div>
+                        <div class="flex items-center gap-4 mb-6">
+                            <span class="text-4xl">🧬</span>
+                            <div>
+                                <h3 class="text-2xl font-black text-emerald-950">Калькулятор Гібереліну (ГК)</h3>
+                                <p class="text-xs text-stone-500 uppercase tracking-widest font-bold">Розрахунок стимулятора росту ягід</p>
+                            </div>
+                        </div>
+
+                        <!-- GA3 Calculator Inputs -->
+                        <div class="space-y-4 bg-emerald-50/50 p-6 rounded-3xl border border-emerald-100 mb-6">
+                            <div class="grid grid-cols-2 gap-4">
+                                <div>
+                                    <label class="text-[9px] font-black uppercase text-emerald-800 block mb-1">Об'єм розчину (л)</label>
+                                    <input type="number" id="ga3-volume" value="5" min="0.5" step="0.5" oninput="calculateGA3()" class="w-full p-3 rounded-xl bg-white border border-emerald-200 outline-none font-bold text-sm text-emerald-950">
+                                </div>
+                                <div>
+                                    <label class="text-[9px] font-black uppercase text-emerald-800 block mb-1">Бажана концентрація (PPM)</label>
+                                    <input type="number" id="ga3-ppm" value="30" min="5" max="150" step="5" oninput="calculateGA3()" class="w-full p-3 rounded-xl bg-white border border-emerald-200 outline-none font-bold text-sm text-emerald-950">
+                                </div>
+                            </div>
+                            
+                            <div>
+                                <label class="text-[9px] font-black uppercase text-emerald-800 block mb-1">Препарат (вміст діючої речовини)</label>
+                                <select id="ga3-formulation" onchange="calculateGA3()" class="w-full p-3 rounded-xl bg-white border border-emerald-200 outline-none font-bold text-xs text-emerald-950 cursor-pointer">
+                                    <option value="90">Чистий порошок ГК (90% діючої речовини)</option>
+                                    <option value="20">Таблетки ГК (20% діючої речовини)</option>
+                                    <option value="4">Рідкий концентрат (4% діючої речовини)</option>
+                                </select>
+                            </div>
+
+                            <div class="border-t border-emerald-100 pt-3 flex justify-between items-center text-xs">
+                                <span class="font-bold text-emerald-900">Необхідна вага/об'єм препарату:</span>
+                                <span class="bg-emerald-600 text-white px-4 py-1.5 rounded-xl font-black" id="ga3-result">167 мг</span>
+                            </div>
+                        </div>
+
+                        <!-- Preparation Guide -->
+                        <div class="space-y-4">
+                            <h4 class="text-xs font-black text-emerald-900 uppercase tracking-wider">📋 Схема застосування на винограднику</h4>
+                            <div class="text-xs space-y-2 text-stone-600 leading-relaxed font-medium">
+                                <div class="bg-stone-50 p-3 rounded-xl border border-stone-200">
+                                    <strong class="text-emerald-800">Фаза 1 (Кінець цвітіння - скидання ковпачків):</strong>
+                                    <p class="mt-0.5">Концентрація: <strong class="text-emerald-950">20-30 PPM</strong>. Мета: розтягування осі суцвіття, розпушення грона (профілактика гнилей).</p>
+                                </div>
+                                <div class="bg-stone-50 p-3 rounded-xl border border-stone-200">
+                                    <strong class="text-emerald-800">Фаза 2 (Ягода в стадії "пшоно / горошина"):</strong>
+                                    <p class="mt-0.5">Концентрація: <strong class="text-emerald-950">30-50 PPM</strong>. Мета: збільшення розміру ягід, ініціація росту клітин безнасінних сортів.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Alcohol dissolving warning -->
+                    <div class="bg-amber-50 p-4 rounded-2xl border border-amber-200/60 text-[11px] text-amber-800 leading-relaxed font-medium mt-6">
+                        ⚠️ <strong class="text-amber-900">Важлива інструкція:</strong> Кислота гіберелінова практично не розчиняється у чистій воді. Перед змішуванням з водою обов'язково розчиніть розраховану наважку порошку або таблетки в невеликій кількості (10-20 мл) медичного спирту 96%, а вже потім вилийте спиртовий розчин у воду!
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <script>
+        let currentTab = 'phases';
+        let currentActivePhase = 3;
+        let activeVar = 'Аватар';
+        let totalSAT = 0;
+        let calcMode = 'simple';
+        let colorFilter = 'all';
+        let sortMode = 'name';
+        let chartInstance = null;
+
+        // Persistent data loading on init
+        let satHistory = [];
+        let phaseChecklists = {};
+
+        const varietyData = {
+            "Аватар": { rip: "115-125 дн.", col: "B", taste: "Гармонійний", bunch: "700-1200 г", seed: "Безкіст.", care: "⚠️ Потребує ГК зануренням. Схильний до осипання. На зиму ретельно вкривати." },
+            "Азія": { rip: "110-115 дн.", col: "R", taste: "Мускат", bunch: "600-1000 г", seed: "З кіст.", care: "⚠️ Схильний до перевантаження. Обов'язкове жорстке нормування суцвіттями." },
+            "Алінка": { rip: "105-110 дн.", col: "R", taste: "Мускат", bunch: "500-850 г", seed: "З кіст.", care: "💡 Тонка шкірка — захист від ос сітками обов'язковий." },
+            "Арочний": { rip: "115-120 дн.", col: "R", taste: "Гармонійний", bunch: "500-800 г", seed: "З кіст.", care: "💡 Чудово підходить для альтанок, висока зимостійкість." },
+            "Антоній великий": { rip: "130-135 дн.", col: "W", taste: "Мускат", bunch: "800-1500 г", seed: "З кіст.", care: "⚠️ Вразливий до оїдіуму в серпні. Обробка Луною обов'язкова." },
+            "Алвіка": { rip: "115-120 дн.", col: "B", taste: "Гармонійний", bunch: "800-2000 г", seed: "З кіст.", care: "⚠️ Гігантська ягода. Залишати лише 1 гроно на пагін." },
+            "Алтай": { rip: "120-125 дн.", col: "W", taste: "Легкий мускат", bunch: "700-1200 г", seed: "З кіст.", care: "⚠️ Схильний до горошіння. Бор перед цвітінням!" },
+            "Аркадія": { rip: "115 дн.", col: "W", taste: "Легкий мускат", bunch: "700-2500 г", seed: "З кіст.", care: "⚠️ Слабкий до оїдіуму. Класика ринку." },
+            "Абажур": { rip: "115-120 дн.", col: "R", taste: "Гармонійний", bunch: "600-1100 г", seed: "З кіст.", care: "💡 Потребує помірного азоту, щоб лоза не жирувала." },
+            "Альбіна": { rip: "100-105 дн.", col: "W", taste: "Мускат", bunch: "500-800 г", seed: "З кіст.", care: "💡 Вчасний збір — перестигла ягода розм'якшується." },
+            "Альбатрос": { rip: "120-125 дн.", col: "B", taste: "Простий", bunch: "500-750 г", seed: "З кіст.", care: "💡 Стійкий до мілдью, але боїться сірої гнилі." },
+            "Августин мускатний": { rip: "115-120 дн.", col: "W", taste: "Мускат", bunch: "600-1000 г", seed: "З кіст.", care: "💡 Найнадійніший сорт для початківців." },
+            "Байконур": { rip: "110-115 дн.", col: "B", taste: "Гармонійний", bunch: "700-1300 г", seed: "З кіст.", care: "⚠️ Схильний до кліща навесні. Санмайт обов'язково." },
+            "Божена": { rip: "105-110 дн.", col: "W", taste: "Гармонійний", bunch: "800-1500 г", seed: "З кіст.", care: "⚠️ Перевантаження. Лоза визріває дуже рано." },
+            "Басанті": { rip: "100-105 дн.", col: "R", taste: "Мускат", bunch: "600-1000 г", seed: "З кіст.", care: "💡 Вимагає освітлення грон для яскравого забарвлення." },
+            "Багатянівський": { rip: "125 дн.", col: "W", taste: "Солодкий", bunch: "800-2000 г", seed: "З кіст.", care: "⚠️ Тріск від дощу. Хелат Кальцію обов'язково." },
+            "Біла леді": { rip: "115 дн.", col: "W", taste: "Гармонійний", bunch: "600-900 г", seed: "З кіст.", care: "💡 Регулярне пасинкування для провітрювання." },
+            "Богатир": { rip: "130-135 дн.", col: "W", taste: "Хрусткий", bunch: "1000-2500 г", seed: "З кіст.", care: "⚠️ Жирування лози. Довга обрізка (12 вічок)." },
+            "Бананас": { rip: "120 дн.", col: "W", taste: "Банан/Мускат", bunch: "700-1200 г", seed: "З кіст.", care: "⚠️ Слабкий до оїдіуму. Фалькон перед цвітінням." },
+            "Білоцерківський": { rip: "115 дн.", col: "W", taste: "Освіжаючий", bunch: "500-800 г", seed: "З кіст.", care: "💡 Відмінно адаптований до клімату центру України." },
+            "Вікінг": { rip: "105 дн.", col: "B", taste: "Фруктовий", bunch: "500-900 г", seed: "З кіст.", care: "⚠️ Осипання зав'язі. Бор + прищіпування верхівок." },
+            "Вірастюк": { rip: "115 дн.", col: "B", taste: "Гармонійний", bunch: "800-1800 г", seed: "З кіст.", care: "⚠️ Сіра гниль у щільному гроні. Свіч обов'язково." },
+            "Велюр": { rip: "100 дн.", col: "R", taste: "Мускат", bunch: "600-1100 г", seed: "З кіст.", care: "💡 Аміностар навесні для швидкого старту." },
+            "Вогняний": { rip: "115 дн.", col: "R", taste: "Гармонійний", bunch: "700-1200 г", seed: "З кіст.", care: "💡 Колір набирає тільки на сонці. Освітлюйте грона." },
+            "Вінсон": { rip: "110 дн.", col: "R", taste: "Хрусткий", bunch: "600-900 г", seed: "З кіст.", care: "💡 Стійкий до розтріскування, надійний на ринку." },
+            "Воплощение": { rip: "120-125 дн.", col: "R", taste: "Гармонійний", bunch: "800-1500 г", seed: "З кіст.", care: "⚠️ Потребує захисту Акробатом у червні (мілдью)." },
+            "Велес": { rip: "100 дн.", col: "R", taste: "Сильний мускат", bunch: "1500-4000 г", seed: "Безкіст.", care: "⚠️ Гниль всередині. ГК до цвітіння на розтягування." },
+            "Вітовський": { rip: "115-120 дн.", col: "W", taste: "Мускат/Мед", bunch: "500-900 г", seed: "З кіст.", care: "⚠️ Оїдіум у серпні. Тіовіт Джет обов'язково." },
+            "Гала": { rip: "115 дн.", col: "B", taste: "Гармонійний", bunch: "700-1200 г", seed: "З кіст.", care: "⚠️ Затягує дозрівання лози. Жорстке нормування." },
+            "Геліодор": { rip: "100 дн.", col: "W", taste: "Мускат", bunch: "1000-3000 г", seed: "Безкіст.", care: "⚠️ Горошіння. ГК у фазі горошини 30 мг/л." },
+            "Голд фінгер": { rip: "115 дн.", col: "W", taste: "Дуже солодкий", bunch: "500-850 г", seed: "З кіст.", care: "⚠️ Низька морозостійкість. Тільки сухе укриття." },
+            "Гармонія": { rip: "125 дн.", col: "B", taste: "Насичений", bunch: "500-800 г", seed: "З кіст.", care: "💡 Стійкий сорт, хороший для вина та соку." },
+            "Горідза": { rip: "115 дн.", col: "W", taste: "Солодкий", bunch: "700-1300 г", seed: "З кіст.", care: "⚠️ Бактеріальний рак. Уникайте травм лози." },
+            "Графиня": { rip: "115-120 дн.", col: "B", taste: "Приємний", bunch: "700-1100 г", seed: "З кіст.", care: "💡 Потребує багато Калію влітку для кольору." },
+            "Дамаська красуня": { rip: "120 дн.", col: "R", taste: "Мускат", bunch: "600-1000 г", seed: "З кіст.", care: "⚠️ Оїдіум. На зиму ретельно вкривати." },
+            "Динька": { rip: "95 дн.", col: "R", taste: "Диня", bunch: "600-1100 г", seed: "З кіст.", care: "⚠️ Тріск від дощу. Хелат Кальцію у червні." },
+            "Дубовський рожевий": { rip: "110-115 дн.", col: "R", taste: "Хрусткий", bunch: "800-2500 г", seed: "З кіст.", care: "⚠️ Слабкий колір. Калій + освітлення грон." },
+            "Дубовський червоний": { rip: "115 дн.", col: "R", taste: "Хрусткий", bunch: "700-1500 г", seed: "З кіст.", care: "💡 Видалення листя за 2 тижні до збору." },
+            "Давінчі": { rip: "115 дн.", col: "B", taste: "Солодкий", bunch: "700-1200 г", seed: "З кіст.", care: "⚠️ Сіра гниль. Свіч у фазі змикання ягід." },
+            "Діксон": { rip: "120-125 дн.", col: "R", taste: "Хрусткий", bunch: "800-1500 г", seed: "З кіст.", care: "⚠️ Пізнє визрівання лози. Виключити Азот з липня." },
+            "Дюшес к-ш": { rip: "115 дн.", col: "W", taste: "Груша/Мускат", bunch: "600-1200 г", seed: "Безкіст.", care: "💡 Добре реагує на ГК для укрупнення." },
+            "Ескалібур": { rip: "115-120 дн.", col: "W", taste: "Гармонійний", bunch: "700-1200 г", seed: "З кіст.", care: "💡 Вимагає довгої обрізки (10-12 вічок)." },
+            "Ельвіра": { rip: "110 дн.", col: "W", taste: "Освіжаючий", bunch: "500-900 г", seed: "З кіст.", care: "💡 Стійка до вологих умов Вінниччини." },
+            "Емір": { rip: "115 дн.", col: "B", taste: "Щільний", bunch: "800-1500 г", seed: "З кіст.", care: "💡 Формувати з великим запасом старої деревини." },
+            "Ельдорадо": { rip: "100 дн.", col: "W", taste: "Медовий мускат", bunch: "600-1100 г", seed: "З кіст.", care: "⚠️ Тріск від дощу. Хелат Кальцію обов'язково." },
+            "Ейфорія": { rip: "115 дн.", col: "W", taste: "Мускат", bunch: "600-1000 г", seed: "З кіст.", care: "⚠️ Загущення куща. Ретельне пасинкування." },
+            "Ізюмінка": { rip: "110 дн.", col: "R", taste: "Гармонійний", bunch: "500-850 г", seed: "З кіст.", care: "⚠️ Мілдью та мороз. Дуже примхливий сорт." },
+            "Зарниця": { rip: "115 дн.", col: "W", taste: "Хрусткий", bunch: "700-1300 г", seed: "З кіст.", care: "💡 Стійкий аналог Аркадії, менше тріскається." },
+            "Зоренька": { rip: "95-100 дн.", col: "R", taste: "Легкий мускат", bunch: "800-2000 г", seed: "З кіст.", care: "⚠️ Зайва плодючість бруньок. Рано нормувати!" },
+            "Зодіак": { rip: "120 дн.", col: "B", taste: "Яскравий мускат", bunch: "500-900 г", seed: "З кіст.", care: "⚠️ Оїдіум у серпні. Тіовіт Джет обов'язково." },
+            "Каталонія": { rip: "95 дн.", col: "B", taste: "Хрусткий", bunch: "600-1100 г", seed: "З кіст.", care: "💡 Ультрарання, лоза визріває чудово." },
+            "Козак": { rip: "115 дн.", col: "W", taste: "Сильний мускат", bunch: "800-1400 г", seed: "З кіст.", care: "⚠️ Перевантаження. Лише 1 гроно на пагін." },
+            "Кузьміч": { rip: "120-125 дн.", col: "R", taste: "Хрусткий", bunch: "700-1300 г", seed: "З кіст.", care: "💡 Висока зимостійкість, надійна робоча форма." },
+            "Кеша": { rip: "125 дн.", col: "W", taste: "Гармонійний", bunch: "800-1500 г", seed: "З кіст.", care: "⚠️ Жіноча квітка. Дозапилення пухівками." },
+            "Краса балок": { rip: "115 дн.", col: "B", taste: "Гармонійний", bunch: "700-1300 г", seed: "З кіст.", care: "💡 Добре реагує на весняне підживлення Агріфулом." },
+            "Казка к-ш": { rip: "125 дн.", col: "B", taste: "Хрусткий", bunch: "700-1400 г", seed: "Безкіст.", care: "💡 Обов'язкове ГК та надійне укриття." },
+            "Красавчик": { rip: "100-105 дн.", col: "W", taste: "Насичений мускат", bunch: "700-1200 г", seed: "З кіст.", care: "⚠️ Оїдіум. Фалькон/Луна обов'язково." },
+            "Казанова": { rip: "115-120  дн.", col: "R", taste: "Мускат", bunch: "800-1500 г", seed: "З кіст.", care: "💡 Потребує сонця в зоні грон для кольору." },
+            "Корсика": { rip: "120 дн.", col: "B", taste: "Фруктовий", bunch: "700-1200 г", seed: "З кіст.", care: "💡 Регулярне видалення пасинків влітку." },
+            "Кетлен": { rip: "115 дн.", col: "W", taste: "Гармонійний", bunch: "700-1200 г", seed: "З кіст.", care: "⚠️ Сіра гниль. Свіч обов'язково." },
+            "К-ш 342": { rip: "105 дн.", col: "W", taste: "Дуже солодкий", bunch: "400-700 г", seed: "Безкіст.", care: "💡 Найбільш невибагливий та солодкий для дітей." },
+            "Ламборджині": { rip: "115 дн.", col: "W", taste: "Гармонійний", bunch: "500-900 г", seed: "Безкіст.", care: "⚠️ Ніжна лоза. ГК зануренням. Сухе укриття." },
+            "Ландиш": { rip: "125 дн.", col: "W", taste: "Конвалія/Мускат", bunch: "800-1600 г", seed: "З кіст.", care: "⚠️ Осипання зав'язі у дощ. Бор перед цвітінням." },
+            "Лівія": { rip: "105 дн.", col: "R", taste: "Мускат", bunch: "700-1400 г", seed: "З кіст.", care: "⚠️ Оїдіум. Підживлення Калієм для кольору." },
+            "Львівський": { rip: "115-120 дн.", col: "W", taste: "Приємний", bunch: "500-850 г", seed: "З кіст.", care: "💡 Висока стійкість до мілдью, адаптований до холоду." },
+            "Ланселот": { rip: "125 дн.", col: "W", taste: "Хрусткий", bunch: "1000-2500 г", seed: "З кіст.", care: "⚠️ Величезне навантаження. Жорстко нормувати." },
+            "Лучистий к-ш": { rip: "125 дн.", col: "R", taste: "Яскравий мускат", bunch: "700-1500  г", seed: "Безкіст.", care: "⚠️ Вразливий до морозів. Укривати першим." },
+            "Морозко": { rip: "115 дн.", col: "B", taste: "Солодкий", bunch: "500-800 г", seed: "З кіст.", care: "💡 Екстремальна морозостійкість. Можна на арки." },
+            "Манікюр фінгер": { rip: "130 дн.", col: "W", taste: "Хрусткий", bunch: "600-1000 г", seed: "З кіст.", care: "⚠️ Слабкий імунітет. Системна профілактика (Луна)." },
+            "Молдова": { rip: "145 дн.", col: "B", taste: "Сливовий", bunch: "500-900 г", seed: "З кіст.", care: "⚠️ Може не дозріти. Коротка обрізка, південна стіна." },
+            "Монарх": { rip: "125 дн.", col: "W", taste: "Легкий мускат", bunch: "700-1400  г", seed: "З кіст.", care: "⚠️ Скидає суцвіття. Прищипувати пагони перед цвітінням." },
+            "Мінор": { rip: "115 дн.", col: "W", taste: "Солодкий", bunch: "500-900 г", seed: "З кіст.", care: "💡 Стійкий до тріскання після літніх дощів." },
+            "Медова королева": { rip: "115-120 дн.", col: "W", taste: "Медовий", bunch: "700-1300 г", seed: "З кіст.", care: "⚠️ Дуже приваблює ос. Захисні сітки обов'язково." },
+            "Міланка": { rip: "100 дн.", col: "R", taste: "Мускат", bunch: "700-1200 г", seed: "З кіст.", care: "⚠️ Сіра гниль. Свіч у фазі змикання." },
+            "Мускат ізюмський": { rip: "115 дн.", col: "B", taste: "Мускат", bunch: "500-950 г", seed: "З кіст.", care: "⚠️ Весняний кліщ. Санмайт -> Вертімек." },
+            "Мармеладка": { rip: "125 дн.", col: "W", taste: "Мармелад", bunch: "800-1400 г", seed: "З кіст.", care: "⚠️ Оїдіум у спеку. Тіовіт Джет." },
+            "Мелодія": { rip: "115 дн.", col: "W", taste: "Освіжаючий", bunch: "700-1300 г", seed: "З кіст.", care: "💡 Аміностар навесні для гарного старту." },
+            "Мальчик с пальчик": { rip: "115 дн.", col: "W", taste: "Хрусткий", bunch: "800-1500 г", seed: "З кіст.", care: "⚠️ Перевантаження. Раннє нормування." },
+            "Мускат медовий": { rip: "115 дн.", col: "W", taste: "Медовий мускат", bunch: "500-900 г", seed: "З кіст.", care: "💡 Видаляти нижнє листя для провітрювання грон." },
+            "Надія азос": { rip: "125 дн.", col: "B", taste: "Солодкий", bunch: "700-1400  г", seed: "З кіст.", care: "💡 Класична надійна форма. Стійка до тріскання." },
+            "Находка": { rip: "115 дн.", col: "R", taste: "Гармонійний", bunch: "700-1300 г", seed: "Безкіст.", care: "💡 ГК у фазі горошини для розміру." },
+            "Новий подарунок Запоріжжю": { rip: "120 дн.", col: "W", taste: "Щільний", bunch: "800-1500 г", seed: "З кіст.", care: "💡 Стійкий до хвороб та приморозків." },
+            "Низина": { rip: "130 дн.", col: "R", taste: "Гармонійний", bunch: "800-1800 г", seed: "З кіст.", care: "⚠️ Раннє забарвлення. Не зрізати до набору цукру!" },
+            "Незрівнянний к-ш": { rip: "110 дн.", col: "R", taste: "Солодкий", bunch: "700-1400 г", seed: "Безкіст.", care: "⚠️ Мілдью. Танос у червні." },
+            "Оріон": { rip: "125 дн.", col: "R", taste: "Солодкий", bunch: "800-1600 г", seed: "З кіст.", care: "💡 Велика площа живлення на шпалері." },
+            "Подарунок Несветая": { rip: "100 дн.", col: "B", taste: "Мускат", bunch: "700-1300 г", seed: "З кіст.", care: "⚠️ Перевантаження. Раннє нормування суцвіттями." },
+            "Полтавський манікюр": { rip: "125 дн.", col: "W", taste: "Хрусткий", bunch: "500-900 г", seed: "З кіст.", care: "⚠️ Оїдіум та Гнилі. Захист Фалькон + Свіч." },
+            "Прима України": { rip: "90 дн.", col: "W", taste: "Цитрон/Мускат", bunch: "500-900 г", seed: "З кіст.", care: "💡 Ультраранній, стійкий до морозів." },
+            "Перетворення": { rip: "105 дн.", col: "R", taste: "Простий", bunch: "1000-2500 г", seed: "З кіст.", care: "⚠️ Пасинковий врожай. Виламувати пасинки вчасно." },
+            "Подарунок Дніпру": { rip: "115 дн.", col: "W", taste: "Гармонійний", bunch: "800-1500 г", seed: "З кіст.", care: "💡 Мікроелементи перед цвітінням." },
+            "Подарунок Харкову": { rip: "125 дн.", col: "W", taste: "Солодкий", bunch: "800-1600 г", seed: "З кіст.", care: "💡 Стабільний врожай за будь-якої погоди." },
+            "Памʼяті Негруля": { rip: "135 дн.", col: "B", taste: "Простий", bunch: "700-1400  г", seed: "З кіст.", care: "💡 Чудово підходить для довгого зберігання." },
+            "Памʼяті батьків": { rip: "115-120 дн.", col: "W", taste: "Легкий мускат", bunch: "800-1500 г", seed: "З кіст.", care: "⚠️ Оїдіум на ягодах. Захист Луною." },
+            "Полуничний": { rip: "115 дн.", col: "R", taste: "Полуниця", bunch: "500-950  г", seed: "З кіст.", care: "⚠️ Тріск від вологи. Контроль поливу + Кальцій." },
+            "Полонез 50": { rip: "105 дн.", col: "R", taste: "Мускат", bunch: "800-1400 г", seed: "З кіст.", care: "💡 Своєчасне калійне живлення влітку." },
+            "Пегас": { rip: "125 дн.", col: "B", taste: "Гармонійний", bunch: "800-1600 г", seed: "З кіст.", care: "💡 Лоза визріває стабільно, стійка форма." },
+            "Руслан": { rip: "115  дн.", col: "B", taste: "Слива", bunch: "800-1600 г", seed: "З кіст.", care: "⚠️ Осипання зав'язі у дощ. Обробка Бором." },
+            "Рембо": { rip: "100-105 дн.", col: "B", taste: "Хрусткий", bunch: "800-1600 г", seed: "З кіст.", care: "💡 Добре переносить весняні похолодання." },
+            "Рішельє": { rip: "115  дн.", col: "B", taste: "Гармонійний", bunch: "700-1300 г", seed: "З кіст.", care: "⚠️ Оїдіум. Регулярна профілактика Фальконом." },
+            "Раджа": { rip: "110-115 дн.", col: "B", taste: "Хрусткий", bunch: "600-1000 г", seed: "З кіст.", care: "💡 Потребує помірного навантаження." },
+            "Сенатор": { rip: "120 дн.", col: "R", taste: "Яскравий мускат", bunch: "800-1600 г", seed: "З кіст.", care: "⚠️ Сіра гниль. Свіч у зону грон." },
+            "Слава Україні": { rip: "115 дн.", col: "W", taste: "Гармонійний", bunch: "800-1800 г", seed: "З кіст.", care: "⚠️ Кліщ. Санмайт навесні." },
+            "Страшенський": { rip: "135 дн.", col: "B", taste: "Простий", bunch: "1000-3000 г", seed: "З кіст.", care: "⚠️ Нерівномірне дозрівання. Відрізати низ грона." },
+            "Сон Анжеліки": { rip: "115 дн.", col: "R", taste: "Легкий мускат", bunch: "600-1100 г", seed: "З кіст.", care: "⚠️ Оїдіум восени. Сірка після збору." },
+            "сюрприз": { rip: "125 дн.", col: "B", taste: "Гармонійний", bunch: "600-1000 г", seed: "З кіст.", care: "💡 Надійна стійка форма." },
+            "Сенсація": { rip: "105-110 дн.", col: "R", taste: "Солодкий", bunch: "800-2000 г", seed: "З кіст.", care: "⚠️ Жирування. Помірне азотне живлення." },
+            "Супер вишня": { rip: "115 дн.", col: "R", taste: "Вишня", bunch: "500-900 г", seed: "З кіст.", care: "💡 Щільна шкірка, стійка до тріскання." },
+            "Талісман": { rip: "130 дн.", col: "W", taste: "Мускат", bunch: "1000-2500 г", seed: "З кіст.", care: "⚠️ Жіноча квітка. Дозапилення пухівками." },
+            "Тігіл": { rip: "115 дн.", col: "W", taste: "Гармонійний", bunch: "600-1000 г", seed: "З кіст.", care: "💡 Регулярне видалення пасинків." },
+            "Тасон": { rip: "105 дн.", col: "R", taste: "Мускат", bunch: "500-900 г", seed: "З кіст.", care: "⚠️ Мілдью. Акробат у травні/червні." },
+            "Тайсон": { rip: "115  дн.", col: "B", taste: "Хрусткий", bunch: "800-1600 г", seed: "З кіст.", care: "💡 Чудово витримує транспортування." },
+            "Тімоша к-ш": { rip: "110-115  дн.", col: "R", taste: "Солодкий", bunch: "600-1100 г", seed: "Безкіст.", care: "💡 ГК на стадії горошини для набору." },
+            "Фестіве": { rip: "125 дн.", col: "B", taste: "Солодкий", bunch: "500-900  г", seed: "З кіст.", care: "💡 Висока зимостійкість, для альтанок." },
+            "Хамелеон": { rip: "100-105 дн.", col: "R", taste: "Дуже солодкий", bunch: "1000-2500 г", seed: "З кіст.", care: "💡 Дивовижна врожайність. Калій у серпні." },
+            "Хілтон": { rip: "115 дн.", col: "R", taste: "Щільний", bunch: "600-1000 г", seed: "З кіст.", care: "💡 Стійкий до розтріскування під дощем." },
+            "Цимус": { rip: "95 дн.", col: "W", taste: "Цитрон", bunch: "800-1500 г", seed: "Безкіст.", care: "💡 Вибуховий мускат, стійкий до мілдью." },
+            "Чорна хмара": { rip: "115 дн.", col: "B", taste: "Гармонійний", bunch: "800-1500 г", seed: "З кіст.", care: "⚠️ Сіра гниль. Свіч у фазі змикання." },
+            "Червона троянда": { rip: "115-120  дн.", col: "R", taste: "Троянда", bunch: "600-1100 г", seed: "З кіст.", care: "💡 Освітлення грон восени для кольору." },
+            "Шакіра": { rip: "115 дн.", col: "R", taste: "Приємний", bunch: "800-1400 г", seed: "З кіст.", care: "⚠️ Оїдіум. Профілактика Фальконом." },
+            "Юпітер рожевий": { rip: "115 дн.", col: "R", taste: "Мускат", bunch: "500-900 г", seed: "Безкіст.", care: "⚠️ Сіра гниль у дощову погоду." },
+            "Юпітер": { rip: "115  дн.", col: "B", taste: "Ізабельний мускат", bunch: "400-650 г", seed: "Безкіст.", care: "💡 Може зимувати без укриття." },
+            "Юліан": { rip: "100  дн.", col: "R", taste: "Приємний мускат", bunch: "800-1800 г", seed: "З кіст.", care: "⚠️ Слабкий колір. Калійне живлення." }
+        };
+
+        const phasesData = {
+            1: { title: "Пробудження бруньок", time: "Квітень", mix: "Нордокс (4г) / Медян Екстра (5г). pH 6.0", steps: ["Очищення штамбів від старої кори", "Обробка лози мідьвмісними препаратами", "Внесення колоїдної сірки під кущ проти кліща"], nutrition: "Сухе внесення в ґрунт: Аміачна селітра (30г/кущ) + YaraMila Complex. рН поливної води: 6.0", icon: "❄️" },
+            2: { title: "Старт вегетації (3-5 листків)", time: "Травень", mix: "Хорус (0.3г) + Пенкоцеб (2г) + Санмайт (1г) на 1л води. pH 5.5", steps: ["День 1: Обприскування баковою сумішшю (Захист)", "Пауза 2 дні перед іншими роботами", "Проливання ґрунту Триходермою проти грибків"], nutrition: "Позакореневе (по листу): Карбамід (15г/10л) + Агріфлекс (2г/10л) як стимулятор. рН води: 6.0", icon: "🌿" },
+            3: { title: "Перед цвітінням", time: "Кінець Травня", mix: "Акробат (2г) + Фалькон (0.5мл) + Кораген (0.15мл) + Вертімек (1мл) на 1л. pH 5.5", steps: ["День 1: Повна бакова обробка на випередження хвороб", "Підкислення води лимонною кислотою перед додаванням Бору", "Ретельне дрібнодисперсне обприскування суцвіть"], nutrition: "Крапельне підживлення: Агріфлекс. По листу: Бор (15г/10л) + Плантафол 10-54-10 (високий фосфор). рН: 5.5", icon: "🌼" },
+            4: { title: "Формування ягоди (Горошина)", time: "Червень", mix: "Танос (0.6г) + Луна Експірієнс (1.5мл) на 1л води. pH 5.5", steps: ["День 1: Обробка від оїдіуму та мілдью", "Припинення внесення Азоту в ґрунт (щоб уникнути жирування лози)", "Застосування біостимуляторів поділу клітин (Бенефіт)"], nutrition: "Крапельно: NPK 15-5-30 (20г/кущ). По листу: Benefit PZ (25мл/10л) для росту ягід. рН: 6.0", icon: "🟢" },
+            5: { title: "Змикання ягід у гроні", time: "Липень", mix: "Свіч (1г) + Проклейм (0.4г) на 1л води. pH 5.5", steps: ["Пряме обприскування зони грон всередину проти сірої гнилі", "Освітлення грон (видалення листя навколо грона для вентиляції)", "Позакореневе внесення Калію для прискорення дозрівання лози"], nutrition: "Крапельно: Монофосфат Калію (30г/кущ). По листу: Плантафол 5-15-45 (високий калій). рН: 6.0", icon: "🍇" },
+            6: { title: "Дозрівання ягід", time: "Серпень", mix: "Скала (1мл) + Тіовіт Джет (4г) на 1л води. pH 6.5", steps: ["Фінішний захист від сірої гнилі (короткий термін очікування)", "Строгий контроль поливу (обмеження для запобігання тріску)", "Обробка Тіовітом тільки при температурі повітря < 30°C"], nutrition: "Крапельно: Сульфат Калію (30г/кущ). По листу: Хелат Кальцію (Брексил Са) проти розтріскування. рН: 6.0", icon: "☀️" },
+            7: { title: "Осіння підготовка & лоза", time: "Жовтень - Листопад", mix: "Залізний купорос (300-400г на 10л води) по голій лозі. pH 4.0", steps: ["Вологозарядний полив під кущі (50-80л на дорослий кущ)", "Осіння обрізка лози з видаленням до 85% річного приросту", "Укриття кущів агроволокном або прикопування землею на зиму"], nutrition: "Внесення під перекопування: Суперфосфат (40г/м²) + перепрілий перегній. рН: 6.5", icon: "❄️" }
+        };
+
+        const colorMap = { "W": "#84cc16", "R": "#f43f5e", "B": "#7e22ce" };
+        const weightMap = { "W": 1, "R": 2, "B": 3 };
+        
+        const grapeSVG = (hex) => `<svg width="14" height="14" viewBox="0 0 24 24" fill="${hex}" class="mr-2 inline-block"><circle cx="9" cy="9" r="3"/><circle cx="15" cy="9" r="3"/><circle cx="12" cy="13" r="3"/><circle cx="8" cy="14" r="3"/><circle cx="16" cy="14" r="3"/><path d="M12 2v4" stroke="#15803d" stroke-width="2"/></svg>`;
+
+        // Tab Navigation
+        function switchTab(id) {
+            currentTab = id;
+            document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+            document.getElementById('tab-' + id).classList.add('active');
+            
+            document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+            document.getElementById('nav-' + id).classList.add('active');
+            
+            if (id === 'phases') {
+                selectStep(currentActivePhase);
+            } else if (id === 'analytics') {
+                setTimeout(initChart, 50); // Small delay to ensure canvas is visible
+            }
+        }
+
+        // --- SEASONS & PHASES CHECKLIST LOGIC ---
+        function selectStep(id) {
+            currentActivePhase = Number(id);
+            renderPhaseNav();
+            const s = phasesData[id];
+            
+            // Generate checklist state if not exists
+            if (!phaseChecklists[id]) {
+                phaseChecklists[id] = Array(s.steps.length).fill(false);
+            }
+            
+            const checkedCount = phaseChecklists[id].filter(Boolean).length;
+            const percent = s.steps.length ? Math.round((checkedCount / s.steps.length) * 100) : 0;
+
+            document.getElementById('phase-content').innerHTML = `
+                <div class="fade-in h-full flex flex-col justify-between">
+                    <div>
+                        <div class="flex justify-between items-start mb-6 border-b border-emerald-100 pb-6">
+                            <div>
+                                <h2 class="text-3xl font-black text-emerald-950">${s.title}</h2>
+                                <p class="text-emerald-600 font-bold uppercase tracking-widest text-xs mt-1">📅 Орієнтовний термін: ${s.time}</p>
+                            </div>
+                            <span class="text-6xl opacity-20">${s.icon}</span>
+                        </div>
+                        
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <!-- Left: Protection and Action Steps -->
+                            <div class="space-y-6">
+                                <div class="bg-emerald-900 text-white p-5 rounded-3xl shadow-lg border-b-4 border-emerald-700">
+                                    <span class="text-[9px] font-black uppercase text-emerald-300 tracking-wider">🛡️ Захисний Баковий Коктейль (дозування на 10л)</span>
+                                    <p class="text-sm font-bold mt-1">${s.mix}</p>
+                                </div>
+                                
+                                <div>
+                                    <div class="flex justify-between items-center mb-3">
+                                        <span class="text-xs font-black uppercase text-stone-500 tracking-wider">📋 Необхідні агрозаходи</span>
+                                        <span class="text-xs font-black text-emerald-600">${percent}% виконано</span>
+                                    </div>
+                                    <ul class="space-y-2.5">
+                                        ${s.steps.map((st, idx) => {
+                                            const isChecked = phaseChecklists[id][idx] ? 'checked' : '';
+                                            return `
+                                                <li class="flex items-start gap-3 bg-stone-50 p-3.5 rounded-2xl border border-stone-200/60 hover:bg-emerald-50/20 transition-all cursor-pointer select-none" onclick="togglePhaseStep(${id}, ${idx})">
+                                                    <input type="checkbox" ${isChecked} class="w-4 h-4 mt-0.5 rounded border-stone-300 text-emerald-600 focus:ring-emerald-500 pointer-events-none">
+                                                    <span class="text-xs text-stone-700 font-medium ${isChecked ? 'line-through opacity-50' : ''}">${st}</span>
+                                                </li>
+                                            `;
+                                        }).join('')}
+                                    </ul>
+                                </div>
+                            </div>
+                            
+                            <!-- Right: Nutrition, pH, and notes -->
+                            <div class="bg-emerald-50/50 p-6 rounded-[30px] border border-emerald-100/80 flex flex-col justify-between">
+                                <div>
+                                    <span class="text-[10px] font-black uppercase text-emerald-700 block mb-3 tracking-widest">💧 Кореневе & Позакореневе Живлення</span>
+                                    <p class="text-xs text-stone-700 leading-relaxed font-semibold bg-white p-5 rounded-2xl border border-emerald-100 shadow-sm">${s.nutrition}</p>
+                                </div>
+                                <div class="mt-6 bg-white/60 p-4 rounded-2xl border border-emerald-100 text-[10px] text-emerald-800 font-medium italic">
+                                    💡 Рекомендація: Завжди заміряйте рН робочого розчину перед обприскуванням. Оптимальний рівень для бакових сумішей: 5.5 - 6.0.
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function togglePhaseStep(phaseId, stepIdx) {
+            phaseChecklists[phaseId][stepIdx] = !phaseChecklists[phaseId][stepIdx];
+            localStorage.setItem('phaseChecklists', JSON.stringify(phaseChecklists));
+            selectStep(phaseId);
+        }
+
+        function renderPhaseNav() {
+            const nav = document.getElementById('phase-nav-container');
+            nav.innerHTML = Object.keys(phasesData).map(k => {
+                const s = phasesData[k];
+                const active = Number(k) === currentActivePhase;
+                
+                // Calculate completion
+                if (!phaseChecklists[k]) phaseChecklists[k] = Array(s.steps.length).fill(false);
+                const checkedCount = phaseChecklists[k].filter(Boolean).length;
+                const percent = s.steps.length ? Math.round((checkedCount / s.steps.length) * 100) : 0;
+                
+                return `
+                    <button onclick="selectStep(${k})" class="w-full text-left p-4 rounded-[26px] border-2 transition-all ${active ? 'step-active border-emerald-600 bg-white' : 'border-transparent bg-stone-100/50 hover:bg-stone-100'}">
+                        <div class="flex items-center justify-between">
+                            <div class="flex items-center gap-3">
+                                <span class="text-2xl">${s.icon}</span>
+                                <div>
+                                    <p class="text-[9px] font-black uppercase text-emerald-600">Фаза ${k}</p>
+                                    <p class="text-xs font-bold text-emerald-950">${s.title}</p>
+                                </div>
+                            </div>
+                            ${percent > 0 ? `<span class="text-[9px] font-black bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded-full">${percent}%</span>` : ''}
+                        </div>
+                    </button>
+                `;
+            }).join('');
+        }
+
+        // --- SAT TRACKER LOGIC ---
+        function addSAT() {
+            const input = document.getElementById('sat-input');
+            const dateInput = document.getElementById('sat-date');
+            
+            const val = parseFloat(input.value);
+            const rawDate = dateInput.value;
+            
+            if (!rawDate) {
+                alert('Будь ласка, оберіть дату для запису.');
+                return;
+            }
+            
+            if (!isNaN(val)) {
+                if (val <= 10) {
+                    alert('Для розрахунку САТ враховуються тільки температури вище +10°C.');
+                    return;
+                }
+                
+                const dateObj = new Date(rawDate);
+                const formattedDate = dateObj.toLocaleDateString('uk-UA', { day: '2-digit', month: '2-digit' });
+                
+                const contribution = parseFloat((val - 10).toFixed(1));
+                
+                // Add to history
+                satHistory.push({
+                    rawDate: rawDate,
+                    date: formattedDate,
+                    temp: val,
+                    contribution: contribution
+                });
+                
+                // Sort history chronologically
+                satHistory.sort((a, b) => new Date(a.rawDate) - new Date(b.rawDate));
+                
+                recalculateSAT();
+                input.value = '';
+                dateInput.valueAsDate = new Date();
+            }
+        }
+
+        function deleteSATEntry(index) {
+            satHistory.splice(index, 1);
+            recalculateSAT();
+        }
+
+        function resetSAT() {
+            if (confirm('Ви впевнені, що хочете скинути всі дані САТ за сезон?')) {
+                satHistory = [];
+                recalculateSAT();
+            }
+        }
+
+        function recalculateSAT() {
+            let cumulative = 0;
+            satHistory.forEach(entry => {
+                cumulative += entry.contribution;
+                entry.cumulative = parseFloat(cumulative.toFixed(1));
+            });
+            
+            totalSAT = cumulative;
+            localStorage.setItem('satHistory', JSON.stringify(satHistory));
+            
+            updateSATDisplay();
+            renderSATLog();
+            updateChart();
+            updateMilestoneProgress();
+        }
+
+        // --- UPDATE DISPLAY ---
+        function updateSATDisplay() {
+            document.getElementById('sat-total').innerText = Math.round(totalSAT) + '°C';
+            document.getElementById('current-sat-display').innerText = Math.round(totalSAT) + '°';
+        }
+
+        function renderSATLog() {
+            const container = document.getElementById('sat-log-container');
+            if (satHistory.length === 0) {
+                container.innerHTML = `<p class="text-xs text-stone-400 italic text-center py-4">Немає записів за цей сезон</p>`;
+                return;
+            }
+            
+            container.innerHTML = satHistory.map((entry, idx) => `
+                <div class="flex justify-between items-center bg-stone-50 p-2.5 rounded-xl border border-stone-200/60 text-xs font-bold text-stone-700">
+                    <div class="flex items-center gap-3">
+                        <span class="text-stone-400 font-medium">${entry.date}</span>
+                        <span>t° сер: <strong class="text-emerald-700">${entry.temp}°C</strong></span>
+                    </div>
+                    <div class="flex items-center gap-3">
+                        <span class="bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded-md font-extrabold text-[10px]">+${entry.contribution}° САТ</span>
+                        <button onclick="deleteSATEntry(${idx})" class="text-stone-300 hover:text-rose-500 font-black transition-all">✕</button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function updateMilestoneProgress() {
+            const bar = document.getElementById('milestone-progress-bar');
+            const percentLabel = document.getElementById('milestone-percent');
+            const milestoneLabel = document.getElementById('milestone-name');
+            const statusLabel = document.getElementById('sat-status-label');
+            
+            let milestone = 200;
+            let label = "До прокидання бруньки (200°С)";
+            
+            if (totalSAT >= 1000) {
+                milestone = 2500;
+                label = "До повної стиглості ягід (2500°С)";
+                statusLabel.innerText = "Визрівання лози";
+            } else if (totalSAT >= 800) {
+                milestone = 1000;
+                label = "До початку дозрівання ягід (1000°С)";
+                statusLabel.innerText = "Змикання грон";
+            } else if (totalSAT >= 200) {
+                milestone = 800;
+                label = "До початку цвітіння (800°С)";
+                statusLabel.innerText = "Активна вегетація";
+            } else {
+                statusLabel.innerText = "Пробудження бруньок";
+            }
+            
+            const pct = Math.min(100, Math.round((totalSAT / milestone) * 100));
+            milestoneLabel.innerText = label;
+            percentLabel.innerText = pct + '%';
+            bar.style.width = pct + '%';
+        }
+
+        // --- CHART.JS INTEGRATION ---
+        function initChart() {
+            const canvas = document.getElementById('sat-chart');
+            if (!canvas) return;
+            const ctx = canvas.getContext('2d');
+            
+            if (chartInstance) {
+                chartInstance.destroy();
+            }
+            
+            const labels = satHistory.length > 0 ? satHistory.map(e => e.date) : ['Старт'];
+            const data = satHistory.length > 0 ? satHistory.map(e => e.cumulative) : [0];
+
+            chartInstance = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Накопичена сума активних температур (°C)',
+                        data: data,
+                        borderColor: '#059669',
+                        backgroundColor: 'rgba(5, 150, 105, 0.05)',
+                        borderWidth: 3,
+                        pointBackgroundColor: '#047857',
+                        pointBorderColor: '#ffffff',
+                        pointBorderWidth: 2,
+                        pointRadius: satHistory.length > 0 ? 4 : 0,
+                        tension: 0.25,
+                        fill: true
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            grid: { color: '#f1f5f9' },
+                            ticks: { font: { family: 'Plus Jakarta Sans', weight: 'bold', size: 10 }, color: '#64748b' }
+                        },
+                        x: {
+                            grid: { display: false },
+                            ticks: { font: { family: 'Plus Jakarta Sans', weight: 'bold', size: 10 }, color: '#64748b' }
+                        }
+                    }
+                }
+            });
+        }
+
+        function updateChart() {
+            if (chartInstance) {
+                chartInstance.data.labels = satHistory.length > 0 ? satHistory.map(e => e.date) : ['Старт'];
+                chartInstance.data.datasets[0].data = satHistory.length > 0 ? satHistory.map(e => e.cumulative) : [0];
+                chartInstance.data.datasets[0].pointRadius = satHistory.length > 0 ? 4 : 0;
+                chartInstance.update();
+            }
+        }
+
+        // --- DISEASE RISK PREDICTOR LOGIC ---
+        function calculateDiseaseRisk() {
+            const temp = parseFloat(document.getElementById('disease-temp').value) || 0;
+            const rain = parseFloat(document.getElementById('disease-rain').value) || 0;
+            const hum = parseFloat(document.getElementById('disease-humidity').value) || 0;
+            
+            // MILDEW RISK CALCULATIONS (6-6-26 Rule: rain > 6mm, temp 6-26°C)
+            let mildewRisk = 'low';
+            let mildewAdvice = 'Умови безпечні. Профілактичні заходи за календарем фаз.';
+            
+            if (rain > 6 && temp >= 6 && temp <= 26) {
+                mildewRisk = 'high';
+                mildewAdvice = '🚨 КРИТИЧНИЙ РИЗИК! Правило 6-6-26 спрацювало. Неминучий спалах мілдью через 7-10 днів. Обов\'язково внесіть Акробат або Танос на випередження!';
+            } else if (rain > 2 && temp >= 8 && temp <= 28) {
+                mildewRisk = 'medium';
+                mildewAdvice = '⚠️ Підвищений ризик. Волога лоза сприяє поширенню інфекції. Проведіть обробку контактним мідьвмісним препаратом при першій нагоді.';
+            }
+            
+            // OIDIUM RISK CALCULATIONS (Optimal temp 15-25°C, high humidity even without rain)
+            let oidiumRisk = 'low';
+            let oidiumAdvice = 'Умови безпечні. Профілактика сіркою за планом.';
+            
+            if (temp >= 15 && temp <= 25 && hum > 70) {
+                oidiumRisk = 'high';
+                oidiumAdvice = '🚨 КРИТИЧНИЙ РИЗИК! Поєднання помірної температури та високої вологості ідеальне для оїдіуму. Обов\'язково застосуйте Луна Експірієнс або Сірку (Тіовіт Джет).';
+            } else if (temp >= 12 && temp <= 28 && hum > 55) {
+                oidiumRisk = 'medium';
+                oidiumAdvice = '⚠️ Помірний ризик. Сприятливі умови для розвитку спор. Забезпечте провітрювання грон (видалення листя) та обробіть профілактично.';
+            }
+            
+            // Update UI elements
+            updateRiskCard('mildew', mildewRisk, mildewAdvice);
+            updateRiskCard('oidium', oidiumRisk, oidiumAdvice);
+        }
+
+        function updateRiskCard(type, risk, advice) {
+            const card = document.getElementById(`${type}-risk-card`);
+            const badge = document.getElementById(`${type}-badge`);
+            const adviceEl = document.getElementById(`${type}-advice`);
+            
+            adviceEl.innerText = advice;
+            badge.innerText = risk === 'high' ? 'Високий' : (risk === 'medium' ? 'Середній' : 'Низький');
+            
+            // Class resets
+            card.className = "p-4 rounded-3xl border transition-all duration-300 ";
+            badge.className = "px-3 py-1 rounded-full text-[10px] font-black uppercase border ";
+            
+            if (risk === 'high') {
+                card.classList.add('bg-rose-950/20', 'border-rose-500/50');
+                badge.classList.add('bg-rose-500/20', 'text-rose-400', 'border-rose-500/30');
+            } else if (risk === 'medium') {
+                card.classList.add('bg-amber-950/20', 'border-amber-500/50');
+                badge.classList.add('bg-amber-500/20', 'text-amber-400', 'border-amber-500/30');
+            } else {
+                card.classList.add('bg-white/5', 'border-white/10');
+                badge.classList.add('bg-emerald-500/20', 'text-emerald-400', 'border-emerald-500/30');
+            }
+        }
+
+        // --- ENCYCLOPEDIA 122 VARIETIES LOGIC ---
+        function setColorFilter(color) {
+            colorFilter = color;
+            
+            // Toggle active styles on buttons
+            document.querySelectorAll('#color-filter-group button').forEach(btn => {
+                btn.className = "px-3.5 py-2 text-xs font-black rounded-xl text-stone-600 hover:text-emerald-950 transition-all";
+            });
+            document.getElementById('cf-' + color).className = "px-3.5 py-2 text-xs font-black rounded-xl bg-white text-emerald-900 shadow-sm transition-all";
+            
+            renderVarietiesList();
+        }
+
+        // --- SORTING ENCYCLOPEDIA ---
+        function sortVarieties() {
+            sortMode = document.getElementById('var-sort').value;
+            renderVarietiesList();
+        }
+
+        function renderVarietiesList() {
+            let kish = [], seed = [];
+            const query = document.getElementById('var-search').value.toLowerCase();
+            
+            // Helper parsing for sorting
+            const getSortValue = (item) => {
+                if (sortMode === 'rip') {
+                    // Extract first digits of ripening period
+                    return parseFloat(item.rip) || 999;
+                } else if (sortMode === 'bunch') {
+                    // Extract first digits of bunch weight
+                    return parseFloat(item.bunch) || 0;
+                }
+                return item.name;
+            };
+
+            // Filter items
+            Object.keys(varietyData).forEach(name => {
+                const item = { name: name, ...varietyData[name] };
+                
+                // Apply search filter
+                if (query && !name.toLowerCase().includes(query)) return;
+                
+                // Apply color filter
+                if (colorFilter !== 'all' && item.col !== colorFilter) return;
+                
+                if (item.seed.includes("Безкіст")) {
+                    kish.push(item);
+                } else {
+                    seed.push(item);
+                }
+            });
+
+            // Apply sort
+            const sortFn = (a, b) => {
+                const valA = getSortValue(a);
+                const valB = getSortValue(b);
+                
+                if (sortMode === 'name') {
+                    return valA.localeCompare(valB, 'uk');
+                } else if (sortMode === 'rip') {
+                    return valA - valB;
+                } else { // bunch descending
+                    return valB - valA;
+                }
+            };
+            
+            kish.sort(sortFn);
+            seed.sort(sortFn);
+
+            const grid = document.getElementById('var-grid-container');
+            
+            if (kish.length === 0 && seed.length === 0) {
+                grid.innerHTML = `
+                    <div class="text-center text-stone-400 py-20 bg-stone-50 rounded-[30px] border border-stone-200/50">
+                        <span class="text-5xl block mb-2">🔍</span>
+                        <p class="font-bold">Жодного сорту не знайдено за вашим запитом</p>
+                    </div>
+                `;
+                return;
+            }
+
+            grid.innerHTML = `
+                <div class="col-span-full mb-2"><h3 class="font-black text-emerald-900 bg-emerald-100 px-4 py-2 rounded-xl border border-emerald-200 shadow-sm sticky top-0 z-10 uppercase text-xs tracking-widest">✨ Безкісточкові (Кишмиші)</h3></div>
+                <div class="grid grid-cols-2 md:grid-cols-3 gap-2.5 mb-8 mt-2">${kish.map(v => generateVarBtn(v)).join('')}</div>
+                <div class="col-span-full mb-2"><h3 class="font-black text-emerald-900 bg-emerald-100 px-4 py-2 rounded-xl border border-emerald-200 shadow-sm sticky top-0 z-10 uppercase text-xs tracking-widest">🍇 Столові Сорти</h3></div>
+                <div class="grid grid-cols-2 md:grid-cols-3 gap-2.5 mt-2">${seed.map(v => generateVarBtn(v)).join('')}</div>
+            `;
+            
+            // Re-highlight the selected variety if it is still visible, otherwise select first visible
+            const visibleItems = [...kish, ...seed];
+            if (visibleItems.length > 0) {
+                const exists = visibleItems.some(v => v.name === activeVar);
+                selectVar(exists ? activeVar : visibleItems[0].name);
+            }
+        }
+
+        function calculateCounters() {
+            let total = 0, w = 0, r = 0, b = 0;
+            Object.values(varietyData).forEach(item => {
+                total++;
+                if (item.col === 'W') w++;
+                else if (item.col === 'R') r++;
+                else if (item.col === 'B') b++;
+            });
+            document.getElementById('count-all').innerText = total;
+            document.getElementById('count-W').innerText = w;
+            document.getElementById('count-R').innerText = r;
+            document.getElementById('count-B').innerText = b;
+        }
+
+        function generateVarBtn(v) {
+            return `
+                <button onclick="selectVar('${v.name}')" data-variety="${v.name}" class="variety-grid-btn px-4 py-3.5 text-left text-xs font-bold border border-stone-200 rounded-2xl text-stone-900 truncate bg-white shadow-sm hover:bg-emerald-50 hover:border-emerald-300">
+                    ${grapeSVG(colorMap[v.col])} ${v.name}
+                </button>
+            `;
+        }
+
+        function selectVar(name) {
+            activeVar = name;
+            
+            // Remove selection class from all grid buttons
+            document.querySelectorAll('.variety-grid-btn').forEach(btn => {
+                btn.classList.remove('selected');
+            });
+            
+            // Add selection to current button using attribute selector to prevent id character escaping issues
+            const btn = document.querySelector(`[data-variety="${name}"]`);
+            if (btn) btn.classList.add('selected');
+            
+            const d = varietyData[name];
+            document.getElementById('var-details-panel').innerHTML = `
+                <div class="fade-in space-y-6">
+                    <div class="border-b border-emerald-200/60 pb-4">
+                        <span class="text-[10px] font-black uppercase text-emerald-700 tracking-[0.2em] block">Агрономічний паспорт</span>
+                        <h3 class="text-2xl font-black text-emerald-950 mt-1 flex items-center">${grapeSVG(colorMap[d.col])} ${name}</h3>
+                    </div>
+                    <div class="grid grid-cols-2 gap-3 text-xs">
+                        <div class="bg-white p-3.5 rounded-2xl shadow-sm border border-emerald-100/50">
+                            <span class="block opacity-40 uppercase font-black text-[9px] mb-1">📅 Термін</span>
+                            <span class="font-bold text-stone-800">${d.rip}</span>
+                        </div>
+                        <div class="bg-white p-3.5 rounded-2xl shadow-sm border border-emerald-100/50">
+                            <span class="block opacity-40 uppercase font-black text-[9px] mb-1">⚖️ Маса грона</span>
+                            <span class="font-bold text-stone-800">${d.bunch}</span>
+                        </div>
+                        <div class="bg-white p-3.5 rounded-2xl shadow-sm border border-emerald-100/50 col-span-2">
+                            <span class="block opacity-40 uppercase font-black text-[9px] mb-1">👅 Смаковий профіль</span>
+                            <span class="font-bold text-emerald-800 uppercase tracking-wider text-[11px]">${d.taste}</span>
+                        </div>
+                    </div>
+                    <div class="bg-white p-5 rounded-3xl border border-emerald-100 shadow-inner">
+                        <span class="block text-[10px] font-black uppercase text-emerald-700 mb-2">Агрорекомендація по догляду:</span>
+                        <p class="text-[12px] leading-relaxed font-medium text-stone-700 italic">${d.care}</p>
+                    </div>
+                </div>
+            `;
+        }
+
+        function filterVarieties() {
+            renderVarietiesList();
+        }
+
+        // --- DUAL-MODE FERTIGATION CALCULATOR LOGIC ---
+        function switchCalcMode(mode) {
+            calcMode = mode;
+            
+            // Tab active state toggle
+            document.getElementById('calc-tab-simple').className = mode === 'simple' 
+                ? 'px-6 py-2.5 rounded-xl text-xs font-black transition-all bg-emerald-500 text-white shadow-md' 
+                : 'px-6 py-2.5 rounded-xl text-xs font-black transition-all text-emerald-300 hover:text-white';
+            document.getElementById('calc-tab-advanced').className = mode === 'advanced' 
+                ? 'px-6 py-2.5 rounded-xl text-xs font-black transition-all bg-emerald-500 text-white shadow-md' 
+                : 'px-6 py-2.5 rounded-xl text-xs font-black transition-all text-emerald-300 hover:text-white';
+            
+            // Div visibility toggle
+            if (mode === 'simple') {
+                document.getElementById('calc-mode-simple').classList.remove('hidden');
+                document.getElementById('calc-mode-advanced').classList.add('hidden');
+                document.getElementById('calc-result-title').innerText = 'Необхідна маса готового добрива (з пачки):';
+            } else {
+                document.getElementById('calc-mode-simple').classList.add('hidden');
+                document.getElementById('calc-mode-advanced').classList.remove('hidden');
+                document.getElementById('calc-result-title').innerText = 'Необхідна маса комерційного добрива:';
+            }
+            
+            runCalculations();
+        }
+
+        function applyFertilizerPreset() {
+            const val = document.getElementById('fertilizer-preset').value;
+            const percentInput = document.getElementById('calc-percent');
+            
+            const presets = {
+                yaramila: 12,
+                urea: 46,
+                nitrate: 34,
+                monopotassium: 34,
+                sulfate: 50,
+                calcium: 26
+            };
+            
+            if (presets[val]) {
+                percentInput.value = presets[val];
+                percentInput.readOnly = true;
+                percentInput.classList.add('opacity-60');
+            } else {
+                percentInput.readOnly = false;
+                percentInput.classList.remove('opacity-60');
+            }
+            
+            runCalculations();
+        }
+
+        function runCalculations() {
+            let resultGrams = 0;
+            
+            if (calcMode === 'simple') {
+                const bushes = parseFloat(document.getElementById('simple-bushes').value) || 0;
+                const dose = parseFloat(document.getElementById('simple-dose').value) || 0;
+                
+                resultGrams = bushes * dose;
+            } else {
+                const bushes = parseFloat(document.getElementById('calc-bushes').value) || 0;
+                const norm = parseFloat(document.getElementById('calc-norm').value) || 0;
+                const percent = parseFloat(document.getElementById('calc-percent').value) || 1;
+                
+                resultGrams = (bushes * norm * 100) / percent;
+                
+                // Update explanation subtext
+                const singleBushFertilizer = ((norm * 100) / percent).toFixed(1);
+                document.getElementById('calc-explanation-text').innerText = 
+                    `Для забезпечення ${norm} г чистої діючої речовини при вмісті ${percent}% ДР, необхідно внести ${singleBushFertilizer} г фізичної ваги комерційного препарату на один кущ. На ${bushes} кущів загальна потреба складе ${resultGrams >= 1000 ? (resultGrams/1000).toFixed(2) + ' кг' : Math.round(resultGrams) + ' г'}.`;
+            }
+            
+            document.getElementById('calc-result').innerText = resultGrams >= 1000 
+                ? (resultGrams / 1000).toFixed(2) + ' кг' 
+                : Math.round(resultGrams) + ' г';
+        }
+
+        // Add event listeners to input elements for real-time recalculation
+        document.querySelectorAll('#calc-mode-simple input, #calc-mode-advanced input').forEach(el => {
+            el.addEventListener('input', runCalculations);
+        });
+
+        // --- GIBBERELLIC ACID (GA3) CALCULATOR LOGIC ---
+        function calculateGA3() {
+            const vol = parseFloat(document.getElementById('ga3-volume').value) || 0;
+            const ppm = parseFloat(document.getElementById('ga3-ppm').value) || 0;
+            const formulation = parseFloat(document.getElementById('ga3-formulation').value) || 100;
+            
+            // Total active substance needed in mg
+            const activeSubstanceMg = vol * ppm;
+            
+            // Total commercial formulation needed in mg
+            const formulationMg = (activeSubstanceMg * 100) / formulation;
+            
+            const resultEl = document.getElementById('ga3-result');
+            
+            if (formulationMg >= 1000) {
+                resultEl.innerText = (formulationMg / 1000).toFixed(2) + ' г';
+            } else {
+                resultEl.innerText = Math.round(formulationMg) + ' мг';
+            }
+        }
+
+        // --- TO-DO LIST & JOURNAL OF OPERATIONS LOGIC ---
+        let todoList = [];
+
+        function addTodoItem() {
+            const textInput = document.getElementById('todo-text');
+            const dateInput = document.getElementById('todo-due-date');
+            
+            const text = textInput.value.trim();
+            const dueDate = dateInput.value;
+            
+            if (!text) {
+                alert('Будь ласка, введіть опис роботи.');
+                return;
+            }
+            
+            todoList.push({
+                id: Date.now() + Math.random(),
+                text: text,
+                dueDate: dueDate || null,
+                completed: false,
+                completedDate: null
+            });
+            
+            textInput.value = '';
+            localStorage.setItem('vineyardTodo', JSON.stringify(todoList));
+            renderTodos();
+        }
+
+        function toggleTodoItem(id) {
+            const item = todoList.find(t => t.id === id);
+            if (item) {
+                item.completed = !item.completed;
+                if (item.completed) {
+                    const today = new Date();
+                    const yyyy = today.getFullYear();
+                    const mm = String(today.getMonth() + 1).padStart(2, '0');
+                    const dd = String(today.getDate()).padStart(2, '0');
+                    item.completedDate = `${yyyy}-${mm}-${dd}`;
+                } else {
+                    item.completedDate = null;
+                }
+                localStorage.setItem('vineyardTodo', JSON.stringify(todoList));
+                renderTodos();
+            }
+        }
+
+        function updateTodoCompletedDate(id, newDate) {
+            const item = todoList.find(t => t.id === id);
+            if (item) {
+                item.completedDate = newDate;
+                localStorage.setItem('vineyardTodo', JSON.stringify(todoList));
+                renderTodos();
+            }
+        }
+
+        function deleteTodoItem(id) {
+            todoList = todoList.filter(t => t.id !== id);
+            localStorage.setItem('vineyardTodo', JSON.stringify(todoList));
+            renderTodos();
+        }
+
+        function clearCompletedTodos() {
+            if (confirm('Ви впевнені, що хочете очистити весь журнал виконаних робіт?')) {
+                todoList = todoList.filter(t => !t.completed);
+                localStorage.setItem('vineyardTodo', JSON.stringify(todoList));
+                renderTodos();
+            }
+        }
+
+        function renderTodos() {
+            const activeList = document.getElementById('todo-active-list');
+            const completedList = document.getElementById('todo-completed-list');
+            const stats = document.getElementById('todo-stats');
+            
+            const activeTasks = todoList.filter(t => !t.completed);
+            const completedTasks = todoList.filter(t => t.completed);
+            
+            // Sort active tasks: due date first, tasks without date last
+            activeTasks.sort((a, b) => {
+                if (!a.dueDate) return 1;
+                if (!b.dueDate) return -1;
+                return new Date(a.dueDate) - new Date(b.dueDate);
+            });
+            
+            // Sort completed tasks by completed date descending
+            completedTasks.sort((a, b) => new Date(b.completedDate) - new Date(a.completedDate));
+            
+            // Render active list
+            if (activeTasks.length === 0) {
+                activeList.innerHTML = `<p class="text-xs text-stone-400 italic text-center py-6 bg-stone-50 rounded-2xl border border-dashed border-stone-200">Немає запланованих робіт</p>`;
+            } else {
+                activeList.innerHTML = activeTasks.map(t => {
+                    let dateBadge = '';
+                    if (t.dueDate) {
+                        const dateObj = new Date(t.dueDate);
+                        const formatted = dateObj.toLocaleDateString('uk-UA', { day: '2-digit', month: '2-digit', year: 'numeric' });
+                        dateBadge = `<span class="bg-amber-100 text-amber-800 text-[10px] px-2 py-0.5 rounded-md font-bold">До: ${formatted}</span>`;
+                    }
+                    return `
+                        <div class="flex items-start justify-between bg-white p-4 rounded-2xl border border-stone-200/60 shadow-sm hover:border-emerald-300 transition-all select-none">
+                            <div class="flex items-start gap-3 flex-grow mr-2 cursor-pointer" onclick="toggleTodoItem(${t.id})">
+                                <input type="checkbox" class="w-4.5 h-4.5 mt-0.5 rounded border-stone-300 text-emerald-600 focus:ring-emerald-500 pointer-events-none">
+                                <div>
+                                    <p class="text-xs text-stone-800 font-semibold leading-normal">${t.text}</p>
+                                    <div class="mt-1">${dateBadge}</div>
+                                </div>
+                            </div>
+                            <button onclick="deleteTodoItem(${t.id})" class="text-stone-300 hover:text-rose-500 font-black transition-all">✕</button>
+                        </div>
+                    `;
+                }).join('');
+            }
+            
+            // Render completed list
+            if (completedTasks.length === 0) {
+                completedList.innerHTML = `<p class="text-xs text-stone-400 italic text-center py-10">Журнал пустий. Виконуйте завдання, щоб зафіксувати дату!</p>`;
+            } else {
+                completedList.innerHTML = completedTasks.map(t => {
+                    return `
+                        <div class="flex justify-between items-center bg-white p-4 rounded-2xl border border-emerald-100/50 shadow-sm hover:border-emerald-300 transition-all">
+                            <div class="flex-grow">
+                                <p class="text-xs text-stone-500 line-through font-bold decoration-emerald-500/30">${t.text}</p>
+                                <div class="flex items-center gap-2 mt-1.5">
+                                    <span class="text-[9px] font-black uppercase text-emerald-700 bg-emerald-100/70 px-2 py-0.5 rounded-md">Виконано:</span>
+                                    <input type="date" value="${t.completedDate}" onchange="updateTodoCompletedDate(${t.id}, this.value)" class="bg-transparent border-0 p-0 text-emerald-800 text-[11px] font-black outline-none cursor-pointer focus:underline w-28">
+                                </div>
+                            </div>
+                            <button onclick="deleteTodoItem(${t.id})" class="text-stone-300 hover:text-rose-500 font-black transition-all ml-2">✕</button>
+                        </div>
+                    `;
+                }).join('');
+            }
+            
+            stats.innerText = `Виконано: ${completedTasks.length} з ${todoList.length}`;
+        }
+
+        // Window Onload initialization
+        window.onload = () => {
+            // Load SAT History
+            const cachedSAT = localStorage.getItem('satHistory');
+            if (cachedSAT) {
+                satHistory = JSON.parse(cachedSAT);
+                let cumulative = 0;
+                satHistory.forEach(entry => {
+                    cumulative += entry.contribution;
+                });
+                totalSAT = cumulative;
+            }
+            
+            // Load Phase Checklist
+            const cachedChecklists = localStorage.getItem('phaseChecklists');
+            if (cachedChecklists) {
+                phaseChecklists = JSON.parse(cachedChecklists);
+            }
+
+            // Load Todo List
+            const cachedTodo = localStorage.getItem('vineyardTodo');
+            if (cachedTodo) {
+                todoList = JSON.parse(cachedTodo);
+            }
+            
+            // Setup default dates to today
+            document.getElementById('sat-date').valueAsDate = new Date();
+            document.getElementById('todo-due-date').valueAsDate = new Date();
+            
+            // Render components
+            selectStep(3);
+            calculateCounters();
+            renderVarietiesList();
+            updateSATDisplay();
+            updateMilestoneProgress();
+            runCalculations();
+            calculateGA3();
+            calculateDiseaseRisk();
+            renderTodos();
+            
+            // Init cumulative temperature chart
+            setTimeout(initChart, 200);
+        };
+    </script>
+</body>
+</html>
