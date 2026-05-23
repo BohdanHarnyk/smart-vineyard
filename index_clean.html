@@ -2539,7 +2539,13 @@
                 throw new Error('API ключ не знайдено. Будь ласка, збережіть ключ у верхній панелі.');
             }
             
-            const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${key}`;
+            const urlsToTry = [
+                `https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent?key=${key}`,
+                `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${key}`,
+                `https://generativelanguage.googleapis.com/v1/models/gemini-2.5-flash:generateContent?key=${key}`,
+                `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${key}`,
+                `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=${key}`
+            ];
             
             const requestBody = {
                 contents: [{ parts: [{ text: prompt }] }]
@@ -2557,27 +2563,33 @@
                 };
             }
             
-            const response = await fetch(url, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify(requestBody)
-            });
-            
-            if (!response.ok) {
-                const errData = await response.json().catch(() => ({}));
-                const errMsg = errData.error?.message || response.statusText;
-                throw new Error(`API Error: ${errMsg}`);
+            let lastError = null;
+            for (const url of urlsToTry) {
+                try {
+                    const response = await fetch(url, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify(requestBody)
+                    });
+                    
+                    if (response.ok) {
+                        const data = await response.json();
+                        const textResponse = data.candidates?.[0]?.content?.parts?.[0]?.text;
+                        if (textResponse) {
+                            return textResponse;
+                        }
+                    } else {
+                        const errData = await response.json().catch(() => ({}));
+                        lastError = errData.error?.message || response.statusText;
+                    }
+                } catch (e) {
+                    lastError = e.message;
+                }
             }
             
-            const data = await response.json();
-            const textResponse = data.candidates?.[0]?.content?.parts?.[0]?.text;
-            if (!textResponse) {
-                throw new Error('Отримано порожню відповідь від ШІ.');
-            }
-            
-            return textResponse;
+            throw new Error(`API Error: ${lastError || 'Невідома помилка при запиті до Gemini API'}`);
         }
 
         async function analyzeAICandidate() {
