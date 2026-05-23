@@ -53,6 +53,24 @@
         .tab-content { display: none; }
         .tab-content.active { display: block; animation: fadeIn 0.4s ease-out; }
 
+        /* Guide Accordions */
+        .accordion-content-wrapper {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.35s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.3s ease;
+            opacity: 0;
+        }
+        .guide-accordion-item.active .accordion-content-wrapper {
+            max-height: 1200px;
+            opacity: 1;
+        }
+        .accordion-chevron {
+            transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .guide-accordion-item.active .accordion-chevron {
+            transform: rotate(180deg);
+        }
+
         @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
 
         .no-scrollbar::-webkit-scrollbar { display: none; }
@@ -112,6 +130,7 @@
             <button onclick="switchTab('calculators')" id="nav-calculators" class="nav-btn flex-shrink-0 px-6 py-4 font-bold text-stone-500 hover:text-emerald-700">🧮 Калькулятори</button>
             <button onclick="switchTab('safety')" id="nav-safety" class="nav-btn flex-shrink-0 px-6 py-4 font-bold text-stone-500 hover:text-emerald-700">🧪 Лабораторія & ГК</button>
             <button onclick="switchTab('ai-assistant')" id="nav-ai-assistant" class="nav-btn flex-shrink-0 px-6 py-4 font-bold text-stone-500 hover:text-emerald-700">🔬 AI Помічник</button>
+            <button onclick="switchTab('guide')" id="nav-guide" class="nav-btn flex-shrink-0 px-6 py-4 font-bold text-stone-500 hover:text-emerald-700">📖 Інструкція</button>
         </div>
     </nav>
 
@@ -1228,6 +1247,181 @@
                 </div>
             </div>
         </section>
+
+        <!-- TAB: USER GUIDE -->
+        <section id="tab-guide" class="tab-content space-y-8">
+            <div class="bg-gradient-to-r from-emerald-800 to-emerald-950 text-white p-8 md:p-12 rounded-[40px] shadow-2xl relative overflow-hidden">
+                <div class="absolute -right-12 -top-12 w-32 h-32 bg-emerald-400/10 rounded-full blur-3xl pointer-events-none"></div>
+                <div class="relative z-10 max-w-2xl">
+                    <h3 class="text-3xl font-black text-white">Інструкція користувача 📖</h3>
+                    <p class="text-xs text-emerald-300 font-bold uppercase tracking-wider mt-1.5">Практичний гайд по роботі з виноградником на Smart Vineyard</p>
+                    <p class="text-xs text-emerald-100/80 leading-relaxed mt-3">
+                        Вітаємо на цифровій платформі керування виноградником! Нижче наведено детальні покрокові інструкції та приклади розрахунків для кожного блоку. Оберіть тему, щоб дізнатися більше.
+                    </p>
+                </div>
+            </div>
+
+            <!-- Accordion Stack -->
+            <div class="space-y-4 max-w-5xl mx-auto" id="guide-accordion-container">
+                <!-- Accordion 1 -->
+                <div class="guide-accordion-item bg-white rounded-3xl border border-stone-200/60 shadow-sm transition-all hover:border-emerald-300">
+                    <button onclick="toggleGuideAccordion(0)" class="w-full p-6 text-left flex justify-between items-center gap-4">
+                        <span class="text-sm font-black text-emerald-950 flex items-center gap-2">
+                            📅 Календар Фаз & Сезонні роботи
+                        </span>
+                        <span class="accordion-chevron text-stone-400 font-black">▼</span>
+                    </button>
+                    <div class="accordion-content-wrapper">
+                        <div class="p-6 pt-0 border-t border-stone-100 text-xs text-stone-700 leading-relaxed space-y-3 font-medium">
+                            <p><strong>Суть модуля:</strong> Традиційний календар за фіксованими датами часто підводить через мінливу погоду. Наша платформа автоматично прив'язує всі сезонні роботи до реальних <strong>біологічних фаз розвитку лози</strong>, які розраховуться на основі накопиченого тепла (САТ).</p>
+                            <p><strong>Покрокова інструкція:</strong></p>
+                            <ol class="list-decimal pl-5 space-y-1.5">
+                                <li><strong>Перегляд поточної фази:</strong> При завантаженні сторінки платформа автоматично визначає та рекомендує вашу поточну фазу (наприклад, <em>«Перед цвітінням»</em>) на основі внесених температур. Навігаційна панель фаз зліва покаже зелений маркер на активній фазі.</li>
+                                <li><strong>Вивчення рекомендацій:</strong> Клікнувши на будь-яку фазу, ви побачите детальні чек-листі робіт. Вони розділені на два блоки:
+                                    <ul class="list-disc pl-5 mt-1 space-y-1">
+                                        <li><strong>Захист лози:</strong> Точні бакові суміші пестицидів, необхідні для профілактики хвороб саме на цьому етапі розвитку лози.</li>
+                                        <li><strong>Живлення:</strong> Норми внесення добрив під корінь або по листу для даного періоду.</li>
+                                    </ul>
+                                </li>
+                                <li><strong>Фіксація виконання:</strong> Виконавши роботу в полі, позначте її галочкою у чек-листі. Програма попросить вказати фактичну дату виконання. Оберіть її в календарику. Всі позначки автоматично збережуться в локальній базі вашого браузера.</li>
+                            </ol>
+                            <p class="text-emerald-800 bg-emerald-50/50 p-3.5 rounded-2xl border border-emerald-100">
+                                💡 <strong>Приклад логіки:</strong> У фазі цвітіння категорично заборонено обприскувати виноград контактними препаратами, щоб не змити пилок і не заважати запиленню. Платформа враховує це і пропонує провести всі обробки строго <em>до</em> цвітіння (фаза 3) або вже по <em>горошині</em> (фаза 4).
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Accordion 2 -->
+                <div class="guide-accordion-item bg-white rounded-3xl border border-stone-200/60 shadow-sm transition-all hover:border-emerald-300">
+                    <button onclick="toggleGuideAccordion(1)" class="w-full p-6 text-left flex justify-between items-center gap-4">
+                        <span class="text-sm font-black text-emerald-950 flex items-center gap-2">
+                            📊 Смарт-Аналітика & Температурний моніторинг (САТ/СЕТ)
+                        </span>
+                        <span class="accordion-chevron text-stone-400 font-black">▼</span>
+                    </button>
+                    <div class="accordion-content-wrapper">
+                        <div class="p-6 pt-0 border-t border-stone-100 text-xs text-stone-700 leading-relaxed space-y-3 font-medium">
+                            <p><strong>Суть модуля:</strong> Температурний моніторинг дозволяє точно розрахувати теплові ресурси виноградника та попередити спалахи захворювань чи заморозки.</p>
+                            <p><strong>Різниця між показниками:</strong></p>
+                            <ul class="list-disc pl-5 space-y-1.5">
+                                <li><strong>САТ (Сума Активних Температур):</strong> Сума середньодобових температур повітря, які є вищими або рівними +10°C. <em>Наприклад: якщо 20 травня середня температура була +22°C, до загального САТ додається рівно 22°C.</em></li>
+                                <li><strong>СЕТ (Сума Ефективних Температур / GDD):</strong> Сума температур за вирахуванням біологічного нуля лози (+10°C). Вона показує лише корисне тепло, яке дійсно йде на ріст рослини. <em>Наприклад: середня температура +22°C дасть внесок у СЕТ рівно 12°C (22 - 10).</em></li>
+                            </ul>
+                            <p><strong>Покрокова інструкція:</strong></p>
+                            <ol class="list-decimal pl-5 space-y-1.5">
+                                <li><strong>Внесення температури:</strong> Відкрийте вкладку "Смарт-Аналітика". Оберіть дату, введіть середню температуру за цю добу (наприклад, <code>22.5</code>) та натисніть кнопку <code>➕ Додати запис</code>. Запис з'явиться в журналі нижче, де його можна видалити в разі помилки.</li>
+                                <li><strong>Аналіз теплового балансу:</strong> Інтерактивний графік будує криву накопичення тепла. Кнопками-перемикачами зверху ви можете миттєво перемикати графік між САТ та СЕТ.</li>
+                                <li><strong>Детектор приморозків:</strong> Якщо ви підключили прогноз погоди по API, система щоденно моніторить нічні мінімуми на наступні 14 днів. При виявленні температур нижче +2.0°C з'явиться кольорове попередження про загрозу приморозків.</li>
+                                <li><strong>Детектор хвороб (мілдью/оїдіум):</strong> Розрахунок ризику мілдью базується на класичному правилі <strong>6-6-26</strong>. Якщо зафіксовано дощ > 6 мм за температури в межах 6-26°C — система попередить про початок розвитку спор мілдью, що вимагає негайного профілактичного обприскування системними препаратами.</li>
+                            </ol>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Accordion 3 -->
+                <div class="guide-accordion-item bg-white rounded-3xl border border-stone-200/60 shadow-sm transition-all hover:border-emerald-300">
+                    <button onclick="toggleGuideAccordion(2)" class="w-full p-6 text-left flex justify-between items-center gap-4">
+                        <span class="text-sm font-black text-emerald-950 flex items-center gap-2">
+                            🍇 Енциклопедія Сортів & Розсадник (Школка)
+                        </span>
+                        <span class="accordion-chevron text-stone-400 font-black">▼</span>
+                    </button>
+                    <div class="accordion-content-wrapper">
+                        <div class="p-6 pt-0 border-t border-stone-100 text-xs text-stone-700 leading-relaxed space-y-3 font-medium">
+                            <p><strong>Суть модуля:</strong> Ведення точного обліку дорослих плодоносних кущів на винограднику та живців/молодих саджанців у шкілці на вкоріненні.</p>
+                            <p><strong>Покрокова інструкція:</strong></p>
+                            <ol class="list-decimal pl-5 space-y-1.5">
+                                <li><strong>Керування колекцією виноградника:</strong> Перейдіть у вкладку "Енциклопедія Сортів". Вона розділена на дві під-вкладки: <strong>«Моя колекція»</strong> та <strong>«Розсадник / Школка»</strong>.</li>
+                                <li><strong>Додавання нових сортів:</strong> Натисніть кнопку <code>➕ Додати сорт</code>. Відкриється модальне вікно. Почніть вводити назву сорту в перше поле. Система звірить назву з нашою базою даних (що містить 122 сорти): якщо ви введете, наприклад, <em>«Аркадія»</em>, програма сама підтягне термін дозрівання, колір ягоди, вагу грона, смакові якості та агрорекомендації. Вам залишиться лише вказати початкову кількість кущів та натиснути "Зберегти".</li>
+                                <li><strong>Облік кущів та видалення:</strong> Натиснувши на будь-який сорт у списку, ви побачите його паспорт. За допомогою кнопок <code>+</code> та <code>-</code> можна змінювати кількість кущів у винограднику. Кількість кущів миттєво з'явиться на картці сорту в загальному списку. Кнопка 🗑️ видаляє сорт з вашої колекції.</li>
+                                <li><strong>Вирощування у школці:</strong> У під-вкладці «Розсадник / Школка» ви можете додавати молоді саджанці чи чубуки із зазначенням їхньої кількості та нотаток (наприклад, <em>«чубуки на воді з 5 квітня»</em>).</li>
+                                <li><strong>Висадка на виноградник:</strong> Коли саджанці в школці вкорінилися та готові до посадки в землю, натисніть кнопку **🌱 Висадити** на картці розсадника. Введіть кількість кущів, які ви переносите у виноградник. Програма автоматично спише цю кількість зі школки і додасть її до кількості дорослих кущів цього сорту в «Моїй колекції».</li>
+                            </ol>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Accordion 4 -->
+                <div class="guide-accordion-item bg-white rounded-3xl border border-stone-200/60 shadow-sm transition-all hover:border-emerald-300">
+                    <button onclick="toggleGuideAccordion(3)" class="w-full p-6 text-left flex justify-between items-center gap-4">
+                        <span class="text-sm font-black text-emerald-950 flex items-center gap-2">
+                            🧮 Калькулятори Виноградаря (NPK, Бакова суміш, Фертигація)
+                        </span>
+                        <span class="accordion-chevron text-stone-400 font-black">▼</span>
+                    </button>
+                    <div class="accordion-content-wrapper">
+                        <div class="p-6 pt-0 border-t border-stone-100 text-xs text-stone-700 leading-relaxed space-y-3 font-medium">
+                            <p><strong>Суть модуля:</strong> Автоматизація складних математичних розрахунків для дозування хімікатів та добрив без ризику помилитися.</p>
+                            
+                            <p class="font-black text-stone-850 mt-4 mb-1">🧪 Калькулятор NPK (Сухі добрива):</p>
+                            <p>Кожен кущ винограду потребує певної кількості діючої речовини азоту (N), фосфору (P) та калію (K) залежно від фази сезону. Введіть цільову потребу в чистій речовині на кущ у грамах. Оберіть комплексне добриво (наприклад, YaraMila Complex) та прості однокомпонентні добрива для азотного або калійного коригування. Калькулятор автоматично розрахує необхідну вагу комплексного добрива, а також порахує, скільки грамів селітри чи монофосфату потрібно досипати, щоб повністю покрити дефіцити.</p>
+
+                            <p class="font-black text-stone-850 mt-4 mb-1">🌦️ Захист & Оприскування (Бакові суміші):</p>
+                            <p>Для економії часу пестициди змішують в одному обприскувачі (бакова суміш). Вкажіть загальний об'єм бака (наприклад, <code>10 л</code>) та додайте препарати із зазначенням їхньої дози на 1 літр води (наприклад, Хорус <code>0.3 г/л</code>, Топаз <code>0.2 мл/л</code>). Програма виведе готову рецептуру із загальною масою кожного препарату, яку потрібно зважити на терезах. Також калькулятор вирахує кількість лимонної кислоти для підкислення води (до pH 5.5-6.0), щоб запобігти розпаду пестицидів у лужній воді.</p>
+
+                            <p class="font-black text-stone-850 mt-4 mb-1">💧 Калькулятор Фертигації (Крапельне живлення):</p>
+                            <p>При підживленні через краплю важливо не перевищити допустиму концентрацію солей у прикореневій зоні (індекс електропровідності EC). Введіть кількість кущів, водовилив крапельниць та цільову масу добрив. Калькулятор обчислить тривалість поливу та очікуваний індекс EC розчину.
+                            <span class="text-rose-600 font-bold block mt-1">⚠️ Увага: Якщо розрахований EC перевищує 2.0 mS/cm, система покаже попередження. Це означає високий ризик осмотичного опіку коріння лози (сіль витягуватиме вологу з коренів назад у ґрунт). Необхідно або збільшити об'єм води для поливу, або зменшити кількість добрив.</span>
+                            Також розраховується вага добрив для маточного розчину, якщо ви використовуєте інжектор Вентурі.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Accordion 5 -->
+                <div class="guide-accordion-item bg-white rounded-3xl border border-stone-200/60 shadow-sm transition-all hover:border-emerald-300">
+                    <button onclick="toggleGuideAccordion(4)" class="w-full p-6 text-left flex justify-between items-center gap-4">
+                        <span class="text-sm font-black text-emerald-950 flex items-center gap-2">
+                            🧪 Лабораторія & ГК (Гіберелінова кислота)
+                        </span>
+                        <span class="accordion-chevron text-stone-400 font-black">▼</span>
+                    </button>
+                    <div class="accordion-content-wrapper">
+                        <div class="p-6 pt-0 border-t border-stone-100 text-xs text-stone-700 leading-relaxed space-y-3 font-medium">
+                            <p><strong>Суть модуля:</strong> Точний розрахунок дозування фітогормону Гібереліну (ГК) для обробки суцвіть та ягід з метою безнасінності та збільшення розміру плодів.</p>
+                            <p><strong>Покрокова інструкція:</strong></p>
+                            <ol class="list-decimal pl-5 space-y-1.5">
+                                <li><strong>Аналіз чистоти:</strong> Вкажіть відсоток діючої речовини у вашому препараті (наприклад, чистий порошок ГК має <code>100%</code>, а китайські таблетки чи рідкі форми часто мають <code>10%</code> або <code>20%</code>).</li>
+                                <li><strong>Цільові параметри:</strong> Задайте потрібну концентрацію розчину в ppm (міліграм чистої речовини на 1 літр води) та загальний об'єм робочого розчину в літрах.</li>
+                                <li><strong>Приготування маточного спиртового розчину:</strong>
+                                    <span class="text-amber-800 bg-amber-50 p-2.5 rounded-xl border border-amber-200 block mt-1.5 font-bold">
+                                        ⚠️ Гіберелінова кислота практично нерозчинна у воді. Спроба розчинити її прямо у воді призведе до випадіння пластівців та нульового ефекту. Перед змішуванням з водою обов'язково розчиніть відважену масу препарату в невеликій кількості (10-20 ml) чистого медичного спирту 96%, і лише після повного розчинення вилийте спиртовий розчин у воду!
+                                    </span>
+                                </li>
+                                <li><strong>Рекомендації по обробках:</strong>
+                                    <ul class="list-disc pl-5 mt-1 space-y-1">
+                                        <li><strong>Для безнасінності (кишмиші):</strong> Обробка суцвіть методом занурення або ретельного обприскування в концентрації 20-40 ppm наприкінці цвітіння та через 7-10 днів після нього.</li>
+                                        <li><strong>Для розтягування грон (у щільних сортів):</strong> Обробка до цвітіння (концентрація 5-10 ppm) дозволяє подовжити вісь грона, що запобігає здавлюванню та тріску ягід восени.</li>
+                                    </ul>
+                                </li>
+                            </ol>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Accordion 6 -->
+                <div class="guide-accordion-item bg-white rounded-3xl border border-stone-200/60 shadow-sm transition-all hover:border-emerald-300">
+                    <button onclick="toggleGuideAccordion(5)" class="w-full p-6 text-left flex justify-between items-center gap-4">
+                        <span class="text-sm font-black text-emerald-950 flex items-center gap-2">
+                            🔬 AI Асистент (Агро-чат & Детектор САТ)
+                        </span>
+                        <span class="accordion-chevron text-stone-400 font-black">▼</span>
+                    </button>
+                    <div class="accordion-content-wrapper">
+                        <div class="p-6 pt-0 border-t border-stone-100 text-xs text-stone-700 leading-relaxed space-y-3 font-medium">
+                            <p><strong>Суть модуля:</strong> Використання штучного інтелекту Gemini від Google як вашого цілодобового помічника-агронома для вирішення будь-яких складних ситуацій на винограднику.</p>
+                            <p><strong>Покрокова інструкція:</strong></p>
+                            <ol class="list-decimal pl-5 space-y-1.5">
+                                <li><strong>Налаштування ключа:</strong> Для роботи асистента необхідний Gemini API ключ. Введіть його у відповідне поле на початку вкладки. Ключ надійно зберігається у вашому власному браузері та не передається третім особам.</li>
+                                <li><strong>Детектор кліматичної придатності САТ:</strong> Перед купівлею нового сорту введіть його назву та САТ вашої місцевості (наприклад, <code>2500</code>). Система розрахує, чи вистачить сорту тепла для визрівання лози та накопичення цукру, захищаючи вас від помилок при посадці.</li>
+                                <li><strong>Робота з Agro-Chat:</strong> Задавайте будь-які запитання щодо хвороб, шкідників, обрізки чи систем живлення. Підтримується **голосове введення**: натисніть на значок мікрофона `🎙️`, продиктуйте запитання українською мовою, перевірте розпізнаний текст та відправте його чат-боту.</li>
+                                <li><strong>Кандидати на посадку:</strong> Сорти, які ви обговорюєте з асистентом і розглядаєте для придбання, можна додавати в список "Кандидати на посадку". Вони відображатимуться на бічній панелі у чаті для зручного порівняння параметрів.</li>
+                            </ol>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
     </main>
 
     <script>
@@ -1433,6 +1627,18 @@
                 selectStep(currentActivePhase);
             } else if (id === 'analytics') {
                 setTimeout(initChart, 50); // Small delay to ensure canvas is visible
+            }
+        }
+
+        function toggleGuideAccordion(index) {
+            const items = document.querySelectorAll('.guide-accordion-item');
+            const clickedItem = items[index];
+            const isActive = clickedItem.classList.contains('active');
+            
+            items.forEach(item => item.classList.remove('active'));
+            
+            if (!isActive) {
+                clickedItem.classList.add('active');
             }
         }
 
