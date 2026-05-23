@@ -439,6 +439,52 @@
 
         <!-- TAB: VARIETIES -->
         <section id="tab-varieties" class="tab-content space-y-6">
+            <!-- SAT Suitability Checker Widget -->
+            <div class="bg-gradient-to-br from-emerald-900 to-emerald-950 text-white p-6 md:p-8 rounded-[40px] shadow-2xl border border-emerald-800/60 relative overflow-hidden">
+                <!-- Ambient light glow backgrounds -->
+                <div class="absolute -right-16 -top-16 w-36 h-36 bg-emerald-500/20 rounded-full blur-3xl pointer-events-none"></div>
+                <div class="absolute -left-16 -bottom-16 w-36 h-36 bg-emerald-400/15 rounded-full blur-3xl pointer-events-none"></div>
+                
+                <div class="flex flex-col lg:flex-row gap-6 items-stretch justify-between relative z-10">
+                    <!-- Input section -->
+                    <div class="lg:w-1/2 space-y-4">
+                        <div>
+                            <h3 class="text-xl font-black text-white flex items-center gap-2">
+                                ☀️ Детектор визрівання сортів за САТ
+                            </h3>
+                            <p class="text-xs text-emerald-400 font-bold uppercase tracking-wider mt-1">Перевірка сумісності клімату для 122 сортів</p>
+                        </div>
+                        
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <div class="space-y-2">
+                                <label class="text-[10px] font-black uppercase tracking-widest text-emerald-300">Назва сорту:</label>
+                                <div class="relative">
+                                    <input type="text" id="sat-check-name" list="sat-check-varieties" oninput="runSatSuitabilityCheck()" placeholder="Оберіть або введіть сорт..." class="w-full p-4 rounded-2xl bg-white/5 border border-white/20 outline-none text-sm font-black text-white placeholder-emerald-300/40 focus:bg-white/10 focus:border-emerald-400 transition-all">
+                                    <datalist id="sat-check-varieties">
+                                        <!-- Injected dynamically -->
+                                    </datalist>
+                                </div>
+                            </div>
+                            <div class="space-y-2">
+                                <label class="text-[10px] font-black uppercase tracking-widest text-emerald-300">САТ місцевості (°C):</label>
+                                <input type="number" id="sat-check-local-sat" value="2700" min="1500" max="4500" step="50" oninput="runSatSuitabilityCheck()" class="w-full p-4 rounded-2xl bg-white/5 border border-white/20 outline-none text-sm font-black text-white focus:bg-white/10 focus:border-emerald-400 transition-all">
+                            </div>
+                        </div>
+                        <p class="text-[10px] text-emerald-300/70 italic leading-relaxed">
+                            💡 Кліматичний САТ в Україні: Північ ~2400-2600°C, Центр ~2600-2800°C, Південь ~3000-3400°C.
+                        </p>
+                    </div>
+                    
+                    <!-- Results display card -->
+                    <div class="lg:w-1/2 bg-emerald-950/60 p-6 rounded-3xl border border-emerald-800/80 flex flex-col justify-center min-h-[140px]" id="sat-check-result-card">
+                        <div class="text-center text-emerald-300/50 py-4">
+                            <span class="text-3xl block mb-2">🍇</span>
+                            <p class="text-xs font-black uppercase tracking-widest">Введіть сорт винограду для аналізу</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
             <div class="bg-white p-8 rounded-[40px] custom-shadow border border-emerald-100">
                 <div class="flex flex-col xl:flex-row justify-between items-stretch xl:items-center gap-6 mb-10">
                     <div>
@@ -2179,6 +2225,7 @@
             if (btn) btn.classList.add('selected');
             
             const d = varietyData[name];
+            const catInfo = getCatInfoByRip(d.rip);
             document.getElementById('var-details-panel').innerHTML = `
                 <div class="fade-in space-y-6">
                     <div class="border-b border-emerald-200/60 pb-4">
@@ -2193,6 +2240,15 @@
                         <div class="bg-white p-3.5 rounded-2xl shadow-sm border border-emerald-100/50">
                             <span class="block opacity-40 uppercase font-black text-[9px] mb-1">⚖️ Маса грона</span>
                             <span class="font-bold text-stone-800">${d.bunch}</span>
+                        </div>
+                        <div class="bg-white p-3.5 rounded-2xl shadow-sm border border-emerald-100/50">
+                            <span class="block opacity-40 uppercase font-black text-[9px] mb-1">☀️ Група & САТ</span>
+                            <span class="font-bold text-stone-800 block">${catInfo.group}</span>
+                            <span class="text-[10px] text-emerald-700 font-bold mt-0.5 block">${catInfo.catRange}</span>
+                        </div>
+                        <div class="bg-white p-3.5 rounded-2xl shadow-sm border border-emerald-100/50">
+                            <span class="block opacity-40 uppercase font-black text-[9px] mb-1">⏳ Період (таблиця)</span>
+                            <span class="font-bold text-stone-800 block">${catInfo.daysRange}</span>
                         </div>
                         <div class="bg-white p-3.5 rounded-2xl shadow-sm border border-emerald-100/50 col-span-2">
                             <span class="block opacity-40 uppercase font-black text-[9px] mb-1">👅 Смаковий профіль</span>
@@ -2209,6 +2265,144 @@
 
         function filterVarieties() {
             renderVarietiesList();
+        }
+
+        // --- VITICULTURE CAT AND RIPENING SUITABILITY CHECKER ---
+        function getCatInfoByRip(ripStr) {
+            const numbers = ripStr.match(/\d+/g);
+            if (!numbers || numbers.length === 0) {
+                return { group: "Невідомо", catRange: "—", daysRange: "—", minCat: 0, maxCat: 0 };
+            }
+            
+            let days = 0;
+            if (numbers.length === 1) {
+                days = parseInt(numbers[0]);
+            } else {
+                days = (parseInt(numbers[0]) + parseInt(numbers[1])) / 2;
+            }
+            
+            if (days <= 97) {
+                return { group: "Ультраранні", catRange: "1900-2000°C", daysRange: "90-95 днів", minCat: 1900, maxCat: 2000 };
+            } else if (days <= 107) {
+                return { group: "Надранні", catRange: "2000-2100°C", daysRange: "100-105 днів", minCat: 2000, maxCat: 2100 };
+            } else if (days <= 114) {
+                return { group: "Дуже ранні", catRange: "2100-2200°C", daysRange: "110-115 днів", minCat: 2100, maxCat: 2200 };
+            } else if (days <= 122) {
+                return { group: "Ранні", catRange: "2300-2500°C", daysRange: "115-120 днів", minCat: 2300, maxCat: 2500 };
+            } else if (days <= 134) {
+                return { group: "Ранньо-середні", catRange: "2600-2700°C", daysRange: "125-135 днів", minCat: 2600, maxCat: 2700 };
+            } else if (days <= 140) {
+                return { group: "Середні", catRange: "2700-2800°C", daysRange: "135-140 днів", minCat: 2700, maxCat: 2800 };
+            } else if (days <= 150) {
+                return { group: "Середньо-пізні", catRange: "2800-2900°C", daysRange: "140-150 днів", minCat: 2800, maxCat: 2900 };
+            } else if (days <= 160) {
+                return { group: "Пізні", catRange: "2900-3000°C", daysRange: "150-160 днів", minCat: 2900, maxCat: 3000 };
+            } else {
+                return { group: "Дуже пізні", catRange: "3000-3200°C", daysRange: "160-170 днів", minCat: 3000, maxCat: 3200 };
+            }
+        }
+
+        function initSatChecker() {
+            const datalist = document.getElementById('sat-check-varieties');
+            if (datalist) {
+                datalist.innerHTML = Object.keys(varietyData).map(name => `
+                    <option value="${name}">
+                `).join('');
+            }
+            
+            const savedLocalSat = localStorage.getItem('user-local-sat');
+            if (savedLocalSat) {
+                document.getElementById('sat-check-local-sat').value = savedLocalSat;
+            }
+            
+            runSatSuitabilityCheck();
+        }
+
+        function runSatSuitabilityCheck() {
+            const nameInput = document.getElementById('sat-check-name').value.trim();
+            const localSatInput = parseFloat(document.getElementById('sat-check-local-sat').value) || 2700;
+            
+            localStorage.setItem('user-local-sat', localSatInput);
+            
+            const resultCard = document.getElementById('sat-check-result-card');
+            
+            if (!nameInput) {
+                resultCard.innerHTML = `
+                    <div class="text-center text-emerald-300/50 py-4">
+                        <span class="text-3xl block mb-2">🍇</span>
+                        <p class="text-xs font-black uppercase tracking-widest">Введіть сорт винограду для аналізу</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            const d = varietyData[nameInput];
+            if (!d) {
+                resultCard.innerHTML = `
+                    <div class="text-center text-rose-300/80 py-4">
+                        <span class="text-3xl block mb-2">🤷‍♂️</span>
+                        <p class="text-xs font-black uppercase tracking-widest">Сорт "${nameInput}" не знайдено в базі</p>
+                        <p class="text-[10px] mt-1 opacity-70">Оберіть сорт із випадаючого списку або перевірте правильність написання.</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            const catInfo = getCatInfoByRip(d.rip);
+            const satDiff = localSatInput - catInfo.maxCat;
+            const satMinDiff = localSatInput - catInfo.minCat;
+            
+            let statusBadgeClass = '';
+            let statusText = '';
+            let sugarText = '';
+            let icon = '';
+            let advice = '';
+            
+            if (localSatInput >= catInfo.maxCat) {
+                statusBadgeClass = 'bg-emerald-500 text-white';
+                statusText = 'Сприятливий клімат';
+                sugarText = 'Відмінний цукор (18-22% і більше), ягода визріє на 100% навіть у холодні сезони.';
+                icon = '🟢';
+                advice = `Запас тепла становить <strong>+${Math.round(satDiff)}°C САТ</strong>. Ягода повністю визріє, а лоза встигне добре підготуватися до зими.`;
+            } else if (localSatInput >= catInfo.minCat) {
+                statusBadgeClass = 'bg-amber-500 text-white';
+                statusText = 'Гранична зона визрівання';
+                sugarText = 'Задовільний або середній цукор (15-17%). Ягода визріє повністю лише в теплі сезони.';
+                icon = '🟡';
+                advice = `Запас САТ мінімальний (від <strong>${Math.round(satMinDiff)}°C</strong> до <strong>${Math.round(satDiff)}°C</strong>). Рекомендується посадка з південної сторони будівель, видалення листя біля грон та нормування врожаю.`;
+            } else {
+                statusBadgeClass = 'bg-rose-500 text-white';
+                statusText = 'Ризик недозрівання';
+                sugarText = 'Низький рівень цукру, ягода залишиться кислою або не встигне забарвитися.';
+                icon = '🔴';
+                advice = `Нестача тепла становить <strong>${Math.abs(Math.round(satMinDiff))}°C САТ</strong>. Сорт не рекомендується для відкритого ґрунту у вашому регіоні. Потрібна теплиця або пристінна культура.`;
+            }
+            
+            resultCard.innerHTML = `
+                <div class="space-y-4 fade-in">
+                    <div class="flex items-center justify-between gap-4 flex-wrap">
+                        <div class="flex items-center gap-2">
+                            <span class="text-xl">${icon}</span>
+                            <div>
+                                <h4 class="font-black text-white text-sm">${nameInput}</h4>
+                                <p class="text-[10px] text-emerald-300 font-bold uppercase tracking-wider">${catInfo.group} • САТ: ${catInfo.catRange}</p>
+                            </div>
+                        </div>
+                        <span class="px-3 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-wider ${statusBadgeClass}">${statusText}</span>
+                    </div>
+                    
+                    <div class="bg-emerald-900/40 p-4 rounded-2xl border border-emerald-800/40 text-xs space-y-2">
+                        <div>
+                            <span class="block text-[9px] font-black text-emerald-400 uppercase tracking-widest mb-0.5">🍭 Цукронакопичення</span>
+                            <p class="text-white font-medium">${sugarText}</p>
+                        </div>
+                        <div class="border-t border-emerald-800/40 pt-2">
+                            <span class="block text-[9px] font-black text-emerald-400 uppercase tracking-widest mb-0.5">📋 Агро-рекомендація</span>
+                            <p class="text-emerald-100">${advice}</p>
+                        </div>
+                    </div>
+                </div>
+            `;
         }
 
         // --- SPECIALIZED VITICULTURE CALCULATORS LOGIC ---
@@ -2945,6 +3139,7 @@
             calculateDiseaseRisk();
             updateFrostWarning();
             renderTodos();
+            initSatChecker();
             
             // Init cumulative temperature chart
             setTimeout(initChart, 200);
