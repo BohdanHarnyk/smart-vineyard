@@ -2866,6 +2866,445 @@
             runAllCalculations();
         }
 
+                // --- GEMINI AI ASSISTANT & VARIETY ANALYZER LOGIC ---
+        let aiMode = 'analyzer';
+        let aiCandidates = [];
+        let aiChatHistory = [];
+
+        function checkGeminiStatus() {
+            const key = localStorage.getItem('viticulture-gemini-key');
+            const icon = document.getElementById('ai-status-icon');
+            const title = document.getElementById('ai-status-title');
+            const desc = document.getElementById('ai-status-desc');
+            const inputContainer = document.getElementById('ai-key-input-container');
+            const activeContainer = document.getElementById('ai-key-active-container');
+            
+            if (key && key.trim().startsWith('AIzaSy')) {
+                if (icon) icon.innerText = '🟢';
+                if (title) title.innerText = 'AI Асистент активний (Gemini 1.5 Flash)';
+                if (desc) desc.innerText = 'Інтелектуальний аналіз та чат-консультації активовані';
+                if (inputContainer) inputContainer.classList.add('hidden');
+                if (activeContainer) activeContainer.classList.remove('hidden');
+            } else {
+                if (icon) icon.innerText = '🔴';
+                if (title) title.innerText = 'AI Асистент не підключений';
+                if (desc) desc.innerText = 'Для активації інтелектуальних порад потрібен Gemini API ключ';
+                if (inputContainer) inputContainer.classList.remove('hidden');
+                if (activeContainer) activeContainer.classList.add('hidden');
+            }
+        }
+
+        function saveGeminiKey() {
+            const input = document.getElementById('gemini-key-input');
+            const key = input ? input.value.trim() : '';
+            if (!key) {
+                alert('Будь ласка, введіть API ключ.');
+                return;
+            }
+            if (!key.startsWith('AIzaSy')) {
+                alert('Помилка: Ключ має починатися з літер "AIzaSy". Будь ласка, перевірте правильність.');
+                return;
+            }
+            localStorage.setItem('viticulture-gemini-key', key);
+            if (input) input.value = '';
+            checkGeminiStatus();
+            alert('API Ключ успішно збережено!');
+        }
+
+        function deleteGeminiKey() {
+            if (confirm('Ви впевнені, що хочете видалити API ключ? AI асистент перестане працювати.')) {
+                localStorage.removeItem('viticulture-gemini-key');
+                checkGeminiStatus();
+            }
+        }
+
+        function copyAutoSetupLink() {
+            const key = localStorage.getItem('viticulture-gemini-key');
+            if (!key) return;
+            const link = window.location.origin + window.location.pathname + '?gemini_key=' + key;
+            navigator.clipboard.writeText(link).then(() => {
+                alert('Посилання автоналаштування скопійовано! Надішліть його батькам, щоб вони автоматично підключили AI.');
+            }).catch(err => {
+                console.error('Failed to copy link: ', err);
+                alert('Не вдалося скопіювати автоматично. Ваше посилання:\n' + link);
+            });
+        }
+
+        function switchAiMode(mode) {
+            aiMode = mode;
+            const btnAnalyzer = document.getElementById('ai-mode-btn-analyzer');
+            const btnChat = document.getElementById('ai-mode-btn-chat');
+            const panelAnalyzer = document.getElementById('ai-panel-analyzer');
+            const panelChat = document.getElementById('ai-panel-chat');
+            
+            if (mode === 'analyzer') {
+                if (btnAnalyzer) btnAnalyzer.className = 'flex-1 py-2.5 rounded-xl text-xs font-black transition-all bg-emerald-500 text-white shadow-md';
+                if (btnChat) btnChat.className = 'flex-1 py-2.5 rounded-xl text-xs font-black transition-all text-stone-500 hover:text-stone-850';
+                if (panelAnalyzer) panelAnalyzer.classList.remove('hidden');
+                if (panelChat) panelChat.classList.add('hidden');
+            } else {
+                if (btnAnalyzer) btnAnalyzer.className = 'flex-1 py-2.5 rounded-xl text-xs font-black transition-all text-stone-500 hover:text-stone-850';
+                if (btnChat) btnChat.className = 'flex-1 py-2.5 rounded-xl text-xs font-black transition-all bg-emerald-500 text-white shadow-md';
+                if (panelAnalyzer) panelAnalyzer.classList.add('hidden');
+                if (panelChat) panelChat.classList.remove('hidden');
+                setTimeout(() => {
+                    const transcript = document.getElementById('ai-chat-transcript');
+                    if (transcript) transcript.scrollTop = transcript.scrollHeight;
+                }, 50);
+            }
+        }
+
+        async function fetchGeminiAPI(prompt, systemInstruction = '', jsonMode = false) {
+            const key = localStorage.getItem('viticulture-gemini-key');
+            if (!key) {
+                throw new Error('API ключ не знайдено. Будь ласка, збережіть ключ у верхній панелі.');
+            }
+            
+            const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${key}`;
+            
+            const requestBody = {
+                contents: [{ parts: [{ text: prompt }] }]
+            };
+            
+            if (systemInstruction) {
+                requestBody.systemInstruction = {
+                    parts: [{ text: systemInstruction }]
+                };
+            }
+            
+            if (jsonMode) {
+                requestBody.generationConfig = {
+                    responseMimeType: "application/json"
+                };
+            }
+            
+            const response = await fetch(url, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(requestBody)
+            });
+            
+            if (!response.ok) {
+                const errData = await response.json().catch(() => ({}));
+                const errMsg = errData.error?.message || response.statusText;
+                throw new Error(`API Error: ${errMsg}`);
+            }
+            
+            const data = await response.json();
+            const textResponse = data.candidates?.[0]?.content?.parts?.[0]?.text;
+            if (!textResponse) {
+                throw new Error('Отримано порожню відповідь від ШІ.');
+            }
+            
+            return textResponse;
+        }
+
+        async function analyzeAICandidate() {
+            const input = document.getElementById('ai-analyzer-input');
+            const name = input ? input.value.trim() : '';
+            if (!name) {
+                alert('Будь ласка, введіть назву сорту.');
+                return;
+            }
+            
+            const spinner = document.getElementById('ai-analyzer-spinner');
+            const resultBox = document.getElementById('ai-analyzer-result');
+            
+            if (spinner) spinner.classList.remove('hidden');
+            if (resultBox) resultBox.innerHTML = `
+                <div class="text-center py-12">
+                    <div class="animate-spin text-3xl inline-block mb-3">⏳</div>
+                    <p class="text-xs font-black uppercase tracking-widest text-stone-400">Шукаємо інформацію про сорт "${name}"...</p>
+                </div>
+            `;
+            
+            const systemInstruction = "Ти — досвідчений український ампелограф (експерт із сортів винограду). Повертай лише валідний JSON за схемою.";
+            const prompt = `Знайди детальну агрономічну інформацію про сорт винограду "${name}".
+Поверни відповідь виключно у форматі JSON із такими полями (мовою відповіді має бути українська):
+{
+  "name": "Назва сорту українською",
+  "rip": "кількість днів дозрівання (наприклад: '110-115 дн.')",
+  "col": "колір ягоди: 'W' (білий), 'R' (червоний/рожевий), 'B' (чорний/синій)",
+  "taste": "опис смаку (наприклад: 'Мускат з тонами шавлії')",
+  "bunch": "середня вага грона (наприклад: '600-1000 г')",
+  "seed": "наявність кісточок: 'З кіст.' або 'Безкіст.'",
+  "care": "короткі особливості догляду та вразливості сорту (до 150 символів)",
+  "sat_required": "необхідна сума активних температур (число, наприклад: 2100)"
+}
+Якщо такий сорт винограду не існує взагалі, поверни JSON з одним єдиним полем:
+{
+  "error": "Сорт не знайдено"
+}`;
+
+            try {
+                const responseText = await fetchGeminiAPI(prompt, systemInstruction, true);
+                const data = JSON.parse(responseText);
+                
+                if (data.error) {
+                    resultBox.innerHTML = `
+                        <div class="text-center text-rose-500 py-12">
+                            <span class="text-3xl block mb-2">🤷‍♂️</span>
+                            <strong class="text-sm font-black uppercase tracking-wider block">Сорт не знайдено</strong>
+                            <p class="text-xs text-stone-500 mt-1">Штучний інтелект не знайшов перевірених даних про сорт винограду "${name}".</p>
+                        </div>
+                    `;
+                    return;
+                }
+                
+                // Compute local SAT suitability
+                const localSatInput = parseFloat(document.getElementById('sat-check-local-sat')?.value) || 2700;
+                const catInfo = getCatInfoByRip(data.rip);
+                
+                // Override min/max CAT using sat_required from Gemini if provided
+                if (data.sat_required) {
+                    const satVal = parseInt(data.sat_required);
+                    catInfo.minCat = satVal - 50;
+                    catInfo.maxCat = satVal + 50;
+                    catInfo.catRange = `${satVal}°C`;
+                }
+                
+                const satDiff = localSatInput - catInfo.maxCat;
+                const satMinDiff = localSatInput - catInfo.minCat;
+                
+                let statusClass = '';
+                let statusText = '';
+                let icon = '';
+                
+                if (localSatInput >= catInfo.maxCat) {
+                    statusClass = 'bg-emerald-500 text-white';
+                    statusText = 'Сприятливий клімат';
+                    icon = '🟢';
+                } else if (localSatInput >= catInfo.minCat) {
+                    statusClass = 'bg-amber-500 text-white';
+                    statusText = 'Гранична зона визрівання';
+                    icon = '🟡';
+                } else {
+                    statusClass = 'bg-rose-500 text-white';
+                    statusText = 'Ризик недозрівання';
+                    icon = '🔴';
+                }
+                
+                // Render result card with dynamic saving button
+                const dataEscaped = JSON.stringify(data).replace(/'/g, "&apos;").replace(/"/g, '&quot;');
+                resultBox.innerHTML = `
+                    <div class="space-y-5 text-left fade-in">
+                        <div class="flex items-center justify-between gap-4 flex-wrap border-b border-stone-200/60 pb-3">
+                            <div class="flex items-center gap-2">
+                                <span class="text-xl">${icon}</span>
+                                <div>
+                                    <h4 class="font-black text-emerald-950 text-sm">${data.name}</h4>
+                                    <p class="text-[10px] text-stone-400 font-bold uppercase tracking-wider">${catInfo.group} • САТ: ${catInfo.catRange}</p>
+                                </div>
+                            </div>
+                            <span class="px-3 py-1 rounded-xl text-[10px] font-black uppercase tracking-wider ${statusClass}">${statusText}</span>
+                        </div>
+                        
+                        <div class="grid grid-cols-2 gap-3 text-xs">
+                            <div class="bg-white p-3 rounded-xl border border-stone-100 shadow-sm">
+                                <span class="block opacity-50 font-black text-[9px] uppercase mb-0.5">📅 Термін</span>
+                                <span class="font-bold text-stone-850">${data.rip}</span>
+                            </div>
+                            <div class="bg-white p-3 rounded-xl border border-stone-100 shadow-sm">
+                                <span class="block opacity-50 font-black text-[9px] uppercase mb-0.5">⚖️ Гроно</span>
+                                <span class="font-bold text-stone-850">${data.bunch}</span>
+                            </div>
+                            <div class="bg-white p-3 rounded-xl border border-stone-100 shadow-sm">
+                                <span class="block opacity-50 font-black text-[9px] uppercase mb-0.5">👅 Смаковий профіль</span>
+                                <span class="font-bold text-stone-850 truncate block">${data.taste}</span>
+                            </div>
+                            <div class="bg-white p-3 rounded-xl border border-stone-100 shadow-sm">
+                                <span class="block opacity-50 font-black text-[9px] uppercase mb-0.5">🧬 Кісточки</span>
+                                <span class="font-bold text-stone-850">${data.seed}</span>
+                            </div>
+                        </div>
+                        
+                        <div class="p-3 bg-stone-50 rounded-2xl border border-stone-200/60 text-xs">
+                            <span class="block text-[9px] font-black text-stone-400 uppercase tracking-widest mb-0.5">📝 Особливості догляду:</span>
+                            <p class="text-stone-700 italic font-medium">${data.care}</p>
+                        </div>
+                        
+                        <button onclick="saveAICandidate(JSON.parse('${dataEscaped}'))" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white py-3 rounded-2xl font-black text-xs uppercase tracking-wider transition-all flex items-center justify-center gap-1.5 shadow-sm">
+                            <span>＋</span> Зберегти в кандидати на посадку
+                        </button>
+                    </div>
+                `;
+            } catch (err) {
+                resultBox.innerHTML = `
+                    <div class="text-center text-rose-500 py-12 px-4">
+                        <span class="text-3xl block mb-2">⚠️</span>
+                        <strong class="text-sm font-black uppercase tracking-wider block">Помилка аналізу</strong>
+                        <p class="text-xs text-stone-600 mt-1 leading-relaxed">${err.message}</p>
+                    </div>
+                `;
+            } finally {
+                if (spinner) spinner.classList.add('hidden');
+            }
+        }
+
+        function saveAICandidate(candidate) {
+            if (aiCandidates.some(c => c.name.toLowerCase() === candidate.name.toLowerCase())) {
+                alert('Сорт "' + candidate.name + '" вже додано до списку кандидатів.');
+                return;
+            }
+            
+            aiCandidates.push(candidate);
+            localStorage.setItem('viticulture-ai-candidates', JSON.stringify(aiCandidates));
+            renderAICandidates();
+            alert('Сорт "' + candidate.name + '" збережено у список кандидатів!');
+        }
+
+        function deleteAICandidate(index) {
+            if (confirm('Видалити сорт "' + aiCandidates[index].name + '" зі списку кандидатів?')) {
+                aiCandidates.splice(index, 1);
+                localStorage.setItem('viticulture-ai-candidates', JSON.stringify(aiCandidates));
+                renderAICandidates();
+            }
+        }
+
+        function renderAICandidates() {
+            const container = document.getElementById('ai-candidates-list');
+            const countBadge = document.getElementById('ai-candidates-count');
+            
+            if (countBadge) countBadge.innerText = aiCandidates.length;
+            
+            if (!container) return;
+            
+            if (aiCandidates.length === 0) {
+                container.innerHTML = `
+                    <div class="text-center text-stone-300 py-16">
+                        <span class="text-5xl block mb-3 opacity-30">📋</span>
+                        <p class="font-black text-xs uppercase tracking-widest opacity-40">Список кандидатів порожній</p>
+                        <p class="text-[10px] opacity-70 mt-1">Знайдіть новий сорт зліва та натисніть "Зберегти в кандидати".</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            const localSatInput = parseFloat(document.getElementById('sat-check-local-sat')?.value) || 2700;
+            
+            container.innerHTML = aiCandidates.map((c, index) => {
+                const catInfo = getCatInfoByRip(c.rip);
+                if (c.sat_required) {
+                    const satVal = parseInt(c.sat_required);
+                    catInfo.minCat = satVal - 50;
+                    catInfo.maxCat = satVal + 50;
+                }
+                
+                let badgeClass = '';
+                let badgeText = '';
+                
+                if (localSatInput >= catInfo.maxCat) {
+                    badgeClass = 'bg-emerald-100 text-emerald-800 border-emerald-200';
+                    badgeText = 'Визріє';
+                } else if (localSatInput >= catInfo.minCat) {
+                    badgeClass = 'bg-amber-100 text-amber-800 border-amber-200';
+                    badgeText = 'Гранично';
+                } else {
+                    badgeClass = 'bg-rose-100 text-rose-800 border-rose-200';
+                    badgeText = 'Не визріє';
+                }
+                
+                const colHex = c.col === 'W' ? '#f5f5f4' : (c.col === 'R' ? '#f43f5e' : '#1e1b4b');
+                
+                return `
+                    <div class="bg-stone-50 border border-stone-200/60 p-4 rounded-2xl flex flex-col justify-between gap-3 shadow-sm hover:border-emerald-300 transition-all">
+                        <div class="flex items-start justify-between gap-2">
+                            <div>
+                                <h5 class="text-xs font-black text-stone-850 flex items-center">
+                                    \${grapeSVG(colHex)} \${c.name}
+                                </h5>
+                                <p class="text-[9px] text-stone-400 font-bold uppercase tracking-wider mt-0.5">\${catInfo.group} • САТ \${c.sat_required ? c.sat_required + '°C' : catInfo.catRange}</p>
+                            </div>
+                            <button onclick="deleteAICandidate(\${index})" class="text-stone-300 hover:text-rose-500 font-black transition-all text-xs">✕</button>
+                        </div>
+                        
+                        <div class="grid grid-cols-3 gap-1 text-[10px] font-bold text-stone-700 bg-white p-2 rounded-xl border border-stone-100">
+                            <div>
+                                <span class="block text-[8px] uppercase tracking-wider text-stone-400">📅 Термін</span>
+                                \${c.rip}
+                            </div>
+                            <div>
+                                <span class="block text-[8px] uppercase tracking-wider text-stone-400">⚖️ Гроно</span>
+                                \${c.bunch}
+                            </div>
+                            <div>
+                                <span class="block text-[8px] uppercase tracking-wider text-stone-400">🧬 Кіст.</span>
+                                \${c.seed}
+                            </div>
+                        </div>
+
+                        <div class="flex items-center justify-between text-[10px] gap-2 pt-1">
+                            <span class="px-2 py-0.5 border text-[9px] font-black uppercase rounded-md \${badgeClass}">\${badgeText}</span>
+                            <span class="text-stone-400 italic font-medium truncate max-w-[70%]">\${c.taste}</span>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        async function sendAgroChatMessage() {
+            const input = document.getElementById('ai-chat-input');
+            const message = input ? input.value.trim() : '';
+            if (!message) return;
+            
+            const transcript = document.getElementById('ai-chat-transcript');
+            const spinner = document.getElementById('ai-chat-spinner');
+            
+            transcript.innerHTML += `
+                <div class="flex gap-3 max-w-[85%] ml-auto justify-end">
+                    <div class="bg-emerald-600 text-white p-3.5 rounded-2xl shadow-sm text-xs font-semibold leading-relaxed">
+                        \${message}
+                    </div>
+                    <div class="w-8 h-8 rounded-full bg-emerald-700 text-white flex items-center justify-center text-sm flex-shrink-0">🍇</div>
+                </div>
+            `;
+            if (input) input.value = '';
+            transcript.scrollTop = transcript.scrollHeight;
+            
+            if (spinner) spinner.classList.remove('hidden');
+            
+            aiChatHistory.push({ role: 'user', content: message });
+            if (aiChatHistory.length > 15) aiChatHistory.shift();
+            
+            const systemInstruction = "Ти — досвідчений український агроном-консультант, експерт з виноградарства. Відповідай чітко, коротко, структуровано, українською мовою. Твої поради мають бути практичними, адаптованими під клімат України, з акцентом на безпечне застосування препаратів (ЗЗР) та добрив. Пиши структурованими списками.";
+            
+            let contextPrompt = "";
+            aiChatHistory.forEach(turn => {
+                contextPrompt += turn.role === 'user' ? `Запитання: \${turn.content}\n` : `Відповідь: \${turn.content}\n`;
+            });
+            contextPrompt += "Відповідь:";
+
+            try {
+                const responseText = await fetchGeminiAPI(contextPrompt, systemInstruction, false);
+                aiChatHistory.push({ role: 'model', content: responseText });
+                
+                const formattedResponse = responseText.replace(/\n/g, '<br>');
+                
+                transcript.innerHTML += `
+                    <div class="flex gap-3 max-w-[85%] fade-in">
+                        <div class="w-8 h-8 rounded-full bg-emerald-100 border border-emerald-200 flex items-center justify-center text-sm flex-shrink-0">👨‍🌾</div>
+                        <div class="bg-white p-3.5 rounded-2xl shadow-sm border border-emerald-100 text-xs font-medium text-stone-850 leading-relaxed">
+                            \${formattedResponse}
+                        </div>
+                    </div>
+                `;
+            } catch (err) {
+                transcript.innerHTML += `
+                    <div class="flex gap-3 max-w-[85%] fade-in">
+                        <div class="w-8 h-8 rounded-full bg-rose-100 border border-rose-200 flex items-center justify-center text-sm flex-shrink-0">⚠️</div>
+                        <div class="bg-rose-50 p-3.5 rounded-2xl shadow-sm border border-rose-100 text-xs font-bold text-rose-700 leading-relaxed">
+                            Помилка запиту: \${err.message}
+                        </div>
+                    </div>
+                `;
+            } finally {
+                if (spinner) spinner.classList.add('hidden');
+                transcript.scrollTop = transcript.scrollHeight;
+            }
+        }
+
         // --- GIBBERELLIC ACID (GA3) CALCULATOR LOGIC ---
         function calculateGA3() {
             const vol = parseFloat(document.getElementById('ga3-volume').value) || 0;
@@ -3118,6 +3557,23 @@
                 localStorage.setItem('weather-lon', e.target.value);
             });
             
+            // Load Gemini API Key from URL parameters if present
+            const urlParams = new URLSearchParams(window.location.search);
+            const keyParam = urlParams.get('gemini_key');
+            if (keyParam) {
+                localStorage.setItem('viticulture-gemini-key', keyParam);
+                const cleanUrl = window.location.origin + window.location.pathname;
+                window.history.replaceState({}, document.title, cleanUrl);
+            }
+            
+            // Load saved candidates
+            const cachedCandidates = localStorage.getItem('viticulture-ai-candidates');
+            if (cachedCandidates) {
+                try {
+                    aiCandidates = JSON.parse(cachedCandidates);
+                } catch(e) { console.error(e); }
+            }
+            
             // Load Forecast Daily Temps
             const cachedForecast = localStorage.getItem('forecastDailyTemps');
             if (cachedForecast) {
@@ -3140,6 +3596,8 @@
             updateFrostWarning();
             renderTodos();
             initSatChecker();
+            checkGeminiStatus();
+            renderAICandidates();
             
             // Init cumulative temperature chart
             setTimeout(initChart, 200);
