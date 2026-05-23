@@ -85,24 +85,20 @@
         </div>
         <div class="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-6 relative z-10">
             <div>
-                <div id="header-terroir-badge" class="inline-block bg-emerald-500/20 backdrop-blur-md px-4 py-1.5 rounded-full text-xs font-bold uppercase tracking-widest mb-3 border border-emerald-400/30">
-                    Теруар: Барський р-н • Західний схил 5° • Суглинок (Корекція СЕТ: +9%)
+                <div class="inline-block bg-emerald-500/20 backdrop-blur-md px-4 py-1.5 rounded-full text-xs font-bold uppercase tracking-widest mb-3 border border-emerald-400/30">
+                    Precision Viticulture • Вінницька область
                 </div>
                 <h1 class="text-4xl md:text-5xl font-black tracking-tighter">Smart <span class="text-emerald-400 text-shadow-glow">Vineyard</span></h1>
                 <p class="text-emerald-100/80 mt-2 font-light text-lg">Цифрова агрономічна система управління колекційним виноградником</p>
             </div>
-            <div class="flex gap-3 flex-wrap justify-center">
-                <div class="bg-white/10 backdrop-blur-xl p-3.5 rounded-3xl border border-white/10 text-center min-w-[110px]">
-                    <span class="block text-xl font-black text-emerald-350" id="current-sat-display">0°</span>
-                    <span class="text-[9px] uppercase tracking-widest opacity-60">Поточний САТ</span>
+            <div class="flex gap-4">
+                <div class="bg-white/10 backdrop-blur-xl p-4 rounded-3xl border border-white/10 text-center min-w-[125px]">
+                    <span class="block text-2xl font-black text-emerald-300" id="current-sat-display">0°</span>
+                    <span class="text-[10px] uppercase tracking-widest opacity-60" id="header-counter-label">Поточний САТ</span>
                 </div>
-                <div class="bg-white/10 backdrop-blur-xl p-3.5 rounded-3xl border border-white/10 text-center min-w-[110px]">
-                    <span class="block text-xl font-black text-amber-300" id="current-set-display">0°</span>
-                    <span class="text-[9px] uppercase tracking-widest opacity-60">Поточна СЕТ</span>
-                </div>
-                <div class="bg-white/10 backdrop-blur-xl p-3.5 rounded-3xl border border-white/10 text-center min-w-[110px]">
-                    <span class="block text-xl font-black text-emerald-300">122</span>
-                    <span class="text-[9px] uppercase tracking-widest opacity-60">Сорти в базі</span>
+                <div class="bg-white/10 backdrop-blur-xl p-4 rounded-3xl border border-white/10 text-center min-w-[120px]">
+                    <span class="block text-2xl font-black text-emerald-300">122</span>
+                    <span class="text-[10px] uppercase tracking-widest opacity-60">Сорти в базі</span>
                 </div>
             </div>
         </div>
@@ -213,67 +209,24 @@
 
         <!-- TAB: ANALYTICS -->
         <section id="tab-analytics" class="tab-content space-y-8">
-            <!-- Terroir Settings Collapsible Panel -->
-            <div class="bg-white p-6 md:p-8 rounded-[40px] border border-emerald-100 custom-shadow mb-6">
-                <button onclick="toggleTerroirPanel()" class="w-full flex items-center justify-between outline-none">
-                    <div class="flex items-center gap-3.5 text-left flex-wrap">
-                        <span class="text-3xl">⛰️</span>
-                        <div>
-                            <h3 class="text-xl font-black text-emerald-900 flex items-center gap-2 flex-wrap">
-                                Налаштування теруару: <span class="text-xs bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded-lg" id="terroir-badge-label">Барський р-н • Захід 5° • Суглинок</span>
-                            </h3>
-                            <p class="text-xs text-stone-500 font-bold uppercase tracking-wider mt-0.5">Вплив рельєфу та ґрунту на тепловий та вологий баланс</p>
-                        </div>
-                    </div>
-                    <span id="terroir-chevron" class="text-stone-400 font-black transition-all duration-300 transform">▼</span>
-                </button>
-                
-                <div id="terroir-panel-body" class="max-h-0 opacity-0 overflow-hidden transition-all duration-300 mt-0">
-                    <div class="grid grid-cols-1 md:grid-cols-4 gap-4 pt-6 border-t border-emerald-100/50 mt-4">
-                        <div>
-                            <label class="text-[10px] font-black uppercase text-stone-400 block mb-1">Регіон / Локація</label>
-                            <input type="text" id="terroir-location" value="Барський р-н" onchange="saveTerroirSettings()" class="w-full p-3 rounded-xl bg-stone-50 border border-stone-200 outline-none font-bold text-xs">
-                        </div>
-                        <div>
-                            <label class="text-[10px] font-black uppercase text-stone-400 block mb-1">Експозиція схилу</label>
-                            <select id="terroir-slope" onchange="saveTerroirSettings()" class="w-full p-3 rounded-xl bg-stone-50 border border-stone-200 outline-none font-bold text-xs text-stone-800">
-                                <option value="west5">Західний схил 5° (корекція СЕТ)</option>
-                                <option value="south">Південний схил</option>
-                                <option value="east">Східний схил</option>
-                                <option value="north">Північний схил</option>
-                                <option value="flat">Рівнина</option>
-                            </select>
-                        </div>
-                        <div>
-                            <label class="text-[10px] font-black uppercase text-stone-400 block mb-1">Тип ґрунту</label>
-                            <select id="terroir-soil" onchange="saveTerroirSettings()" class="w-full p-3 rounded-xl bg-stone-50 border border-stone-200 outline-none font-bold text-xs text-stone-800">
-                                <option value="clay_loam">Суглинок (висока інерція)</option>
-                                <option value="sand">Піщаний ґрунт</option>
-                                <option value="black">Чорнозем</option>
-                                <option value="clay">Важка глина</option>
-                            </select>
-                        </div>
-                        <div>
-                            <label class="text-[10px] font-black uppercase text-stone-400 block mb-1">Корекція СЕТ (%)</label>
-                            <input type="number" id="terroir-coef" value="9" min="-20" max="30" step="1" onchange="saveTerroirSettings()" class="w-full p-3 rounded-xl bg-stone-50 border border-stone-200 outline-none font-bold text-xs text-stone-800">
-                        </div>
-                    </div>
-                    <div class="mt-4 p-4 bg-emerald-50 rounded-2xl border border-emerald-100 text-[11px] text-emerald-800 font-medium leading-relaxed">
-                        💡 <strong>Вплив обраних параметрів:</strong> західна експозиція та суглинковий ґрунт створюють ефект пополудневого прогріву, накопичуючи додаткове тепло ввечері. Налаштуйте коефіцієнт корекції для точної відповідності фазам вегетації у вашому полі.
-                    </div>
-                </div>
-            </div>
-
             <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
                 <!-- SAT Tracker -->
                 <div class="lg:col-span-6 bg-white p-8 rounded-[40px] border border-emerald-100 custom-shadow flex flex-col justify-between">
                     <div>
-                        <div class="flex items-center gap-4 mb-6">
-                            <span class="text-4xl">🌡️</span>
-                            <div>
-                                <h3 class="text-2xl font-black text-emerald-900">Трекер САТ</h3>
-                                <p class="text-xs text-stone-500 uppercase tracking-widest font-bold">Сума Активних Температур (t° &ge; 10°C)</p>
+                        <div class="flex items-center justify-between gap-4 mb-6 flex-wrap">
+                            <div class="flex items-center gap-3">
+                                <span class="text-4xl">🌡️</span>
+                                <div>
+                                    <h3 class="text-2xl font-black text-emerald-900" id="tracker-title">Трекер САТ</h3>
+                                    <p class="text-[10px] text-stone-500 uppercase tracking-widest font-bold" id="tracker-subtitle">Сума Активних Температур (t° &ge; 10°C)</p>
+                                </div>
                             </div>
+                        </div>
+                        
+                        <!-- Mode Switcher -->
+                        <div class="flex bg-stone-100 p-1 rounded-2xl gap-1 mb-6 border border-stone-200/40">
+                            <button onclick="setThermalMode('sat')" id="thermal-mode-sat" class="flex-grow py-2 rounded-xl text-xs font-black transition-all bg-emerald-600 text-white shadow-sm">САТ (Активні)</button>
+                            <button onclick="setThermalMode('set')" id="thermal-mode-set" class="flex-grow py-2 rounded-xl text-xs font-black transition-all text-stone-500 hover:text-stone-850">СЕТ (Ефективні)</button>
                         </div>
                         <div class="space-y-4">
                             <!-- API Weather Settings & Sync -->
@@ -317,24 +270,15 @@
                                 </div>
                             </div>
                             
-                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                                <div class="p-5 bg-emerald-50 rounded-3xl border border-emerald-100/50">
-                                    <p class="text-[10px] text-emerald-800 font-black uppercase mb-1">Накопичений САТ:</p>
-                                    <div class="flex items-baseline justify-between">
-                                        <span class="text-3xl font-black text-emerald-900" id="sat-total">0°C</span>
-                                        <span class="text-[8px] text-emerald-700 font-bold">База &ge; 10°C</span>
+                            <div class="p-6 bg-emerald-50 rounded-3xl border-2 border-emerald-100/50">
+                                <p class="text-xs text-emerald-800 font-black uppercase mb-1" id="tracker-display-label">Накопичений САТ сезону:</p>
+                                <div class="flex items-end justify-between">
+                                    <span class="text-5xl font-black text-emerald-900" id="sat-total">0°C</span>
+                                    <div class="text-right">
+                                        <span class="text-[10px] text-stone-500 font-bold block" id="sat-status-label">Очікування весни</span>
+                                        <span class="text-[9px] text-emerald-700 italic font-medium block" id="tracker-base-label">Базова температура старту: 10°C</span>
                                     </div>
                                 </div>
-                                <div class="p-5 bg-amber-50 rounded-3xl border border-amber-100/50">
-                                    <p class="text-[10px] text-amber-800 font-black uppercase mb-1">Накопичена СЕТ (GDD):</p>
-                                    <div class="flex items-baseline justify-between">
-                                        <span class="text-3xl font-black text-amber-900" id="set-total">0°C</span>
-                                        <span class="text-[8px] text-amber-700 font-bold" id="set-coef-label">Корекція +9%</span>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="text-right px-2 mt-1">
-                                <span class="text-[10px] text-stone-500 font-bold inline-block" id="sat-status-label">Очікування весни</span>
                             </div>
                                 <!-- Milestone Progress -->
                                 <div class="mt-4">
@@ -476,15 +420,6 @@
                 </div>
             </div>
 
-            <!-- Soil crust chlorosis alert -->
-            <div id="terroir-soil-alert" class="hidden bg-amber-950/20 border border-amber-500/50 p-6 rounded-[30px] flex gap-4 text-xs leading-relaxed text-amber-250 mb-6">
-                <span class="text-3xl">🚜</span>
-                <div>
-                    <strong class="text-sm text-amber-400 block font-black">🚜 ОСОБЛИВІСТЬ ТЕРУАРУ: СУГЛИНОК & КІРКА</strong>
-                    <p class="text-stone-300 mt-1" id="terroir-soil-alert-text"></p>
-                </div>
-            </div>
-
             <!-- Frost Protocol -->
             <div class="bg-rose-600 text-white p-10 rounded-[40px] shadow-xl relative overflow-hidden">
                 <div class="absolute right-0 top-0 p-10 opacity-10 pointer-events-none text-9xl">❄️</div>
@@ -530,7 +465,7 @@
                             <p class="text-xs text-emerald-400 font-bold uppercase tracking-wider mt-1">Перевірка сумісності клімату для 122 сортів</p>
                         </div>
                         
-                        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                             <div class="space-y-2">
                                 <label class="text-[10px] font-black uppercase tracking-widest text-emerald-300">Назва сорту:</label>
                                 <div class="relative">
@@ -541,12 +476,8 @@
                                 </div>
                             </div>
                             <div class="space-y-2">
-                                <label class="text-[10px] font-black uppercase tracking-widest text-emerald-300">САТ місцевості (°C):</label>
-                                <input type="number" id="sat-check-local-sat" value="2700" min="1500" max="4500" step="50" oninput="runSatSuitabilityCheck()" class="w-full p-4 rounded-2xl bg-white/5 border border-white/20 outline-none text-sm font-black text-white focus:bg-white/10 focus:border-emerald-400 transition-all">
-                            </div>
-                            <div class="space-y-2">
-                                <label class="text-[10px] font-black uppercase tracking-widest text-emerald-300">СЕТ місцевості (°C):</label>
-                                <input type="number" id="sat-check-local-set" value="1200" min="500" max="2500" step="50" oninput="runSatSuitabilityCheck()" class="w-full p-4 rounded-2xl bg-white/5 border border-white/20 outline-none text-sm font-black text-white focus:bg-white/10 focus:border-emerald-400 transition-all">
+                                <label class="text-[10px] font-black uppercase tracking-widest text-emerald-300" id="sat-check-local-label">САТ місцевості (°C):</label>
+                                <input type="number" id="sat-check-local-sat" value="2700" min="500" max="4500" step="50" oninput="runSatSuitabilityCheck()" class="w-full p-4 rounded-2xl bg-white/5 border border-white/20 outline-none text-sm font-black text-white focus:bg-white/10 focus:border-emerald-400 transition-all">
                             </div>
                         </div>
                         <p class="text-[10px] text-emerald-300/70 italic leading-relaxed">
@@ -1205,8 +1136,7 @@
         let activeVar = 'Аватар';
         let totalSAT = 0;
         let totalSET = 0;
-        let isTerroirCollapsed = true;
-        let terroirSettings = { location: 'Барський р-н', slope: 'west5', soil: 'clay_loam', coef: 9 };
+        let thermalMode = 'sat'; // 'sat' or 'set'
         let calcMode = 'simple';
         let colorFilter = 'all';
         let sortMode = 'name';
@@ -2007,26 +1937,25 @@
         function recalculateSAT() {
             let cumulativeSAT = 0;
             let cumulativeSET = 0;
-            const coef = 1 + (parseFloat(terroirSettings.coef) || 0) / 100;
             
             satHistory.forEach(entry => {
-                // Compute contributions based on temp
+                // Standard calculations
                 if (entry.temp >= 10) {
                     entry.sat_contribution = parseFloat(entry.temp.toFixed(1));
-                    entry.set_contribution = parseFloat(((entry.temp - 10) * coef).toFixed(2));
+                    entry.set_contribution = parseFloat((entry.temp - 10).toFixed(1));
                 } else {
                     entry.sat_contribution = 0;
                     entry.set_contribution = 0;
                 }
                 
-                // Backwards compatibility with contribution and cumulative
+                // Backwards compatibility
                 entry.contribution = entry.sat_contribution;
                 
                 cumulativeSAT += entry.sat_contribution;
                 cumulativeSET += entry.set_contribution;
                 
                 entry.cumulative = parseFloat(cumulativeSAT.toFixed(1));
-                entry.cumulativeSET = parseFloat(cumulativeSET.toFixed(2));
+                entry.cumulativeSET = parseFloat(cumulativeSET.toFixed(1));
             });
             
             totalSAT = cumulativeSAT;
@@ -2042,23 +1971,16 @@
 
         // --- UPDATE DISPLAY ---
         function updateSATDisplay() {
-            document.getElementById('sat-total').innerText = Math.round(totalSAT) + '°C';
-            const setTotalEl = document.getElementById('set-total');
-            if (setTotalEl) {
-                setTotalEl.innerText = Math.round(totalSET) + '°C';
-            }
-            const setCoefLabel = document.getElementById('set-coef-label');
-            if (setCoefLabel) {
-                setCoefLabel.innerText = `Корекція ${terroirSettings.coef >= 0 ? '+' : ''}${terroirSettings.coef}%`;
-            }
+            const activeVal = thermalMode === 'sat' ? totalSAT : totalSET;
+            document.getElementById('sat-total').innerText = Math.round(activeVal) + '°C';
             
             const headerSatDisplay = document.getElementById('current-sat-display');
             if (headerSatDisplay) {
-                headerSatDisplay.innerText = Math.round(totalSAT) + '°';
+                headerSatDisplay.innerText = Math.round(activeVal) + '°';
             }
-            const headerSetDisplay = document.getElementById('current-set-display');
-            if (headerSetDisplay) {
-                headerSetDisplay.innerText = Math.round(totalSET) + '°';
+            const headerCounterLabel = document.getElementById('header-counter-label');
+            if (headerCounterLabel) {
+                headerCounterLabel.innerText = thermalMode === 'sat' ? 'Поточний САТ' : 'Поточна СЕТ';
             }
         }
 
@@ -2069,19 +1991,23 @@
                 return;
             }
             
-            container.innerHTML = satHistory.map((entry, idx) => `
-                <div class="flex justify-between items-center bg-stone-50 p-2.5 rounded-xl border border-stone-200/60 text-xs font-bold text-stone-700">
-                    <div class="flex items-center gap-3">
-                        <span class="text-stone-400 font-medium">${entry.date}</span>
-                        <span>t° сер: <strong class="text-stone-850">${entry.temp}°C</strong></span>
+            container.innerHTML = satHistory.map((entry, idx) => {
+                const label = thermalMode === 'sat' ? 'САТ' : 'СЕТ';
+                const contrib = thermalMode === 'sat' ? (entry.sat_contribution || entry.temp) : (entry.set_contribution !== undefined ? entry.set_contribution : 0);
+                const badgeColor = thermalMode === 'sat' ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-800';
+                return `
+                    <div class="flex justify-between items-center bg-stone-50 p-2.5 rounded-xl border border-stone-200/60 text-xs font-bold text-stone-700">
+                        <div class="flex items-center gap-3">
+                            <span class="text-stone-400 font-medium">${entry.date}</span>
+                            <span>t° сер: <strong class="text-stone-850">${entry.temp}°C</strong></span>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <span class="${badgeColor} px-2 py-0.5 rounded-md font-extrabold text-[9px]">+${contrib}° ${label}</span>
+                            <button onclick="deleteSATEntry(${idx})" class="text-stone-300 hover:text-rose-500 font-black transition-all ml-1">✕</button>
+                        </div>
                     </div>
-                    <div class="flex items-center gap-2">
-                        <span class="bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded-md font-extrabold text-[9px]">+${entry.sat_contribution || entry.temp}° САТ</span>
-                        <span class="bg-amber-100 text-amber-800 px-2 py-0.5 rounded-md font-extrabold text-[9px]">+${(entry.set_contribution !== undefined ? entry.set_contribution : 0)}° СЕТ</span>
-                        <button onclick="deleteSATEntry(${idx})" class="text-stone-300 hover:text-rose-500 font-black transition-all ml-1">✕</button>
-                    </div>
-                </div>
-            `).join('');
+                `;
+            }).join('');
         }
 
         function updateFrostWarning() {
@@ -2184,26 +2110,60 @@
             const milestoneLabel = document.getElementById('milestone-name');
             const statusLabel = document.getElementById('sat-status-label');
             
-            let milestone = 200;
-            let label = "До прокидання бруньки (200°С)";
+            const activeVal = thermalMode === 'sat' ? totalSAT : totalSET;
             
-            if (totalSAT >= 1000) {
-                milestone = 2500;
-                label = "До повної стиглості ягід (2500°С)";
-                statusLabel.innerText = "Визрівання лози";
-            } else if (totalSAT >= 800) {
-                milestone = 1000;
-                label = "До початку дозрівання ягід (1000°С)";
-                statusLabel.innerText = "Змикання грон";
-            } else if (totalSAT >= 200) {
-                milestone = 800;
-                label = "До початку цвітіння (800°С)";
-                statusLabel.innerText = "Активна вегетація";
+            let milestone = thermalMode === 'sat' ? 200 : 80;
+            let label = thermalMode === 'sat' ? "До прокидання бруньки (200°С САТ)" : "До прокидання бруньки (80°С СЕТ)";
+            
+            if (thermalMode === 'sat') {
+                if (totalSAT >= 1000) {
+                    milestone = 2500;
+                    label = "До повної стиглості ягід (2500°С)";
+                } else if (totalSAT >= 800) {
+                    milestone = 1000;
+                    label = "До формування зав'язі (1000°С)";
+                } else if (totalSAT >= 200) {
+                    milestone = 800;
+                    label = "До початку цвітіння (800°С)";
+                }
+                
+                if (totalSAT >= 2500) {
+                    statusLabel.innerText = "Урожай дозрів!";
+                } else if (totalSAT >= 1000) {
+                    statusLabel.innerText = "Формування ягоди";
+                } else if (totalSAT >= 800) {
+                    statusLabel.innerText = "Період цвітіння";
+                } else if (totalSAT >= 200) {
+                    statusLabel.innerText = "Активна вегетація";
+                } else {
+                    statusLabel.innerText = "Пробудження бруньок";
+                }
             } else {
-                statusLabel.innerText = "Пробудження бруньок";
+                if (totalSET >= 500) {
+                    milestone = 1200;
+                    label = "До повної стиглості ягід (1200°С)";
+                } else if (totalSET >= 350) {
+                    milestone = 500;
+                    label = "До формування зав'язі (500°С)";
+                } else if (totalSET >= 80) {
+                    milestone = 350;
+                    label = "До початку цвітіння (350°С)";
+                }
+                
+                if (totalSET >= 1200) {
+                    statusLabel.innerText = "Урожай дозрів!";
+                } else if (totalSET >= 500) {
+                    statusLabel.innerText = "Формування ягоди";
+                } else if (totalSET >= 350) {
+                    statusLabel.innerText = "Період цвітіння";
+                } else if (totalSET >= 80) {
+                    statusLabel.innerText = "Активна вегетація";
+                } else {
+                    statusLabel.innerText = "Пробудження бруньок";
+                }
             }
             
-            const pct = Math.min(100, Math.round((totalSAT / milestone) * 100));
+            const pct = Math.min(100, Math.round((activeVal / milestone) * 100));
             milestoneLabel.innerText = label;
             percentLabel.innerText = pct + '%';
             bar.style.width = pct + '%';
@@ -2220,54 +2180,33 @@
             }
             
             const labels = satHistory.length > 0 ? satHistory.map(e => e.date) : ['Старт'];
-            const satData = satHistory.length > 0 ? satHistory.map(e => e.cumulative) : [0];
-            const setData = satHistory.length > 0 ? satHistory.map(e => e.cumulativeSET || 0) : [0];
+            const activeData = satHistory.length > 0 
+                ? satHistory.map(e => (thermalMode === 'sat' ? e.cumulative : (e.cumulativeSET || 0))) 
+                : [0];
 
             chartInstance = new Chart(ctx, {
                 type: 'line',
                 data: {
                     labels: labels,
-                    datasets: [
-                        {
-                            label: 'Накопичений САТ (°C)',
-                            data: satData,
-                            borderColor: '#059669',
-                            backgroundColor: 'rgba(5, 150, 105, 0.05)',
-                            borderWidth: 3,
-                            pointBackgroundColor: '#047857',
-                            pointBorderColor: '#ffffff',
-                            pointBorderWidth: 2,
-                            pointRadius: satHistory.length > 0 ? 4 : 0,
-                            tension: 0.25,
-                            fill: true
-                        },
-                        {
-                            label: 'Накопичена СЕТ (GDD) (°C)',
-                            data: setData,
-                            borderColor: '#d97706',
-                            backgroundColor: 'rgba(217, 119, 6, 0.05)',
-                            borderWidth: 2.5,
-                            pointBackgroundColor: '#b45309',
-                            pointBorderColor: '#ffffff',
-                            pointBorderWidth: 2,
-                            pointRadius: satHistory.length > 0 ? 4 : 0,
-                            tension: 0.25,
-                            fill: true
-                        }
-                    ]
+                    datasets: [{
+                        label: thermalMode === 'sat' ? 'Накопичений САТ (°C)' : 'Накопичена СЕТ (GDD) (°C)',
+                        data: activeData,
+                        borderColor: thermalMode === 'sat' ? '#059669' : '#d97706',
+                        backgroundColor: thermalMode === 'sat' ? 'rgba(5, 150, 105, 0.05)' : 'rgba(217, 119, 6, 0.05)',
+                        borderWidth: 3,
+                        pointBackgroundColor: thermalMode === 'sat' ? '#059669' : '#d97706',
+                        pointBorderColor: '#ffffff',
+                        pointBorderWidth: 2,
+                        pointRadius: satHistory.length > 0 ? 4 : 0,
+                        tension: 0.25,
+                        fill: true
+                    }]
                 },
                 options: {
                     responsive: true,
                     maintainAspectRatio: false,
                     plugins: {
-                        legend: { 
-                            display: true,
-                            labels: {
-                                boxWidth: 12,
-                                font: { family: 'Plus Jakarta Sans', weight: 'bold', size: 10 },
-                                color: '#64748b'
-                            }
-                        }
+                        legend: { display: false }
                     },
                     scales: {
                         y: {
@@ -2287,14 +2226,15 @@
         function updateChart() {
             if (chartInstance) {
                 chartInstance.data.labels = satHistory.length > 0 ? satHistory.map(e => e.date) : ['Старт'];
-                chartInstance.data.datasets[0].data = satHistory.length > 0 ? satHistory.map(e => e.cumulative) : [0];
+                const activeData = satHistory.length > 0 
+                    ? satHistory.map(e => (thermalMode === 'sat' ? e.cumulative : (e.cumulativeSET || 0))) 
+                    : [0];
+                chartInstance.data.datasets[0].data = activeData;
+                chartInstance.data.datasets[0].label = thermalMode === 'sat' ? 'Накопичений САТ (°C)' : 'Накопичена СЕТ (GDD) (°C)';
+                chartInstance.data.datasets[0].borderColor = thermalMode === 'sat' ? '#059669' : '#d97706';
+                chartInstance.data.datasets[0].backgroundColor = thermalMode === 'sat' ? 'rgba(5, 150, 105, 0.05)' : 'rgba(217, 119, 6, 0.05)';
+                chartInstance.data.datasets[0].pointBackgroundColor = thermalMode === 'sat' ? '#059669' : '#d97706';
                 chartInstance.data.datasets[0].pointRadius = satHistory.length > 0 ? 4 : 0;
-                
-                if (chartInstance.data.datasets.length > 1) {
-                    chartInstance.data.datasets[1].data = satHistory.length > 0 ? satHistory.map(e => e.cumulativeSET || 0) : [0];
-                    chartInstance.data.datasets[1].pointRadius = satHistory.length > 0 ? 4 : 0;
-                }
-                
                 chartInstance.update();
             }
         }
@@ -2305,23 +2245,16 @@
             const rain = parseFloat(document.getElementById('disease-rain').value) || 0;
             const hum = parseFloat(document.getElementById('disease-humidity').value) || 0;
             
-            const isWestSlope = (terroirSettings.slope === 'west5');
-            const mildewRainThreshold = isWestSlope ? 4.0 : 6.0;
-            
-            // MILDEW RISK CALCULATIONS (6-6-26 Rule: rain > 6mm [or 4mm on west slope], temp 6-26°C)
+            // MILDEW RISK CALCULATIONS (6-6-26 Rule: rain > 6mm, temp 6-26°C)
             let mildewRisk = 'low';
             let mildewAdvice = 'Умови безпечні. Профілактичні заходи за календарем фаз.';
             
-            if (rain > mildewRainThreshold && temp >= 6 && temp <= 26) {
+            if (rain > 6 && temp >= 6 && temp <= 26) {
                 mildewRisk = 'high';
                 mildewAdvice = '🚨 КРИТИЧНИЙ РИЗИК! Правило 6-6-26 спрацювало. Неминучий спалах мілдью через 7-10 днів. Обов\'язково внесіть Акробат або Танос на випередження!';
-            } else if (rain > 1.5 && temp >= 8 && temp <= 28) {
+            } else if (rain > 2 && temp >= 8 && temp <= 28) {
                 mildewRisk = 'medium';
                 mildewAdvice = '⚠️ Підвищений ризик. Волога лоза сприяє поширенню інфекції. Проведіть обробку контактним мідьвмісним препаратом при першій нагоді.';
-            }
-            
-            if (isWestSlope && (mildewRisk === 'high' || mildewRisk === 'medium')) {
-                mildewAdvice += ' Через тривалі ранкові роси на західному схилі ризик мілдью підвищено. Обробка препаратами є пріоритетом!';
             }
             
             // OIDIUM RISK CALCULATIONS (Optimal temp 15-25°C, high humidity even without rain)
@@ -2339,18 +2272,6 @@
             // Update UI elements
             updateRiskCard('mildew', mildewRisk, mildewAdvice);
             updateRiskCard('oidium', oidiumRisk, oidiumAdvice);
-            
-            // Terroir soil clay alert
-            const soilAlert = document.getElementById('terroir-soil-alert');
-            const soilAlertText = document.getElementById('terroir-soil-alert-text');
-            if (soilAlert && soilAlertText) {
-                if (terroirSettings.soil === 'clay_loam' && rain >= 10) {
-                    soilAlert.classList.remove('hidden');
-                    soilAlertText.innerHTML = `Випало <strong>\${rain} мм</strong> опадів на важкий суглинок. Ризик утворення щільної ґрунтової кірки та задухи коріння. Обов'язково проведіть розпушування міжрядь після просихання для запобігання весняному хлорозу!`;
-                } else {
-                    soilAlert.classList.add('hidden');
-                }
-            }
         }
 
         function updateRiskCard(type, risk, advice) {
@@ -2598,21 +2519,15 @@
             if (savedLocalSat) {
                 document.getElementById('sat-check-local-sat').value = savedLocalSat;
             }
-            const savedLocalSet = localStorage.getItem('user-local-set');
-            if (savedLocalSet) {
-                document.getElementById('sat-check-local-set').value = savedLocalSet;
-            }
             
             runSatSuitabilityCheck();
         }
 
         function runSatSuitabilityCheck() {
             const nameInput = document.getElementById('sat-check-name').value.trim();
-            const localSatInput = parseFloat(document.getElementById('sat-check-local-sat').value) || 2700;
-            const localSetInput = parseFloat(document.getElementById('sat-check-local-set').value) || 1200;
+            const localValInput = parseFloat(document.getElementById('sat-check-local-sat').value) || (thermalMode === 'sat' ? 2700 : 1200);
             
-            localStorage.setItem('user-local-sat', localSatInput);
-            localStorage.setItem('user-local-set', localSetInput);
+            localStorage.setItem('user-local-sat', localValInput);
             
             const resultCard = document.getElementById('sat-check-result-card');
             
@@ -2639,10 +2554,14 @@
             }
             
             const catInfo = getCatInfoByRip(d.rip);
-            const satDiff = localSatInput - catInfo.maxCat;
-            const satMinDiff = localSatInput - catInfo.minCat;
-            const setDiff = localSetInput - catInfo.maxSet;
-            const setMinDiff = localSetInput - catInfo.minSet;
+            
+            const targetMin = thermalMode === 'sat' ? catInfo.minCat : catInfo.minSet;
+            const targetMax = thermalMode === 'sat' ? catInfo.maxCat : catInfo.maxSet;
+            const targetRange = thermalMode === 'sat' ? catInfo.catRange : catInfo.setRange;
+            const label = thermalMode === 'sat' ? 'САТ' : 'СЕТ';
+            
+            const diffMax = localValInput - targetMax;
+            const diffMin = localValInput - targetMin;
             
             let statusBadgeClass = '';
             let statusText = '';
@@ -2650,24 +2569,24 @@
             let icon = '';
             let advice = '';
             
-            if (localSatInput >= catInfo.maxCat && localSetInput >= catInfo.maxSet) {
+            if (localValInput >= targetMax) {
                 statusBadgeClass = 'bg-emerald-500 text-white';
                 statusText = 'Сприятливий клімат';
                 sugarText = 'Відмінний цукор (18-22% і більше), ягода визріє на 100% навіть у холодні сезони.';
                 icon = '🟢';
-                advice = `Запас тепла становить <strong>+${Math.round(satDiff)}°C САТ</strong> та <strong>+${Math.round(setDiff)}°C СЕТ</strong>. Ягода повністю визріє, а лоза встигне добре підготуватися до зими.`;
-            } else if (localSatInput >= catInfo.minCat && localSetInput >= catInfo.minSet) {
+                advice = `Запас тепла становить <strong>+${Math.round(diffMax)}°C ${label}</strong>. Ягода повністю визріє, а лоза встигне добре підготуватися до зими.`;
+            } else if (localValInput >= targetMin) {
                 statusBadgeClass = 'bg-amber-500 text-white';
                 statusText = 'Гранична зона визрівання';
                 sugarText = 'Задовільний або середній цукор (15-17%). Ягода визріє повністю лише в теплі сезони.';
                 icon = '🟡';
-                advice = `Запас САТ мінімальний (від <strong>${Math.round(satMinDiff)}°C</strong> до <strong>${Math.round(satDiff)}°C</strong>), СЕТ (від <strong>${Math.round(setMinDiff)}°C</strong> до <strong>${Math.round(setDiff)}°C</strong>). Рекомендується посадка з південної сторони будівель, видалення листя біля грон та нормування врожаю.`;
+                advice = `Запас ${label} мінімальний (від <strong>${Math.round(diffMin)}°C</strong> до <strong>${Math.round(diffMax)}°C</strong>). Рекомендується посадка з південної сторони будівель, видалення листя біля грон та нормування врожаю.`;
             } else {
                 statusBadgeClass = 'bg-rose-500 text-white';
                 statusText = 'Ризик недозрівання';
                 sugarText = 'Низький рівень цукру, ягода залишиться кислою або не встигне забарвитися.';
                 icon = '🔴';
-                advice = `Нестача тепла становить <strong>${Math.abs(Math.round(satMinDiff))}°C САТ</strong> або <strong>${Math.abs(Math.round(setMinDiff))}°C СЕТ</strong>. Сорт не рекомендується для відкритого ґрунту у вашому регіоні. Потрібна теплиця або пристінна культура.`;
+                advice = `Нестача тепла становить <strong>${Math.abs(Math.round(diffMin))}°C ${label}</strong>. Сорт не рекомендується для відкритого ґрунту у вашому регіоні. Потрібна теплиця або пристінна культура.`;
             }
             
             resultCard.innerHTML = `
@@ -2677,7 +2596,7 @@
                             <span class="text-xl">${icon}</span>
                             <div>
                                 <h4 class="font-black text-white text-sm">${nameInput}</h4>
-                                <p class="text-[10px] text-emerald-300 font-bold uppercase tracking-wider">${catInfo.group} • САТ: ${catInfo.catRange} • СЕТ: ${catInfo.setRange}</p>
+                                <p class="text-[10px] text-emerald-300 font-bold uppercase tracking-wider">${catInfo.group} • ${label}: ${targetRange}</p>
                             </div>
                         </div>
                         <span class="px-3 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-wider ${statusBadgeClass}">${statusText}</span>
@@ -3597,49 +3516,44 @@
             }
         }
 
-        // --- TERROIR SETTINGS & DUAL LOGIC ---
-        function toggleTerroirPanel() {
-            isTerroirCollapsed = !isTerroirCollapsed;
-            const body = document.getElementById('terroir-panel-body');
-            const chevron = document.getElementById('terroir-chevron');
-            if (isTerroirCollapsed) {
-                body.classList.remove('max-h-[500px]', 'opacity-100', 'mt-4');
-                body.classList.add('max-h-0', 'opacity-0', 'mt-0');
-                chevron.classList.remove('rotate-180');
+        // --- THERMAL TRACKER MODE SWITCHER ---
+        function setThermalMode(mode) {
+            thermalMode = mode;
+            localStorage.setItem('viticulture-thermal-mode', mode);
+            
+            // Update toggle buttons visual state
+            const satBtn = document.getElementById('thermal-mode-sat');
+            const setBtn = document.getElementById('thermal-mode-set');
+            
+            if (mode === 'sat') {
+                satBtn.className = "flex-grow py-2 rounded-xl text-xs font-black transition-all bg-emerald-600 text-white shadow-sm";
+                setBtn.className = "flex-grow py-2 rounded-xl text-xs font-black transition-all text-stone-500 hover:text-stone-850";
+                
+                document.getElementById('tracker-title').innerText = "Трекер САТ";
+                document.getElementById('tracker-subtitle').innerText = "Сума Активних Температур (t° >= 10°C)";
+                document.getElementById('tracker-display-label').innerText = "Накопичений САТ сезону:";
+                document.getElementById('tracker-base-label').innerText = "Базова температура старту: 10°C";
+                
+                const localLabel = document.getElementById('sat-check-local-label');
+                if (localLabel) localLabel.innerText = "САТ місцевості (°C):";
             } else {
-                body.classList.remove('max-h-0', 'opacity-0', 'mt-0');
-                body.classList.add('max-h-[500px]', 'opacity-100', 'mt-4');
-                chevron.classList.add('rotate-180');
-            }
-        }
-
-        function saveTerroirSettings() {
-            terroirSettings.location = document.getElementById('terroir-location').value.trim() || 'Барський р-н';
-            terroirSettings.slope = document.getElementById('terroir-slope').value;
-            terroirSettings.soil = document.getElementById('terroir-soil').value;
-            terroirSettings.coef = parseFloat(document.getElementById('terroir-coef').value) || 0;
-            
-            localStorage.setItem('viticulture-terroir-settings', JSON.stringify(terroirSettings));
-            
-            updateTerroirDisplay();
-            recalculateSAT();
-            calculateDiseaseRisk();
-        }
-
-        function updateTerroirDisplay() {
-            const badge = document.getElementById('terroir-badge-label');
-            if (badge) {
-                const slopeText = document.getElementById('terroir-slope').options[document.getElementById('terroir-slope').selectedIndex].text.split(' (')[0];
-                const soilText = document.getElementById('terroir-soil').options[document.getElementById('terroir-soil').selectedIndex].text.split(' (')[0];
-                badge.innerText = `${terroirSettings.location} • ${slopeText} • ${soilText}`;
+                satBtn.className = "flex-grow py-2 rounded-xl text-xs font-black transition-all text-stone-500 hover:text-stone-850";
+                setBtn.className = "flex-grow py-2 rounded-xl text-xs font-black transition-all bg-emerald-600 text-white shadow-sm";
+                
+                document.getElementById('tracker-title').innerText = "Трекер СЕТ";
+                document.getElementById('tracker-subtitle').innerText = "Сума Ефективних Температур (t° - 10°C)";
+                document.getElementById('tracker-display-label').innerText = "Накопичена СЕТ сезону:";
+                document.getElementById('tracker-base-label').innerText = "Поріг накопичення: t° понад 10°C";
+                
+                const localLabel = document.getElementById('sat-check-local-label');
+                if (localLabel) localLabel.innerText = "СЕТ місцевості (°C):";
             }
             
-            const headerBadge = document.getElementById('header-terroir-badge');
-            if (headerBadge) {
-                const slopeText = document.getElementById('terroir-slope').options[document.getElementById('terroir-slope').selectedIndex].text.split(' (')[0];
-                const soilText = document.getElementById('terroir-soil').options[document.getElementById('terroir-soil').selectedIndex].text.split(' (')[0];
-                headerBadge.innerText = `Теруар: ${terroirSettings.location} • ${slopeText} • ${soilText} (Корекція СЕТ: ${terroirSettings.coef >= 0 ? '+' : ''}${terroirSettings.coef}%)`;
-            }
+            updateSATDisplay();
+            renderSATLog();
+            updateChart();
+            updateMilestoneProgress();
+            runSatSuitabilityCheck();
         }
 
         // --- GIBBERELLIC ACID (GA3) CALCULATOR LOGIC ---
@@ -3917,23 +3831,12 @@
                 forecastDailyTemps = JSON.parse(cachedForecast);
             }
 
-            // Load Terroir Settings
-            const cachedTerroir = localStorage.getItem('viticulture-terroir-settings');
-            if (cachedTerroir) {
-                try {
-                    terroirSettings = JSON.parse(cachedTerroir);
-                } catch(e) { console.error(e); }
+            // Load active thermal mode
+            const cachedMode = localStorage.getItem('viticulture-thermal-mode');
+            if (cachedMode) {
+                thermalMode = cachedMode;
             }
             
-            // Populate terroir inputs
-            if (document.getElementById('terroir-location')) {
-                document.getElementById('terroir-location').value = terroirSettings.location;
-                document.getElementById('terroir-slope').value = terroirSettings.slope;
-                document.getElementById('terroir-soil').value = terroirSettings.soil;
-                document.getElementById('terroir-coef').value = terroirSettings.coef;
-            }
-            updateTerroirDisplay();
-
             // Setup default dates to today
             document.getElementById('sat-date').valueAsDate = new Date();
             document.getElementById('todo-due-date').valueAsDate = new Date();
@@ -3942,8 +3845,7 @@
             selectStep(3);
             calculateCounters();
             renderVarietiesList();
-            updateSATDisplay();
-            updateMilestoneProgress();
+            setThermalMode(thermalMode); // Restores active mode САТ/СЕТ and displays
             loadCalculatorsState();
             calculateGA3();
             calculateDiseaseRisk();
