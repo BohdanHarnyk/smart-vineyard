@@ -210,98 +210,118 @@
         <!-- TAB: ANALYTICS -->
         <section id="tab-analytics" class="tab-content space-y-8">
             <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
-                <!-- SAT Tracker -->
-                <div class="lg:col-span-6 bg-white p-8 rounded-[40px] border border-emerald-100 custom-shadow flex flex-col justify-between">
-                    <div>
-                        <div class="flex items-center justify-between gap-4 mb-6 flex-wrap">
-                            <div class="flex items-center gap-3">
-                                <span class="text-4xl">🌡️</span>
+                <!-- Left Column: Thermal Tracker & Data Input -->
+                <div class="lg:col-span-6 flex flex-col gap-8">
+                    
+                    <!-- Block 1: Main Thermal Tracker & Observations History -->
+                    <div class="bg-white p-6 md:p-8 rounded-[32px] md:rounded-[40px] border border-emerald-100 custom-shadow flex flex-col justify-between">
+                        <div>
+                            <!-- Header & Mode Switcher -->
+                            <div class="flex items-center justify-between gap-4 mb-6 flex-wrap">
+                                <div class="flex items-center gap-3">
+                                    <span class="text-4xl">🌡️</span>
+                                    <div>
+                                        <h3 class="text-xl md:text-2xl font-black text-emerald-950" id="tracker-title">Трекер САТ</h3>
+                                        <p class="text-[10px] text-stone-500 uppercase tracking-widest font-bold" id="tracker-subtitle">Сума Активних Температур (t° &ge; 10°C)</p>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Mode Switcher Segmented Control -->
+                            <div class="flex bg-stone-100 p-1 rounded-2xl gap-1 mb-6 border border-stone-200/40">
+                                <button onclick="setThermalMode('sat')" id="thermal-mode-sat" class="flex-grow py-2.5 rounded-xl text-xs font-black transition-all bg-emerald-600 text-white shadow-sm">САТ (Активні)</button>
+                                <button onclick="setThermalMode('set')" id="thermal-mode-set" class="flex-grow py-2.5 rounded-xl text-xs font-black transition-all text-stone-500 hover:text-stone-850">СЕТ (Ефективні)</button>
+                            </div>
+                            
+                            <!-- Cumulative Value Block -->
+                            <div class="p-6 bg-gradient-to-br from-emerald-500/10 to-teal-500/5 rounded-3xl border border-emerald-100 flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
                                 <div>
-                                    <h3 class="text-2xl font-black text-emerald-900" id="tracker-title">Трекер САТ</h3>
-                                    <p class="text-[10px] text-stone-500 uppercase tracking-widest font-bold" id="tracker-subtitle">Сума Активних Температур (t° &ge; 10°C)</p>
+                                    <p class="text-[11px] text-emerald-800 font-extrabold uppercase tracking-wider mb-1" id="tracker-display-label">Накопичений САТ сезону:</p>
+                                    <span class="text-4xl md:text-5xl font-black text-emerald-950 leading-none" id="sat-total">0°C</span>
                                 </div>
-                            </div>
-                        </div>
-                        
-                        <!-- Mode Switcher -->
-                        <div class="flex bg-stone-100 p-1 rounded-2xl gap-1 mb-6 border border-stone-200/40">
-                            <button onclick="setThermalMode('sat')" id="thermal-mode-sat" class="flex-grow py-2 rounded-xl text-xs font-black transition-all bg-emerald-600 text-white shadow-sm">САТ (Активні)</button>
-                            <button onclick="setThermalMode('set')" id="thermal-mode-set" class="flex-grow py-2 rounded-xl text-xs font-black transition-all text-stone-500 hover:text-stone-850">СЕТ (Ефективні)</button>
-                        </div>
-                        <div class="space-y-4">
-                            <!-- API Weather Settings & Sync -->
-                            <div class="bg-emerald-50/50 p-4 rounded-2xl border border-emerald-100/50 space-y-3">
-                                <h4 class="text-[10px] font-black uppercase tracking-widest text-emerald-800 flex items-center gap-1.5">
-                                    <span>🌐</span> Автоматична синхронізація з API
-                                </h4>
-                                <div class="grid grid-cols-2 gap-3">
-                                    <div>
-                                        <label class="text-[9px] font-black uppercase text-stone-400 block mb-1">Широта (Lat)</label>
-                                        <input type="number" id="weather-lat" value="49.23" step="0.01" min="-90" max="90" class="w-full p-2.5 rounded-xl bg-white border border-stone-200 outline-none font-bold text-xs text-stone-800 focus:border-emerald-500 transition-all">
-                                    </div>
-                                    <div>
-                                        <label class="text-[9px] font-black uppercase text-stone-400 block mb-1">Довгота (Lon)</label>
-                                        <input type="number" id="weather-lon" value="28.46" step="0.01" min="-180" max="180" class="w-full p-2.5 rounded-xl bg-white border border-stone-200 outline-none font-bold text-xs text-stone-800 focus:border-emerald-500 transition-all">
-                                    </div>
+                                <div class="text-left md:text-right flex flex-col justify-center">
+                                    <span class="text-xs bg-emerald-100 text-emerald-800 px-3 py-1 rounded-lg font-bold inline-block self-start md:self-end mb-1.5" id="sat-status-label">Очікування весни</span>
+                                    <span class="text-[10px] text-stone-500 font-semibold italic" id="tracker-base-label">Базова температура старту: 10°C</span>
                                 </div>
-                                <button id="btn-sync-sat" onclick="syncWeather()" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white py-2.5 rounded-xl font-black transition-all text-xs uppercase tracking-wider flex items-center justify-center gap-2 shadow-sm hover:shadow">
-                                    <span id="sync-sat-spinner" class="hidden animate-spin">⏳</span>
-                                    <span>🔄 Завантажити погоду з API</span>
-                                </button>
                             </div>
                             
-                            <div class="relative flex py-1 items-center">
-                                <div class="flex-grow border-t border-stone-200"></div>
-                                <span class="flex-shrink mx-4 text-[9px] font-black text-stone-400 uppercase tracking-widest">Або ручне введення</span>
-                                <div class="flex-grow border-t border-stone-200"></div>
+                            <!-- Milestone Progress -->
+                            <div class="mb-6 bg-stone-50 p-4 rounded-2xl border border-stone-200/40">
+                                <div class="flex justify-between text-[10px] font-black text-emerald-905 uppercase mb-1.5">
+                                    <span id="milestone-name">До прокидання бруньки (200°С)</span>
+                                    <span id="milestone-percent">0%</span>
+                                </div>
+                                <div class="w-full bg-stone-200/60 h-3 rounded-full overflow-hidden">
+                                    <div id="milestone-progress-bar" class="bg-emerald-600 h-full rounded-full transition-all duration-500" style="width: 0%"></div>
+                                </div>
                             </div>
+                        </div>
 
-                            <div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
-                                <div class="col-span-1">
-                                    <label class="text-[9px] font-black uppercase text-stone-400 block mb-1">Дата</label>
-                                    <input type="date" id="sat-date" class="w-full p-3 rounded-xl bg-stone-50 border border-stone-200 outline-none font-bold text-sm">
+                        <!-- Observations Log inside the tracker card block -->
+                        <div class="border-t border-stone-100 pt-6 mt-2">
+                            <div class="flex justify-between items-center mb-3">
+                                <div class="flex items-center gap-2">
+                                    <span class="text-lg">📜</span>
+                                    <h4 class="text-xs font-black uppercase tracking-wider text-stone-500">Історія спостережень</h4>
                                 </div>
-                                <div class="col-span-1">
-                                    <label class="text-[9px] font-black uppercase text-stone-400 block mb-1">t° сер.добова</label>
-                                    <input type="number" id="sat-input" placeholder="напр. 22" min="10.0" step="0.1" class="w-full p-3 rounded-xl bg-stone-50 border border-stone-200 focus:border-emerald-500 outline-none transition-all font-bold text-sm">
-                                </div>
-                                <div class="col-span-1 flex items-end">
-                                    <button onclick="addSAT()" class="w-full bg-emerald-600 text-white py-3 rounded-xl font-black hover:bg-emerald-700 transition-all text-sm">ДОДАТИ</button>
-                                </div>
+                                <button onclick="resetSAT()" class="text-[10px] font-bold text-rose-500 hover:text-rose-600 transition-all uppercase tracking-wider">Скинути сезон</button>
                             </div>
-                            
-                            <div class="p-6 bg-emerald-50 rounded-3xl border-2 border-emerald-100/50">
-                                <p class="text-xs text-emerald-800 font-black uppercase mb-1" id="tracker-display-label">Накопичений САТ сезону:</p>
-                                <div class="flex items-end justify-between">
-                                    <span class="text-5xl font-black text-emerald-900" id="sat-total">0°C</span>
-                                    <div class="text-right">
-                                        <span class="text-[10px] text-stone-500 font-bold block" id="sat-status-label">Очікування весни</span>
-                                        <span class="text-[9px] text-emerald-700 italic font-medium block" id="tracker-base-label">Базова температура старту: 10°C</span>
-                                    </div>
-                                </div>
-                            </div>
-                                <!-- Milestone Progress -->
-                                <div class="mt-4">
-                                    <div class="flex justify-between text-[9px] font-black text-emerald-800 uppercase mb-1">
-                                        <span id="milestone-name">До прокидання бруньки (200°С)</span>
-                                        <span id="milestone-percent">0%</span>
-                                    </div>
-                                    <div class="w-full bg-emerald-200/50 h-2.5 rounded-full overflow-hidden">
-                                        <div id="milestone-progress-bar" class="bg-emerald-600 h-full rounded-full transition-all duration-500" style="width: 0%"></div>
-                                    </div>
-                                </div>
+                            <div class="max-h-[220px] overflow-y-auto pr-2 custom-scrollbar space-y-2" id="sat-log-container">
+                                <p class="text-xs text-stone-400 italic text-center py-4">Немає записів за цей сезон</p>
                             </div>
                         </div>
                     </div>
 
-                    <!-- Entries Log -->
-                    <div class="mt-6 border-t border-stone-100 pt-4">
-                        <div class="flex justify-between items-center mb-2">
-                            <h4 class="text-xs font-black uppercase tracking-wider text-stone-500">Історія спостережень</h4>
-                            <button onclick="resetSAT()" class="text-[10px] font-bold text-rose-500 hover:underline">Скинути сезон</button>
+                    <!-- Block 2: Weather Sync & Manual Entry -->
+                    <div class="bg-white p-6 md:p-8 rounded-[32px] md:rounded-[40px] border border-emerald-100 custom-shadow space-y-6">
+                        <div class="flex items-center gap-3 mb-2">
+                            <span class="text-3xl">⚙️</span>
+                            <div>
+                                <h3 class="text-lg md:text-xl font-black text-emerald-950">Керування даними</h3>
+                                <p class="text-[10px] text-stone-500 uppercase tracking-widest font-bold">Оновлення температурної бази сезону</p>
+                            </div>
                         </div>
-                        <div class="max-h-[150px] overflow-y-auto pr-2 custom-scrollbar space-y-1.5" id="sat-log-container">
-                            <p class="text-xs text-stone-400 italic text-center py-4">Немає записів за цей сезон</p>
+
+                        <!-- API Weather Settings & Sync -->
+                        <div class="bg-emerald-50/40 p-5 rounded-3xl border border-emerald-100/50 space-y-3.5">
+                            <h4 class="text-xs font-black uppercase tracking-wider text-emerald-800 flex items-center gap-2">
+                                <span class="text-base">🌐</span> Автоматична синхронізація з API
+                            </h4>
+                            <div class="grid grid-cols-2 gap-4">
+                                <div>
+                                    <label class="text-[9px] font-black uppercase text-stone-400 block mb-1">Широта (Lat)</label>
+                                    <input type="number" id="weather-lat" value="49.23" step="0.01" min="-90" max="90" class="w-full p-3 rounded-xl bg-white border border-stone-200 outline-none font-bold text-xs text-stone-800 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 transition-all">
+                                </div>
+                                <div>
+                                    <label class="text-[9px] font-black uppercase text-stone-400 block mb-1">Довгота (Lon)</label>
+                                    <input type="number" id="weather-lon" value="28.46" step="0.01" min="-180" max="180" class="w-full p-3 rounded-xl bg-white border border-stone-200 outline-none font-bold text-xs text-stone-800 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 transition-all">
+                                </div>
+                            </div>
+                            <button id="btn-sync-sat" onclick="syncWeather()" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white py-3 rounded-xl font-black transition-all text-xs uppercase tracking-wider flex items-center justify-center gap-2 shadow-sm hover:shadow-md">
+                                <span id="sync-sat-spinner" class="hidden animate-spin">⏳</span>
+                                <span>🔄 Завантажити погоду з API</span>
+                            </button>
+                        </div>
+                        
+                        <div class="relative flex py-1 items-center">
+                            <div class="flex-grow border-t border-stone-200"></div>
+                            <span class="flex-shrink mx-4 text-[9px] font-black text-stone-400 uppercase tracking-widest">Або ручне введення</span>
+                            <div class="flex-grow border-t border-stone-200"></div>
+                        </div>
+
+                        <!-- Manual Input Grid -->
+                        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                            <div class="col-span-1">
+                                <label class="text-[9px] font-black uppercase text-stone-400 block mb-1">Дата</label>
+                                <input type="date" id="sat-date" class="w-full p-3 rounded-xl bg-stone-50 border border-stone-200 outline-none font-bold text-sm text-stone-800">
+                            </div>
+                            <div class="col-span-1">
+                                <label class="text-[9px] font-black uppercase text-stone-400 block mb-1">t° сер.добова</label>
+                                <input type="number" id="sat-input" placeholder="напр. 22" min="10.0" step="0.1" class="w-full p-3 rounded-xl bg-stone-50 border border-stone-200 focus:border-emerald-500 outline-none transition-all font-bold text-sm text-stone-800">
+                            </div>
+                            <div class="col-span-1 flex items-end">
+                                <button onclick="addSAT()" class="w-full bg-emerald-600 text-white py-3.5 rounded-xl font-black hover:bg-emerald-700 transition-all text-sm uppercase tracking-wider shadow-sm hover:shadow">ДОДАТИ</button>
+                            </div>
                         </div>
                     </div>
                 </div>
