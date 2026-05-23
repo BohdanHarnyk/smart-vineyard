@@ -516,52 +516,197 @@
             </div>
 
             <div class="bg-white p-8 rounded-[40px] custom-shadow border border-emerald-100">
-                <div class="flex flex-col xl:flex-row justify-between items-stretch xl:items-center gap-6 mb-10">
-                    <div>
-                        <h2 class="text-3xl font-black text-emerald-900">Енциклопедія 122 Сортів</h2>
-                        <p class="text-stone-500 font-bold uppercase text-[10px] tracking-[0.2em]">Колекційна база виноградника</p>
+                <!-- Sub-tab Selector -->
+                <div class="flex bg-stone-100 p-1 rounded-2xl gap-1 mb-8 max-w-md">
+                    <button onclick="setEncyclopediaTab('collection')" id="btn-encyclopedia-collection" class="flex-1 py-2 rounded-xl text-xs font-black transition-all bg-emerald-600 text-white shadow-sm">
+                        🍇 Моя колекція
+                    </button>
+                    <button onclick="setEncyclopediaTab('nursery')" id="btn-encyclopedia-nursery" class="flex-1 py-2 rounded-xl text-xs font-black transition-all text-stone-500 hover:text-stone-850">
+                        🌱 Розсадник / Школка
+                    </button>
+                </div>
+
+                <!-- Collection Tab Block -->
+                <div id="encyclopedia-collection-block" class="space-y-6">
+                    <div class="flex flex-col xl:flex-row justify-between items-stretch xl:items-center gap-6 mb-6">
+                        <div class="flex items-center gap-4">
+                            <div>
+                                <h2 class="text-3xl font-black text-emerald-900" id="encyclopedia-title">Енциклопедія Сортів</h2>
+                                <p class="text-stone-500 font-bold uppercase text-[10px] tracking-[0.2em]" id="encyclopedia-subtitle">Колекційна база виноградника</p>
+                            </div>
+                            <button onclick="openAddVarietyModal()" class="px-4 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-black rounded-xl shadow-sm transition-all uppercase tracking-wider flex items-center gap-1.5 ml-4">
+                                ➕ Додати сорт
+                            </button>
+                        </div>
+                        
+                        <!-- Advanced Filters & Sorting -->
+                        <div class="flex flex-col sm:flex-row gap-3 items-stretch sm:items-center flex-grow max-w-4xl justify-end">
+                            <!-- Search -->
+                            <div class="relative flex-grow max-w-md">
+                                <input type="text" id="var-search" onkeyup="filterVarieties()" placeholder="Пошук сорту (Аватар, Велес)..." class="w-full p-4 pl-11 rounded-2xl bg-stone-50 border-2 border-stone-100 focus:border-emerald-500 outline-none font-bold text-sm shadow-inner transition-all">
+                                <span class="absolute left-4 top-1/2 -translate-y-1/2 text-stone-400">🔍</span>
+                            </div>
+                            
+                            <!-- Color Filter Buttons -->
+                            <div class="flex bg-stone-100 p-1.5 rounded-2xl gap-1" id="color-filter-group">
+                                <button onclick="setColorFilter('all')" id="cf-all" class="px-3.5 py-2 text-xs font-black rounded-xl bg-white text-emerald-900 shadow-sm transition-all">Всі <span class="opacity-40" id="count-all">122</span></button>
+                                <button onclick="setColorFilter('W')" id="cf-W" class="px-3.5 py-2 text-xs font-black rounded-xl text-stone-600 hover:text-emerald-950 transition-all">Білі <span class="opacity-40" id="count-W">0</span></button>
+                                <button onclick="setColorFilter('R')" id="cf-R" class="px-3.5 py-2 text-xs font-black rounded-xl text-stone-600 hover:text-emerald-950 transition-all">Рожеві <span class="opacity-40" id="count-R">0</span></button>
+                                <button onclick="setColorFilter('B')" id="cf-B" class="px-3.5 py-2 text-xs font-black rounded-xl text-stone-600 hover:text-emerald-950 transition-all">Чорні <span class="opacity-40" id="count-B">0</span></button>
+                            </div>
+                            
+                            <!-- Sort Selector -->
+                            <div class="flex items-center gap-2">
+                                <span class="text-xs font-bold text-stone-400 uppercase tracking-wider whitespace-nowrap">Сортування:</span>
+                                <select id="var-sort" onchange="sortVarieties()" class="p-3 rounded-2xl bg-stone-50 border border-stone-200 outline-none font-bold text-xs text-stone-700">
+                                    <option value="name">За алфавітом</option>
+                                    <option value="rip">Термін дозрівання</option>
+                                    <option value="bunch">Вага грона</option>
+                                </select>
+                            </div>
+                        </div>
                     </div>
                     
-                    <!-- Advanced Filters & Sorting -->
-                    <div class="flex flex-col sm:flex-row gap-3 items-stretch sm:items-center flex-grow max-w-4xl justify-end">
-                        <!-- Search -->
-                        <div class="relative flex-grow max-w-md">
-                            <input type="text" id="var-search" onkeyup="filterVarieties()" placeholder="Пошук сорту (Аватар, Велес)..." class="w-full p-4 pl-11 rounded-2xl bg-stone-50 border-2 border-stone-100 focus:border-emerald-500 outline-none font-bold text-sm shadow-inner transition-all">
-                            <span class="absolute left-4 top-1/2 -translate-y-1/2 text-stone-400">🔍</span>
+                    <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+                        <!-- Left: Scrollable Grid -->
+                        <div class="lg:col-span-8 h-[600px] overflow-y-auto pr-4 custom-scrollbar" id="var-grid-container">
+                            <!-- Varieties will be injected here -->
                         </div>
-                        
-                        <!-- Color Filter Buttons -->
-                        <div class="flex bg-stone-100 p-1.5 rounded-2xl gap-1" id="color-filter-group">
-                            <button onclick="setColorFilter('all')" id="cf-all" class="px-3.5 py-2 text-xs font-black rounded-xl bg-white text-emerald-900 shadow-sm transition-all">Всі <span class="opacity-40" id="count-all">122</span></button>
-                            <button onclick="setColorFilter('W')" id="cf-W" class="px-3.5 py-2 text-xs font-black rounded-xl text-stone-600 hover:text-emerald-950 transition-all">Білі <span class="opacity-40" id="count-W">0</span></button>
-                            <button onclick="setColorFilter('R')" id="cf-R" class="px-3.5 py-2 text-xs font-black rounded-xl text-stone-600 hover:text-emerald-950 transition-all">Рожеві <span class="opacity-40" id="count-R">0</span></button>
-                            <button onclick="setColorFilter('B')" id="cf-B" class="px-3.5 py-2 text-xs font-black rounded-xl text-stone-600 hover:text-emerald-950 transition-all">Чорні <span class="opacity-40" id="count-B">0</span></button>
-                        </div>
-                        
-                        <!-- Sort Selector -->
-                        <div class="flex items-center gap-2">
-                            <span class="text-xs font-bold text-stone-400 uppercase tracking-wider whitespace-nowrap">Сортування:</span>
-                            <select id="var-sort" onchange="sortVarieties()" class="p-3 rounded-2xl bg-stone-50 border border-stone-200 outline-none font-bold text-xs text-stone-700">
-                                <option value="name">За алфавітом</option>
-                                <option value="rip">Термін дозрівання</option>
-                                <option value="bunch">Вага грона</option>
-                            </select>
+                        <!-- Right: Sticky Details Panel -->
+                        <div class="lg:col-span-4 bg-emerald-50/50 p-8 rounded-[40px] border-2 border-emerald-100/50 sticky top-24 h-fit" id="var-details-panel">
+                            <div class="text-center text-stone-300 py-32">
+                                <span class="text-7xl block mb-4 opacity-20">📖</span>
+                                <p class="font-black text-sm uppercase tracking-widest opacity-40">Виберіть сорт зі списку</p>
+                            </div>
                         </div>
                     </div>
                 </div>
-                
-                <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
-                    <!-- Left: Scrollable Grid -->
-                    <div class="lg:col-span-8 h-[600px] overflow-y-auto pr-4 custom-scrollbar" id="var-grid-container">
-                        <!-- Varieties will be injected here -->
-                    </div>
-                    <!-- Right: Sticky Details Panel -->
-                    <div class="lg:col-span-4 bg-emerald-50/50 p-8 rounded-[40px] border-2 border-emerald-100/50 sticky top-24 h-fit" id="var-details-panel">
-                        <div class="text-center text-stone-300 py-32">
-                            <span class="text-7xl block mb-4 opacity-20">📖</span>
-                            <p class="font-black text-sm uppercase tracking-widest opacity-40">Виберіть сорт зі списку</p>
+
+                <!-- Nursery Tab Block -->
+                <div id="encyclopedia-nursery-block" class="hidden space-y-8">
+                    <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+                        <!-- Left Column: Nursery Form & Guidelines -->
+                        <div class="lg:col-span-4 space-y-6">
+                            <div class="bg-stone-50 p-6 rounded-3xl border border-stone-200/50 space-y-4">
+                                <h3 class="text-md font-black text-emerald-900 flex items-center gap-1.5">
+                                    🌱 Додати саджанець / чубук
+                                </h3>
+                                <form id="form-add-nursery" onsubmit="addNurseryItem(event)" class="space-y-4">
+                                    <div class="space-y-1">
+                                        <label class="text-[10px] font-black uppercase text-stone-400">Назва сорту <span class="text-rose-500">*</span></label>
+                                        <input type="text" id="nursery-add-name" required placeholder="Напр. Аркадія" list="nursery-varieties-list" oninput="handleNurseryNameInput()" class="w-full p-3 rounded-xl bg-white border border-stone-200 font-bold text-xs outline-none focus:border-emerald-500">
+                                        <datalist id="nursery-varieties-list">
+                                            <!-- Dynamically filled standard/custom varieties list -->
+                                        </datalist>
+                                    </div>
+                                    <div class="grid grid-cols-2 gap-3">
+                                        <div class="space-y-1">
+                                            <label class="text-[10px] font-black uppercase text-stone-400">Колір ягоди <span class="text-rose-500">*</span></label>
+                                            <select id="nursery-add-color" required class="w-full p-3 rounded-xl bg-white border border-stone-200 font-bold text-xs outline-none focus:border-emerald-500">
+                                                <option value="W">Білий (White)</option>
+                                                <option value="R">Рожевий (Rose)</option>
+                                                <option value="B">Чорний (Black)</option>
+                                            </select>
+                                        </div>
+                                        <div class="space-y-1">
+                                            <label class="text-[10px] font-black uppercase text-stone-400">Кількість <span class="text-rose-500">*</span></label>
+                                            <input type="number" id="nursery-add-qty" min="1" value="1" required class="w-full p-3 rounded-xl bg-white border border-stone-200 font-bold text-xs outline-none focus:border-emerald-500">
+                                        </div>
+                                    </div>
+                                    <div class="space-y-1">
+                                        <label class="text-[10px] font-black uppercase text-stone-400">Коментар / Нотатка</label>
+                                        <input type="text" id="nursery-add-note" placeholder="Напр. Осіннє висадження, чубуки..." class="w-full p-3 rounded-xl bg-white border border-stone-200 font-bold text-xs outline-none focus:border-emerald-500">
+                                    </div>
+                                    <button type="submit" class="w-full py-3 bg-emerald-600 hover:bg-emerald-700 text-white font-black text-xs uppercase tracking-wider rounded-xl shadow-md transition-all">
+                                        ➕ Додати в розсадник
+                                    </button>
+                                </form>
+                            </div>
+
+                            <div class="bg-emerald-50/50 p-6 rounded-3xl border border-emerald-100/50 text-xs text-stone-700 space-y-2.5">
+                                <h4 class="font-black text-emerald-800 uppercase tracking-wider">💡 Довідка про Школку</h4>
+                                <p class="leading-relaxed font-medium">Школка (або розсадник) — це ділянка для вкорінення чубуків (живців) та вирощування молодих саджанців перед висадкою на постійне місце у виноградник.</p>
+                                <p class="leading-relaxed font-medium">Ви можете вносити сорти сюди, регулювати їх кількість, а коли саджанці будуть готові — натиснути кнопку **🌱 Висадити**, щоб автоматично перенести їх у вашу основну колекцію виноградника.</p>
+                            </div>
+                        </div>
+
+                        <!-- Right Column: Scrollable list of nursery items -->
+                        <div class="lg:col-span-8 space-y-4">
+                            <div class="flex justify-between items-center pb-2 border-b border-stone-100">
+                                <h3 class="text-lg font-black text-emerald-950">Саджанці в розсаднику</h3>
+                                <span id="nursery-summary" class="text-xs font-black text-emerald-700 uppercase bg-emerald-50 px-3 py-1 rounded-full">Усього: 0 шт.</span>
+                            </div>
+                            
+                            <!-- Nursery Grid List -->
+                            <div id="nursery-grid-container" class="grid grid-cols-1 md:grid-cols-2 gap-4 max-h-[580px] overflow-y-auto pr-2 custom-scrollbar">
+                                <!-- Nursery items injected here -->
+                            </div>
                         </div>
                     </div>
+                </div>
+            </div>
+
+            <!-- Modal: Add Custom Variety -->
+            <div id="modal-add-variety" class="fixed inset-0 bg-stone-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+                <div class="bg-white w-full max-w-md rounded-[32px] p-6 shadow-2xl border border-stone-200/50 space-y-4 max-h-[90vh] overflow-y-auto custom-scrollbar">
+                    <div class="flex justify-between items-center border-b border-stone-100 pb-3">
+                        <h3 class="text-lg font-black text-emerald-900">➕ Новий сорт винограду</h3>
+                        <button onclick="closeAddVarietyModal()" class="text-stone-400 hover:text-stone-600 text-lg">✕</button>
+                    </div>
+                    
+                    <form id="form-add-variety" onsubmit="saveCustomVariety(event)" class="space-y-4">
+                        <div class="space-y-1">
+                            <div class="flex justify-between items-center">
+                                <label class="text-[10px] font-black uppercase text-stone-400">Назва сорту <span class="text-rose-500">*</span></label>
+                                <span class="text-[8px] font-bold text-emerald-600 uppercase tracking-wider hidden" id="add-var-autocomplete-badge">Знайдено в каталозі (автозаповнення)</span>
+                            </div>
+                            <input type="text" id="add-var-name" required placeholder="Напр. Велес" oninput="handleAddVarNameInput()" class="w-full p-3.5 rounded-xl bg-stone-50 border border-stone-200 font-bold text-xs outline-none focus:border-emerald-500 text-stone-850">
+                        </div>
+                        <div class="grid grid-cols-2 gap-3">
+                            <div class="space-y-1">
+                                <label class="text-[10px] font-black uppercase text-stone-400">Колір ягоди <span class="text-rose-500">*</span></label>
+                                <select id="add-var-color" required class="w-full p-3.5 rounded-xl bg-stone-50 border border-stone-200 font-bold text-xs outline-none focus:border-emerald-500 text-stone-850">
+                                    <option value="W">White (Білий)</option>
+                                    <option value="R">Rose (Рожевий)</option>
+                                    <option value="B">Black (Чорний)</option>
+                                </select>
+                            </div>
+                            <div class="space-y-1">
+                                <label class="text-[10px] font-black uppercase text-stone-400">Термін дозрівання <span class="text-rose-500">*</span></label>
+                                <input type="text" id="add-var-rip" required placeholder="Напр. 100 дн. або 115-125 дн." class="w-full p-3.5 rounded-xl bg-stone-50 border border-stone-200 font-bold text-xs outline-none focus:border-emerald-500 text-stone-850">
+                            </div>
+                        </div>
+                        <div class="grid grid-cols-2 gap-3">
+                            <div class="space-y-1">
+                                <label class="text-[10px] font-black uppercase text-stone-400">Вага грона</label>
+                                <input type="text" id="add-var-bunch" placeholder="Напр. 600-1000 г" class="w-full p-3.5 rounded-xl bg-stone-50 border border-stone-200 font-bold text-xs outline-none focus:border-emerald-500 text-stone-850">
+                            </div>
+                            <div class="space-y-1">
+                                <label class="text-[10px] font-black uppercase text-stone-400">Тип (кісточки)</label>
+                                <select id="add-var-seed" class="w-full p-3.5 rounded-xl bg-stone-50 border border-stone-200 font-bold text-xs outline-none focus:border-emerald-500 text-stone-850">
+                                    <option value="З кіст.">З кісточками (Столовий)</option>
+                                    <option value="Безкіст.">Безкісточковий (Кишмиш)</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="space-y-1">
+                            <label class="text-[10px] font-black uppercase text-stone-400">Смаковий профіль</label>
+                            <input type="text" id="add-var-taste" placeholder="Напр. Мускат, Гармонійний" class="w-full p-3.5 rounded-xl bg-stone-50 border border-stone-200 font-bold text-xs outline-none focus:border-emerald-500 text-stone-850">
+                        </div>
+                        <div class="space-y-1">
+                            <label class="text-[10px] font-black uppercase text-stone-400">Рекомендації по догляду</label>
+                            <textarea id="add-var-care" placeholder="Напр. Потребує нормування врожаєм..." rows="2" class="w-full p-3.5 rounded-xl bg-stone-50 border border-stone-200 font-medium text-xs outline-none focus:border-emerald-500 resize-none text-stone-850"></textarea>
+                        </div>
+                        <div class="space-y-1">
+                            <label class="text-[10px] font-black uppercase text-stone-400">Кількість кущів на винограднику</label>
+                            <input type="number" id="add-var-qty" min="0" value="0" class="w-full p-3.5 rounded-xl bg-stone-50 border border-stone-200 font-bold text-xs outline-none focus:border-emerald-500 text-stone-850">
+                        </div>
+                        
+                        <div class="flex gap-3 pt-2">
+                            <button type="button" onclick="closeAddVarietyModal()" class="flex-1 py-3 rounded-xl border border-stone-200 text-stone-600 font-black text-xs uppercase tracking-wider hover:bg-stone-50 transition-all">Скасувати</button>
+                            <button type="submit" class="flex-1 py-3 bg-emerald-600 hover:bg-emerald-700 text-white font-black text-xs uppercase tracking-wider rounded-xl shadow-md transition-all">Зберегти</button>
+                        </div>
+                    </form>
                 </div>
             </div>
         </section>
@@ -1183,7 +1328,7 @@
         let phaseChecklistDates = {};
         let phaseNutritionChecklistDates = {};
 
-        const varietyData = {
+        const defaultVarietyData = {
             "Аватар": { rip: "115-125 дн.", col: "B", taste: "Гармонійний", bunch: "700-1200 г", seed: "Безкіст.", care: "⚠️ Потребує ГК зануренням. Схильний до осипання. На зиму ретельно вкривати." },
             "Азія": { rip: "110-115 дн.", col: "R", taste: "Мускат", bunch: "600-1000 г", seed: "З кіст.", care: "⚠️ Схильний до перевантаження. Обов'язкове жорстке нормування суцвіттями." },
             "Алінка": { rip: "105-110 дн.", col: "R", taste: "Мускат", bunch: "500-850 г", seed: "З кіст.", care: "💡 Тонка шкірка — захист від ос сітками обов'язковий." },
@@ -1307,6 +1452,40 @@
             "Юпітер": { rip: "115  дн.", col: "B", taste: "Ізабельний мускат", bunch: "400-650 г", seed: "Безкіст.", care: "💡 Може зимувати без укриття." },
             "Юліан": { rip: "100  дн.", col: "R", taste: "Приємний мускат", bunch: "800-1800 г", seed: "З кіст.", care: "⚠️ Слабкий колір. Калійне живлення." }
         };
+
+        let varietyData = {};
+        let vineyardQuantities = {};
+        let customVarieties = {};
+        let deletedVarieties = [];
+        let nurseryVarieties = {};
+
+        function initEncyclopediaData() {
+            try {
+                const savedCustom = localStorage.getItem('viticulture-custom-varieties');
+                if (savedCustom) customVarieties = JSON.parse(savedCustom);
+            } catch(e) { console.error("Error loading custom varieties", e); }
+
+            try {
+                const savedDeleted = localStorage.getItem('viticulture-deleted-varieties');
+                if (savedDeleted) deletedVarieties = JSON.parse(savedDeleted);
+            } catch(e) { console.error("Error loading deleted varieties", e); }
+
+            try {
+                const savedQuantities = localStorage.getItem('viticulture-vineyard-quantities');
+                if (savedQuantities) vineyardQuantities = JSON.parse(savedQuantities);
+            } catch(e) { console.error("Error loading vineyard quantities", e); }
+
+            try {
+                const savedNursery = localStorage.getItem('viticulture-nursery-varieties');
+                if (savedNursery) nurseryVarieties = JSON.parse(savedNursery);
+            } catch(e) { console.error("Error loading nursery varieties", e); }
+
+            varietyData = { ...defaultVarietyData };
+            deletedVarieties.forEach(name => {
+                delete varietyData[name];
+            });
+            Object.assign(varietyData, customVarieties);
+        }
 
         const phasesData = {
             1: { 
@@ -2460,9 +2639,12 @@
         }
 
         function generateVarBtn(v) {
+            const qty = vineyardQuantities[v.name] || 0;
+            const qtyBadge = qty > 0 ? ` <span class="bg-emerald-100 text-emerald-800 text-[9px] px-1.5 py-0.5 rounded-full ml-1 font-black">x${qty}</span>` : '';
             return `
-                <button onclick="selectVar('${v.name}')" data-variety="${v.name}" class="variety-grid-btn px-4 py-3.5 text-left text-xs font-bold border border-stone-200 rounded-2xl text-stone-900 truncate bg-white shadow-sm hover:bg-emerald-50 hover:border-emerald-300">
-                    ${grapeSVG(colorMap[v.col])} ${v.name}
+                <button onclick="selectVar('${v.name}')" data-variety="${v.name}" class="variety-grid-btn px-4 py-3.5 text-left text-xs font-bold border border-stone-200 rounded-2xl text-stone-900 bg-white shadow-sm hover:bg-emerald-50 hover:border-emerald-300 flex items-center justify-between">
+                    <span class="truncate flex items-center">${grapeSVG(colorMap[v.col])} <span class="ml-1 truncate">${v.name}</span></span>
+                    ${qtyBadge}
                 </button>
             `;
         }
@@ -2470,23 +2652,43 @@
         function selectVar(name) {
             activeVar = name;
             
-            // Remove selection class from all grid buttons
             document.querySelectorAll('.variety-grid-btn').forEach(btn => {
                 btn.classList.remove('selected');
             });
             
-            // Add selection to current button using attribute selector to prevent id character escaping issues
             const btn = document.querySelector(`[data-variety="${name}"]`);
             if (btn) btn.classList.add('selected');
             
             const d = varietyData[name];
+            if (!d) return;
             const catInfo = getCatInfoByRip(d.rip);
+            const qty = vineyardQuantities[name] || 0;
+
             document.getElementById('var-details-panel').innerHTML = `
                 <div class="fade-in space-y-6">
-                    <div class="border-b border-emerald-200/60 pb-4">
-                        <span class="text-[10px] font-black uppercase text-emerald-700 tracking-[0.2em] block">Агрономічний паспорт</span>
-                        <h3 class="text-2xl font-black text-emerald-950 mt-1 flex items-center">${grapeSVG(colorMap[d.col])} ${name}</h3>
+                    <div class="border-b border-emerald-200/60 pb-4 flex justify-between items-start">
+                        <div>
+                            <span class="text-[10px] font-black uppercase text-emerald-700 tracking-[0.2em] block">Агрономічний паспорт</span>
+                            <h3 class="text-2xl font-black text-emerald-950 mt-1 flex items-center gap-1.5">${grapeSVG(colorMap[d.col])} ${name}</h3>
+                        </div>
+                        <button onclick="deleteVariety('${name}')" class="p-2 rounded-xl text-rose-500 hover:text-white hover:bg-rose-500 border border-transparent hover:border-rose-600 transition-all text-xs" title="Видалити сорт з колекції">
+                            🗑️
+                        </button>
                     </div>
+                    
+                    <!-- Vineyard Quantity Editor -->
+                    <div class="bg-white p-4 rounded-3xl border border-emerald-100 shadow-sm flex items-center justify-between">
+                        <div>
+                            <span class="block opacity-40 uppercase font-black text-[9px] tracking-wide">На винограднику</span>
+                            <span id="detail-var-qty-display" class="text-sm font-black text-stone-850 mt-0.5 block">${qty} кущів</span>
+                        </div>
+                        <div class="flex items-center bg-stone-50 border border-stone-200/60 rounded-xl p-1 gap-1">
+                            <button onclick="changeVineyardQuantity('${name}', -1)" class="w-8 h-8 rounded-lg bg-white border border-stone-200 font-black text-stone-600 flex items-center justify-center hover:bg-stone-100 active:scale-95 transition-all">-</button>
+                            <input type="number" id="detail-var-qty-input" value="${qty}" min="0" onchange="setVineyardQuantity('${name}', this.value)" class="w-12 text-center bg-transparent border-none font-black text-xs outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none">
+                            <button onclick="changeVineyardQuantity('${name}', 1)" class="w-8 h-8 rounded-lg bg-white border border-stone-200 font-black text-stone-600 flex items-center justify-center hover:bg-stone-100 active:scale-95 transition-all">+</button>
+                        </div>
+                    </div>
+
                     <div class="grid grid-cols-2 gap-3 text-xs">
                         <div class="bg-white p-3.5 rounded-2xl shadow-sm border border-emerald-100/50">
                             <span class="block opacity-40 uppercase font-black text-[9px] mb-1">📅 Термін</span>
@@ -2517,6 +2719,312 @@
                     </div>
                 </div>
             `;
+        }
+
+        function deleteVariety(name) {
+            if (confirm(`Ви впевнені, що хочете видалити сорт "${name}" з вашої колекції?`)) {
+                if (customVarieties[name]) {
+                    delete customVarieties[name];
+                    localStorage.setItem('viticulture-custom-varieties', JSON.stringify(customVarieties));
+                }
+                if (defaultVarietyData[name] && !deletedVarieties.includes(name)) {
+                    deletedVarieties.push(name);
+                    localStorage.setItem('viticulture-deleted-varieties', JSON.stringify(deletedVarieties));
+                }
+                if (vineyardQuantities[name] !== undefined) {
+                    delete vineyardQuantities[name];
+                    localStorage.setItem('viticulture-vineyard-quantities', JSON.stringify(vineyardQuantities));
+                }
+                
+                initEncyclopediaData();
+                calculateCounters();
+                initSatChecker();
+                renderVarietiesList();
+                
+                document.getElementById('var-details-panel').innerHTML = `
+                    <div class="text-center text-stone-300 py-32">
+                        <span class="text-7xl block mb-4 opacity-20">📖</span>
+                        <p class="font-black text-sm uppercase tracking-widest opacity-40">Виберіть сорт зі списку</p>
+                    </div>
+                `;
+            }
+        }
+
+        function changeVineyardQuantity(name, amount) {
+            let current = vineyardQuantities[name] || 0;
+            current = Math.max(0, current + amount);
+            setVineyardQuantity(name, current);
+        }
+
+        function setVineyardQuantity(name, val) {
+            const num = Math.max(0, parseInt(val) || 0);
+            vineyardQuantities[name] = num;
+            localStorage.setItem('viticulture-vineyard-quantities', JSON.stringify(vineyardQuantities));
+            
+            const display = document.getElementById('detail-var-qty-display');
+            if (display) display.innerText = `${num} кущів`;
+            
+            const input = document.getElementById('detail-var-qty-input');
+            if (input) input.value = num;
+            
+            renderVarietiesList();
+        }
+
+        function openAddVarietyModal() {
+            document.getElementById('modal-add-variety').classList.remove('hidden');
+            document.getElementById('form-add-variety').reset();
+            document.getElementById('add-var-autocomplete-badge').classList.add('hidden');
+            document.getElementById('add-var-name').focus();
+        }
+
+        function closeAddVarietyModal() {
+            document.getElementById('modal-add-variety').classList.add('hidden');
+        }
+
+        function saveCustomVariety(event) {
+            event.preventDefault();
+            const name = document.getElementById('add-var-name').value.trim();
+            const col = document.getElementById('add-var-color').value;
+            const rip = document.getElementById('add-var-rip').value.trim();
+            const bunch = document.getElementById('add-var-bunch').value.trim() || "—";
+            const seed = document.getElementById('add-var-seed').value;
+            const taste = document.getElementById('add-var-taste').value.trim() || "Гармонійний";
+            const care = document.getElementById('add-var-care').value.trim() || "Агрорекомендації відсутні.";
+            const qty = parseInt(document.getElementById('add-var-qty').value) || 0;
+            
+            if (!name) return;
+            
+            const delIdx = deletedVarieties.indexOf(name);
+            if (delIdx > -1) {
+                deletedVarieties.splice(delIdx, 1);
+                localStorage.setItem('viticulture-deleted-varieties', JSON.stringify(deletedVarieties));
+            }
+            
+            customVarieties[name] = { rip, col, taste, bunch, seed, care };
+            localStorage.setItem('viticulture-custom-varieties', JSON.stringify(customVarieties));
+            
+            if (qty > 0) {
+                vineyardQuantities[name] = qty;
+                localStorage.setItem('viticulture-vineyard-quantities', JSON.stringify(vineyardQuantities));
+            }
+            
+            initEncyclopediaData();
+            calculateCounters();
+            initSatChecker();
+            renderVarietiesList();
+            closeAddVarietyModal();
+            
+            setTimeout(() => {
+                selectVar(name);
+                const btn = document.querySelector(`[data-variety="${name}"]`);
+                if (btn) btn.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            }, 100);
+        }
+
+        function handleAddVarNameInput() {
+            const name = document.getElementById('add-var-name').value.trim();
+            const badge = document.getElementById('add-var-autocomplete-badge');
+            const matchKey = Object.keys(defaultVarietyData).find(k => k.toLowerCase() === name.toLowerCase());
+            if (matchKey) {
+                const d = defaultVarietyData[matchKey];
+                document.getElementById('add-var-name').value = matchKey;
+                document.getElementById('add-var-color').value = d.col;
+                document.getElementById('add-var-rip').value = d.rip;
+                document.getElementById('add-var-bunch').value = d.bunch;
+                document.getElementById('add-var-seed').value = d.seed.includes("Безкіст") ? "Безкіст." : "З кіст.";
+                document.getElementById('add-var-taste').value = d.taste;
+                document.getElementById('add-var-care').value = d.care;
+                if (badge) badge.classList.remove('hidden');
+            } else {
+                if (badge) badge.classList.add('hidden');
+            }
+        }
+
+        let activeEncyclopediaTab = 'collection';
+        
+        function setEncyclopediaTab(tab) {
+            activeEncyclopediaTab = tab;
+            const collectionBlock = document.getElementById('encyclopedia-collection-block');
+            const nurseryBlock = document.getElementById('encyclopedia-nursery-block');
+            
+            const btnCollection = document.getElementById('btn-encyclopedia-collection');
+            const btnNursery = document.getElementById('btn-encyclopedia-nursery');
+            
+            if (tab === 'collection') {
+                collectionBlock.classList.remove('hidden');
+                nurseryBlock.classList.add('hidden');
+                
+                btnCollection.className = "flex-1 py-2 rounded-xl text-xs font-black transition-all bg-emerald-600 text-white shadow-sm";
+                btnNursery.className = "flex-1 py-2 rounded-xl text-xs font-black transition-all text-stone-500 hover:text-stone-850";
+                
+                renderVarietiesList();
+            } else {
+                collectionBlock.classList.add('hidden');
+                nurseryBlock.classList.remove('hidden');
+                
+                btnCollection.className = "flex-1 py-2 rounded-xl text-xs font-black transition-all text-stone-500 hover:text-stone-850";
+                btnNursery.className = "flex-1 py-2 rounded-xl text-xs font-black transition-all bg-emerald-600 text-white shadow-sm";
+                
+                initNurseryDatalist();
+                renderNurseryList();
+            }
+        }
+
+        function initNurseryDatalist() {
+            const list = document.getElementById('nursery-varieties-list');
+            if (list) {
+                list.innerHTML = Object.keys(varietyData).map(name => `<option value="${name}">`).join('');
+            }
+        }
+
+        function handleNurseryNameInput() {
+            const name = document.getElementById('nursery-add-name').value.trim();
+            const matchKey = Object.keys(varietyData).find(k => k.toLowerCase() === name.toLowerCase());
+            if (matchKey) {
+                const d = varietyData[matchKey];
+                document.getElementById('nursery-add-name').value = matchKey;
+                document.getElementById('nursery-add-color').value = d.col;
+            }
+        }
+
+        function addNurseryItem(event) {
+            event.preventDefault();
+            const name = document.getElementById('nursery-add-name').value.trim();
+            const col = document.getElementById('nursery-add-color').value;
+            const qty = parseInt(document.getElementById('nursery-add-qty').value) || 1;
+            const note = document.getElementById('nursery-add-note').value.trim() || "";
+            
+            if (!name) return;
+            
+            if (nurseryVarieties[name]) {
+                nurseryVarieties[name].qty += qty;
+                if (note) nurseryVarieties[name].note = note;
+            } else {
+                nurseryVarieties[name] = { col, qty, note };
+            }
+            
+            localStorage.setItem('viticulture-nursery-varieties', JSON.stringify(nurseryVarieties));
+            document.getElementById('form-add-nursery').reset();
+            renderNurseryList();
+        }
+
+        function changeNurseryQuantity(name, amount) {
+            if (!nurseryVarieties[name]) return;
+            nurseryVarieties[name].qty = Math.max(1, nurseryVarieties[name].qty + amount);
+            localStorage.setItem('viticulture-nursery-varieties', JSON.stringify(nurseryVarieties));
+            renderNurseryList();
+        }
+
+        function deleteNurseryItem(name) {
+            if (confirm(`Видалити сорт "${name}" з розсадника?`)) {
+                delete nurseryVarieties[name];
+                localStorage.setItem('viticulture-nursery-varieties', JSON.stringify(nurseryVarieties));
+                renderNurseryList();
+            }
+        }
+
+        function transplantToVineyard(name) {
+            if (!nurseryVarieties[name]) return;
+            const nurseryItem = nurseryVarieties[name];
+            
+            const inputQty = prompt(`Скільки кущів сорту "${name}" висадити на виноградник? (Доступно: ${nurseryItem.qty})`, nurseryItem.qty);
+            if (inputQty === null) return;
+            
+            const qtyToPlant = Math.max(1, Math.min(nurseryItem.qty, parseInt(inputQty) || 0));
+            if (!qtyToPlant) return;
+            
+            if (!varietyData[name]) {
+                if (defaultVarietyData[name]) {
+                    const delIdx = deletedVarieties.indexOf(name);
+                    if (delIdx > -1) {
+                        deletedVarieties.splice(delIdx, 1);
+                        localStorage.setItem('viticulture-deleted-varieties', JSON.stringify(deletedVarieties));
+                    }
+                } else {
+                    customVarieties[name] = {
+                        rip: "115 дн.",
+                        col: nurseryItem.col,
+                        taste: "Гармонійний",
+                        bunch: "500-800 г",
+                        seed: "З кіст.",
+                        care: "Висаджено з розсадника."
+                    };
+                    localStorage.setItem('viticulture-custom-varieties', JSON.stringify(customVarieties));
+                }
+            }
+            
+            vineyardQuantities[name] = (vineyardQuantities[name] || 0) + qtyToPlant;
+            localStorage.setItem('viticulture-vineyard-quantities', JSON.stringify(vineyardQuantities));
+            
+            nurseryItem.qty -= qtyToPlant;
+            if (nurseryItem.qty <= 0) {
+                delete nurseryVarieties[name];
+            }
+            localStorage.setItem('viticulture-nursery-varieties', JSON.stringify(nurseryVarieties));
+            
+            initEncyclopediaData();
+            renderNurseryList();
+            
+            alert(`Успішно висаджено ${qtyToPlant} кущів сорту "${name}" на виноградник!`);
+        }
+
+        function renderNurseryList() {
+            const container = document.getElementById('nursery-grid-container');
+            const summaryBadge = document.getElementById('nursery-summary');
+            if (!container) return;
+            
+            const keys = Object.keys(nurseryVarieties);
+            let totalQty = 0;
+            
+            if (keys.length === 0) {
+                container.innerHTML = `
+                    <div class="col-span-full text-center text-stone-400 py-20 bg-stone-50 rounded-[30px] border border-stone-200/50">
+                        <span class="text-5xl block mb-2">🌱</span>
+                        <p class="font-bold">Розсадник порожній</p>
+                        <p class="text-xs mt-1">Додайте живці або саджанці у школку за допомогою форми ліворуч.</p>
+                    </div>
+                `;
+                if (summaryBadge) summaryBadge.innerText = "Усього: 0 шт.";
+                return;
+            }
+            
+            container.innerHTML = keys.map(name => {
+                const item = nurseryVarieties[name];
+                totalQty += item.qty;
+                const grapeColor = colorMap[item.col] || "#10b981";
+                const noteText = item.note ? `<p class="text-[10px] text-stone-500 italic mt-1 font-medium bg-stone-100/50 p-1.5 rounded-lg border border-stone-200/30 truncate">${item.note}</p>` : '';
+                
+                return `
+                    <div class="bg-white p-5 rounded-3xl border border-stone-200/60 shadow-sm flex flex-col justify-between space-y-4 hover:border-emerald-300 transition-all">
+                        <div class="flex justify-between items-start">
+                            <div>
+                                <h4 class="text-sm font-black text-stone-850 flex items-center gap-1.5">${grapeSVG(grapeColor)} ${name}</h4>
+                                <span class="text-[9px] font-black uppercase px-2 py-0.5 rounded-md mt-1 inline-block ${item.col === 'W' ? 'bg-lime-50 text-lime-700' : item.col === 'R' ? 'bg-rose-50 text-rose-700' : 'bg-purple-50 text-purple-700'}">
+                                    ${item.col === 'W' ? 'Біла ягода' : item.col === 'R' ? 'Рожева ягода' : 'Чорна ягода'}
+                                </span>
+                                ${noteText}
+                            </div>
+                            <button onclick="deleteNurseryItem('${name}')" class="text-stone-400 hover:text-rose-500 transition-all text-xs p-1" title="Видалити з розсадника">
+                                🗑️
+                            </button>
+                        </div>
+                        
+                        <div class="flex items-center justify-between pt-2 border-t border-stone-100">
+                            <div class="flex items-center bg-stone-50 border border-stone-200/50 rounded-xl p-1 gap-1">
+                                <button onclick="changeNurseryQuantity('${name}', -1)" class="w-7 h-7 rounded-lg bg-white border border-stone-200 font-black text-stone-600 flex items-center justify-center hover:bg-stone-100 active:scale-95 transition-all text-xs">-</button>
+                                <span class="w-8 text-center font-black text-xs text-stone-800">${item.qty}</span>
+                                <button onclick="changeNurseryQuantity('${name}', 1)" class="w-7 h-7 rounded-lg bg-white border border-stone-200 font-black text-stone-600 flex items-center justify-center hover:bg-stone-100 active:scale-95 transition-all text-xs">+</button>
+                            </div>
+                            
+                            <button onclick="transplantToVineyard('${name}')" class="px-3 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-black text-[10px] uppercase tracking-wider rounded-xl shadow-sm transition-all flex items-center gap-1">
+                                🌱 Висадити
+                            </button>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+            
+            if (summaryBadge) summaryBadge.innerText = `Усього: ${totalQty} шт.`;
         }
 
         function filterVarieties() {
@@ -4026,6 +4534,7 @@
             
             // Render components
             selectStep(3);
+            initEncyclopediaData();
             calculateCounters();
             renderVarietiesList();
             setThermalMode(thermalMode); // Restores active mode САТ/СЕТ and displays
