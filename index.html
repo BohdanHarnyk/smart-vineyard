@@ -1103,20 +1103,33 @@
                         </div>
 
                         <!-- Mode 2 Panel: Agro Chat -->
-                        <div id="ai-panel-chat" class="space-y-4 hidden flex flex-col h-[500px]">
+                        <div id="ai-panel-chat" class="space-y-3.5 hidden flex flex-col h-[500px]">
+                            <!-- Chat header controls -->
+                            <div class="flex justify-between items-center px-1">
+                                <span class="text-[10px] text-stone-400 font-black uppercase tracking-wider">Діалог з ШІ-агрономом</span>
+                                <button onclick="clearAgroChat()" class="text-[10px] font-bold text-rose-500 hover:text-rose-600 transition-all uppercase tracking-wider flex items-center gap-1">
+                                    <span>🗑️</span> Очистити діалог
+                                </button>
+                            </div>
+                            
                             <!-- Scrollable Chat transcript -->
                             <div id="ai-chat-transcript" class="flex-grow overflow-y-auto p-4 rounded-3xl bg-stone-50 border border-stone-200/60 space-y-4 max-h-[380px] custom-scrollbar">
                                 <div class="flex gap-3 max-w-[85%]">
                                     <div class="w-8 h-8 rounded-full bg-emerald-100 border border-emerald-200 flex items-center justify-center text-sm flex-shrink-0">👨‍🌾</div>
-                                    <div class="bg-white p-3.5 rounded-2xl shadow-sm border border-emerald-100 text-xs font-medium text-stone-800 leading-relaxed">
+                                    <div class="bg-white p-3.5 rounded-2xl shadow-sm border border-emerald-100 text-xs font-medium text-stone-850 leading-relaxed">
                                         Вітаю! Я ваш персональний асистент-агроном. Запитайте мене про будь-яку проблему з виноградом, хвороби, шкідників, підживлення чи обрізку.
                                     </div>
                                 </div>
                             </div>
 
-                            <!-- Chat input field bar -->
+                            <!-- Chat input field bar with Mic -->
                             <div class="flex gap-2">
-                                <input type="text" id="ai-chat-input" onkeydown="if(event.key === 'Enter') sendAgroChatMessage()" placeholder="Запитайте агронома (напр. Яка схема захисту від мілдью після цвітінням?)..." class="flex-grow p-4 rounded-2xl bg-stone-50 border border-stone-200 focus:border-emerald-500 outline-none font-bold text-xs shadow-inner transition-all">
+                                <div class="relative flex-grow flex items-center">
+                                    <input type="text" id="ai-chat-input" onkeydown="if(event.key === 'Enter') sendAgroChatMessage()" placeholder="Запитайте агронома (напр. Яка схема захисту від мілдью після цвітінням?)..." class="w-full p-4 pr-12 rounded-2xl bg-stone-50 border border-stone-200 focus:border-emerald-500 outline-none font-bold text-xs shadow-inner transition-all text-stone-850">
+                                    <button onclick="toggleVoiceInput()" id="btn-voice-input" class="absolute right-3 p-2 rounded-xl text-stone-400 hover:text-emerald-600 hover:bg-stone-100 transition-all flex items-center justify-center text-sm" title="Голосове введення">
+                                        🎙️
+                                    </button>
+                                </div>
                                 <button onclick="sendAgroChatMessage()" class="bg-emerald-600 hover:bg-emerald-700 text-white px-6 rounded-2xl font-black text-xs uppercase tracking-wider transition-all flex items-center justify-center min-w-[100px]">
                                     <span id="ai-chat-spinner" class="hidden animate-spin mr-1">⏳</span>
                                     <span>Надіслати</span>
@@ -3528,6 +3541,7 @@
             
             aiChatHistory.push({ role: 'user', content: message });
             if (aiChatHistory.length > 15) aiChatHistory.shift();
+            localStorage.setItem('viticulture-ai-chat-history', JSON.stringify(aiChatHistory));
             
             const systemInstruction = "Ти — досвідчений український агроном-консультант, експерт з виноградарства. Відповідай чітко, коротко, структуровано, українською мовою. Твої поради мають бути практичними, адаптованими під клімат України, з акцентом на безпечне застосування препаратів (ЗЗР) та добрив. Пиши структурованими списками.";
             
@@ -3540,6 +3554,7 @@
             try {
                 const responseText = await fetchGeminiAPI(contextPrompt, systemInstruction, false);
                 aiChatHistory.push({ role: 'model', content: responseText });
+                localStorage.setItem('viticulture-ai-chat-history', JSON.stringify(aiChatHistory));
                 
                 const formattedResponse = responseText.replace(/\n/g, '<br>');
                 
@@ -3563,6 +3578,124 @@
             } finally {
                 if (spinner) spinner.classList.add('hidden');
                 transcript.scrollTop = transcript.scrollHeight;
+            }
+        }
+
+        // --- AI ASSISTANT ADDITIONAL FEATURES ---
+        let recognition = null;
+        let isListening = false;
+
+        function toggleVoiceInput() {
+            window.SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+            if (!window.SpeechRecognition) {
+                alert("Голосове введення не підтримується у вашому браузері. Спробуйте Google Chrome або Safari.");
+                return;
+            }
+
+            if (!recognition) {
+                recognition = new window.SpeechRecognition();
+                recognition.continuous = false;
+                recognition.interimResults = false;
+                recognition.lang = 'uk-UA';
+
+                recognition.onstart = () => {
+                    isListening = true;
+                    const btn = document.getElementById('btn-voice-input');
+                    if (btn) {
+                        btn.innerText = '🛑';
+                        btn.classList.add('animate-pulse', 'text-rose-600', 'bg-rose-50');
+                        btn.title = "Слухаю... Натисніть, щоб зупинити";
+                    }
+                };
+
+                recognition.onend = () => {
+                    isListening = false;
+                    const btn = document.getElementById('btn-voice-input');
+                    if (btn) {
+                        btn.innerText = '🎙️';
+                        btn.classList.remove('animate-pulse', 'text-rose-600', 'bg-rose-50');
+                        btn.title = "Голосове введення";
+                    }
+                };
+
+                recognition.onerror = (event) => {
+                    console.error('Speech recognition error', event);
+                    isListening = false;
+                    const btn = document.getElementById('btn-voice-input');
+                    if (btn) {
+                        btn.innerText = '🎙️';
+                        btn.classList.remove('animate-pulse', 'text-rose-600', 'bg-rose-50');
+                    }
+                    if (event.error !== 'no-speech') {
+                        alert(`Помилка голосового введення: ${event.error}`);
+                    }
+                };
+
+                recognition.onresult = (event) => {
+                    const resultText = event.results[0][0].transcript;
+                    const input = document.getElementById('ai-chat-input');
+                    if (input && resultText) {
+                        input.value = (input.value + " " + resultText).trim();
+                        input.focus();
+                    }
+                };
+            }
+
+            if (isListening) {
+                recognition.stop();
+            } else {
+                try {
+                    recognition.start();
+                } catch (e) {
+                    console.error(e);
+                }
+            }
+        }
+
+        function renderAgroChatHistory() {
+            const transcript = document.getElementById('ai-chat-transcript');
+            if (!transcript) return;
+            
+            transcript.innerHTML = `
+                <div class="flex gap-3 max-w-[85%]">
+                    <div class="w-8 h-8 rounded-full bg-emerald-100 border border-emerald-200 flex items-center justify-center text-sm flex-shrink-0">👨‍🌾</div>
+                    <div class="bg-white p-3.5 rounded-2xl shadow-sm border border-emerald-100 text-xs font-medium text-stone-850 leading-relaxed">
+                        Вітаю! Я ваш персональний асистент-агроном. Запитайте мене про будь-яку проблему з виноградом, хвороби, шкідників, підживлення чи обрізку.
+                    </div>
+                </div>
+            `;
+            
+            aiChatHistory.forEach(turn => {
+                if (turn.role === 'user') {
+                    transcript.innerHTML += `
+                        <div class="flex gap-3 max-w-[85%] ml-auto justify-end">
+                            <div class="bg-emerald-600 text-white p-3.5 rounded-2xl shadow-sm text-xs font-semibold leading-relaxed">
+                                ${turn.content}
+                            </div>
+                            <div class="w-8 h-8 rounded-full bg-emerald-700 text-white flex items-center justify-center text-sm flex-shrink-0">🍇</div>
+                        </div>
+                    `;
+                } else if (turn.role === 'model') {
+                    const formattedResponse = turn.content.replace(/\n/g, '<br>');
+                    transcript.innerHTML += `
+                        <div class="flex gap-3 max-w-[85%] fade-in">
+                            <div class="w-8 h-8 rounded-full bg-emerald-100 border border-emerald-200 flex items-center justify-center text-sm flex-shrink-0">👨‍🌾</div>
+                            <div class="bg-white p-3.5 rounded-2xl shadow-sm border border-emerald-100 text-xs font-medium text-stone-850 leading-relaxed">
+                                ${formattedResponse}
+                            </div>
+                        </div>
+                    `;
+                }
+            });
+            
+            transcript.scrollTop = transcript.scrollHeight;
+        }
+
+        function clearAgroChat() {
+            if (confirm("Ви впевнені, що хочете очистити діалог?")) {
+                aiChatHistory = [];
+                localStorage.removeItem('viticulture-ai-chat-history');
+                renderAgroChatHistory();
             }
         }
 
@@ -3904,6 +4037,15 @@
             initSatChecker();
             checkGeminiStatus();
             renderAICandidates();
+            
+            // Load AI chat history
+            const cachedChat = localStorage.getItem('viticulture-ai-chat-history');
+            if (cachedChat) {
+                try {
+                    aiChatHistory = JSON.parse(cachedChat);
+                    renderAgroChatHistory();
+                } catch(e) { console.error(e); }
+            }
             
             // Init cumulative temperature chart
             setTimeout(initChart, 200);
