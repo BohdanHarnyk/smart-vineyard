@@ -877,9 +877,14 @@
                             <div class="bg-emerald-950/40 p-5 rounded-3xl border border-emerald-800/40 space-y-4">
                                 <div class="flex justify-between items-center border-b border-emerald-800/60 pb-2">
                                     <h4 class="text-sm font-black text-emerald-400">⚖️ Вибір добрив та дозування</h4>
-                                    <button type="button" onclick="autoSolveNPK()" class="px-3 py-1.5 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-white text-[10px] font-black transition-all shadow-sm hover:scale-[1.02] active:scale-[0.98]">
-                                        ⚡ Авто-розрахунок доз
-                                    </button>
+                                    <div class="flex items-center gap-1.5">
+                                        <button type="button" onclick="autoSolveNPK()" class="px-2.5 py-1.5 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-white text-[10px] font-black transition-all shadow-sm hover:scale-[1.02] active:scale-[0.98]">
+                                            ⚡ Авто-розрахунок
+                                        </button>
+                                        <button type="button" onclick="resetDryFertilizers()" class="px-2 py-1.5 rounded-xl bg-white/5 hover:bg-white/10 text-stone-300 text-[10px] font-black transition-all border border-white/15" title="Скинути вибрані добрива до початкового стану">
+                                            🔄 Скинути
+                                        </button>
+                                    </div>
                                 </div>
                                 
                                 
@@ -3478,7 +3483,11 @@
                 try {
                     const state = JSON.parse(savedState);
                     dryFertilizers.forEach(f => {
-                        const saved = state.find(s => s.name.toLowerCase() === f.name.toLowerCase());
+                        const saved = state.find(s => 
+                            s.name.toLowerCase() === f.name.toLowerCase() ||
+                            f.name.toLowerCase().includes(s.name.toLowerCase()) ||
+                            s.name.toLowerCase().includes(f.name.toLowerCase())
+                        );
                         if (saved) {
                             f.checked = saved.checked;
                             f.dose = saved.dose;
@@ -3496,6 +3505,14 @@
             
             renderNPKFertilizersList();
             runNPKCalculations();
+        }
+
+        function resetDryFertilizers() {
+            if (confirm('Бажаєте скинути вибрані добрива та дози до початкового стану?')) {
+                localStorage.removeItem('viticulture-dry-fert-state');
+                initDryFertilizers();
+                showToast('Стан добрив скинуто до початкового.', 'info');
+            }
         }
 
         function filterNPKFertilizers() {
