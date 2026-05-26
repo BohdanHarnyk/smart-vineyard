@@ -3095,10 +3095,26 @@
                     return;
                 }
                 
-                if (data.col) document.getElementById('add-var-color').value = data.col;
+                if (data.col) {
+                    let colVal = 'W';
+                    const c = data.col.toUpperCase();
+                    if (c === 'B' || c.includes('ЧОРН') || c.includes('СИН') || c.includes('BLACK') || c.includes('ТЕМН') || c.includes('BLUE')) {
+                        colVal = 'B';
+                    } else if (c === 'R' || c.includes('РОЖ') || c.includes('ЧЕРВ') || c.includes('ROSE') || c.includes('RED') || c.includes('PINK')) {
+                        colVal = 'R';
+                    }
+                    document.getElementById('add-var-color').value = colVal;
+                }
                 if (data.rip) document.getElementById('add-var-rip').value = data.rip;
                 if (data.bunch) document.getElementById('add-var-bunch').value = data.bunch;
-                if (data.seed) document.getElementById('add-var-seed').value = data.seed;
+                if (data.seed) {
+                    let seedVal = 'З кіст.';
+                    const s = data.seed.toLowerCase();
+                    if (s.includes('без') || s.includes('кишмиш') || s.includes('seedless')) {
+                        seedVal = 'Безкіст.';
+                    }
+                    document.getElementById('add-var-seed').value = seedVal;
+                }
                 if (data.taste) document.getElementById('add-var-taste').value = data.taste;
                 if (data.care) document.getElementById('add-var-care').value = data.care;
                 if (data.name) document.getElementById('add-var-name').value = data.name;
@@ -5144,6 +5160,21 @@
             document.getElementById('weather-lon').addEventListener('change', (e) => {
                 localStorage.setItem('weather-lon', e.target.value);
             });
+            
+            const keyInput = document.getElementById('gemini-key-input');
+            if (keyInput) {
+                const savedKey = localStorage.getItem('viticulture-gemini-key');
+                if (savedKey) {
+                    keyInput.value = savedKey;
+                }
+                keyInput.addEventListener('input', (e) => {
+                    const val = e.target.value.trim();
+                    if (val.startsWith('AIzaSy')) {
+                        localStorage.setItem('viticulture-gemini-key', val);
+                        checkGeminiStatus();
+                    }
+                });
+            }
             
             // Load Gemini API Key from URL parameters if present
             const urlParams = new URLSearchParams(window.location.search);
