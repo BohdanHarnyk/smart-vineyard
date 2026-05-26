@@ -314,12 +314,45 @@
                                         <p class="text-[9px] text-stone-400 uppercase tracking-widest font-bold">Ручне введення САТ</p>
                                     </div>
                                 </div>
-                                <svg id="data-mgmt-chevron" class="w-4 h-4 text-stone-400 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <svg id="data-mgmt-chevron" class="w-4 h-4 text-stone-400 transition-transform duration-300 rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 9l-7 7-7-7" />
                                 </svg>
                             </div>
-                            <div id="data-mgmt-body" class="transition-[max-height,opacity] duration-300 ease-in-out overflow-hidden max-h-0 opacity-0">
+                            <div id="data-mgmt-body" class="transition-[max-height,opacity] duration-300 ease-in-out overflow-hidden max-h-[850px] opacity-100">
                                 <div class="space-y-6 pb-2">
+
+                        <!-- API Weather Settings & Sync -->
+                        <div class="bg-emerald-50/40 p-5 rounded-3xl border border-emerald-100/50 space-y-3.5">
+                            <h4 class="text-xs font-black uppercase tracking-wider text-emerald-800 flex items-center gap-2">
+                                <span class="text-base">🌐</span> Автоматична синхронізація з API
+                            </h4>
+                            <div class="grid grid-cols-2 gap-4">
+                                <div>
+                                    <label class="text-[9px] font-black uppercase text-stone-400 block mb-1">Широта (Lat)</label>
+                                    <input type="number" id="weather-lat" value="49.23" step="0.01" min="-90" max="90" class="w-full p-3 rounded-xl bg-white border border-stone-200 outline-none font-bold text-xs text-stone-800 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 transition-all">
+                                </div>
+                                <div>
+                                    <label class="text-[9px] font-black uppercase text-stone-400 block mb-1">Довгота (Lon)</label>
+                                    <input type="number" id="weather-lon" value="28.46" step="0.01" min="-180" max="180" class="w-full p-3 rounded-xl bg-white border border-stone-200 outline-none font-bold text-xs text-stone-800 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 transition-all">
+                                </div>
+                            </div>
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                <button id="btn-sync-sat" onclick="syncWeather(false)" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white py-3 rounded-xl font-black transition-all text-xs uppercase tracking-wider flex items-center justify-center gap-2 shadow-sm hover:shadow-md">
+                                    <span id="sync-sat-spinner" class="hidden animate-spin">⏳</span>
+                                    <span>🌡️ Оновити САТ з API</span>
+                                </button>
+                                <button id="btn-sync-current-weather-mgmt" onclick="syncCurrentWeather(true)" class="w-full bg-emerald-650 hover:bg-emerald-750 text-white py-3 rounded-xl font-black transition-all text-xs uppercase tracking-wider flex items-center justify-center gap-2 shadow-sm hover:shadow-md">
+                                    <span id="sync-current-spinner-mgmt" class="hidden animate-spin">⏳</span>
+                                    <span>🌦️ Оновити погоду з API</span>
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <div class="relative flex py-1 items-center">
+                            <div class="flex-grow border-t border-stone-200"></div>
+                            <span class="flex-shrink mx-4 text-[9px] font-black text-stone-400 uppercase tracking-widest">Або ручне введення</span>
+                            <div class="flex-grow border-t border-stone-200"></div>
+                        </div>
 
                         <!-- Manual Input Grid -->
                         <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
@@ -618,7 +651,7 @@
                             </div>
                             <div class="space-y-1">
                                 <label class="text-[10px] font-black uppercase text-stone-400">Категорія <span class="text-rose-500">*</span></label>
-                                <select id="add-prod-category" class="w-full p-3.5 rounded-xl bg-stone-50 border border-stone-200 font-bold text-xs outline-none focus:border-emerald-500 text-stone-850">
+                                <select id="add-prod-category" onchange="handleProductCategoryChange()" class="w-full p-3.5 rounded-xl bg-stone-50 border border-stone-200 font-bold text-xs outline-none focus:border-emerald-500 text-stone-850">
                                     <option value="fungicide">🛡️ Фунгіциди</option>
                                     <option value="insecticide">🐛 Інсектициди</option>
                                     <option value="acaricide">🕷️ Акарициди</option>
@@ -2185,6 +2218,295 @@
             }
         }
 
+        function toggleDataManagement() {
+            const body = document.getElementById('data-mgmt-body');
+            const chevron = document.getElementById('data-mgmt-chevron');
+            if (!body) return;
+            
+            const isCollapsed = body.classList.contains('max-h-0');
+            if (isCollapsed) {
+                body.classList.remove('max-h-0', 'opacity-0');
+                body.classList.add('max-h-[850px]', 'opacity-100');
+                if (chevron) chevron.classList.add('rotate-180');
+            } else {
+                body.classList.remove('max-h-[850px]', 'opacity-100');
+                body.classList.add('max-h-0', 'opacity-0');
+                if (chevron) chevron.classList.remove('rotate-180');
+            }
+        }
+
+        let isSyncingWeather = false;
+
+        async function syncWeather(forceRefresh = false) {
+            if (isSyncingWeather) {
+                showToast('Синхронізація вже триває...', 'warning');
+                return;
+            }
+            isSyncingWeather = true;
+
+            const latInput = document.getElementById('weather-lat');
+            const lonInput = document.getElementById('weather-lon');
+            const lat = parseFloat(latInput.value) || 49.23;
+            const lon = parseFloat(lonInput.value) || 28.46;
+            
+            localStorage.setItem('weather-lat', lat);
+            localStorage.setItem('weather-lon', lon);
+
+            const btn = document.getElementById('btn-sync-sat');
+            const spinner = document.getElementById('sync-sat-spinner');
+            
+            if (btn) btn.disabled = true;
+            if (spinner) spinner.classList.remove('hidden');
+            
+            // Check cache (unless forceRefresh is true)
+            if (!forceRefresh) {
+                const cacheTimestamp = localStorage.getItem('viticulture-weather-sat-sync-timestamp');
+                const savedLat = localStorage.getItem('weather-lat-saved');
+                const savedLon = localStorage.getItem('weather-lon-saved');
+                const satHistoryStr = localStorage.getItem('satHistory');
+                const forecastDailyTempsStr = localStorage.getItem('forecastDailyTemps');
+                
+                if (cacheTimestamp && satHistoryStr && forecastDailyTempsStr && savedLat && savedLon) {
+                    const ageMs = Date.now() - parseInt(cacheTimestamp);
+                    if (ageMs < 3 * 60 * 60 * 1000 && parseFloat(savedLat) === lat && parseFloat(savedLon) === lon) {
+                        satHistory = JSON.parse(satHistoryStr);
+                        forecastDailyTemps = JSON.parse(forecastDailyTempsStr);
+                        recalculateSAT();
+                        if (typeof updateFrostWarning === 'function') updateFrostWarning();
+                        const minsAgo = Math.round(ageMs / 60000);
+                        showToast(`Кешовані дані САТ (${minsAgo} хв тому з Open-Meteo). ${satHistory.length} днів.`, 'info');
+                        
+                        isSyncingWeather = false;
+                        if (btn) btn.disabled = false;
+                        if (spinner) spinner.classList.add('hidden');
+                        return;
+                    }
+                }
+            }
+            
+            try {
+                const todayObj = new Date();
+                let year = todayObj.getFullYear();
+                
+                let isCurrentYear = true;
+                if (todayObj.getMonth() < 3) {
+                    year = year - 1;
+                    isCurrentYear = false;
+                }
+                
+                const startDate = `${year}-04-01`;
+                let endArchiveDate;
+                
+                if (isCurrentYear) {
+                    const threeDaysAgoObj = new Date(todayObj.getTime() - 3 * 24 * 60 * 60 * 1000);
+                    endArchiveDate = threeDaysAgoObj.toISOString().split('T')[0];
+                } else {
+                    endArchiveDate = `${year}-10-31`;
+                }
+                
+                let archiveJson = null;
+                if (endArchiveDate >= startDate) {
+                    try {
+                        const archiveUrl = `https://archive-api.open-meteo.com/v1/archive?latitude=${lat}&longitude=${lon}&start_date=${startDate}&end_date=${endArchiveDate}&daily=temperature_2m_mean&timezone=auto`;
+                        const archiveRes = await fetch(archiveUrl);
+                        if (archiveRes.ok) {
+                            archiveJson = await archiveRes.json();
+                        } else {
+                            console.warn('Failed to fetch from Archive API status code:', archiveRes.status);
+                        }
+                    } catch (archiveErr) {
+                        console.error('Archive API fetch failed:', archiveErr);
+                    }
+                }
+                
+                let forecastJson = null;
+                if (isCurrentYear) {
+                    try {
+                        let pastDays = 7;
+                        if (!archiveJson) {
+                            const startDateObj = new Date(year, 3, 1); // April 1st
+                            const timeDiff = todayObj.getTime() - startDateObj.getTime();
+                            const daysDiff = Math.ceil(timeDiff / (1000 * 60 * 60 * 24));
+                            pastDays = Math.min(92, Math.max(7, daysDiff + 1));
+                        }
+                        const forecastUrl = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&daily=temperature_2m_mean,temperature_2m_min&past_days=${pastDays}&forecast_days=14&timezone=auto`;
+                        const forecastRes = await fetch(forecastUrl);
+                        if (forecastRes.ok) {
+                            forecastJson = await forecastRes.json();
+                        } else {
+                            console.warn('Failed to fetch from Forecast API status code:', forecastRes.status);
+                        }
+                    } catch (forecastErr) {
+                        console.error('Forecast API fetch failed:', forecastErr);
+                    }
+                }
+                
+                const mergedData = new Map();
+                const mergedMinData = new Map();
+                
+                if (archiveJson && archiveJson.daily && archiveJson.daily.time) {
+                    for (let i = 0; i < archiveJson.daily.time.length; i++) {
+                        const date = archiveJson.daily.time[i];
+                        const temp = archiveJson.daily.temperature_2m_mean[i];
+                        if (temp !== null && temp !== undefined) {
+                            mergedData.set(date, temp);
+                        }
+                    }
+                }
+                
+                if (forecastJson && forecastJson.daily && forecastJson.daily.time) {
+                    for (let i = 0; i < forecastJson.daily.time.length; i++) {
+                        const date = forecastJson.daily.time[i];
+                        const temp = forecastJson.daily.temperature_2m_mean[i];
+                        if (temp !== null && temp !== undefined) {
+                            mergedData.set(date, temp);
+                        }
+                        if (forecastJson.daily.temperature_2m_min) {
+                            const minTemp = forecastJson.daily.temperature_2m_min[i];
+                            if (minTemp !== null && minTemp !== undefined) {
+                                mergedMinData.set(date, minTemp);
+                            }
+                        }
+                    }
+                }
+                
+                const todayStr = todayObj.toISOString().split('T')[0];
+                const sortedDates = Array.from(mergedData.keys()).sort();
+                
+                const newSatHistory = [];
+                const newForecastDailyTemps = [];
+                
+                sortedDates.forEach(date => {
+                    const temp = mergedData.get(date);
+                    if (date <= todayStr) {
+                        if (temp >= 10) {
+                            const contribution = parseFloat(temp.toFixed(1));
+                            const dateObj = new Date(date);
+                            const formattedDate = dateObj.toLocaleDateString('uk-UA', { day: '2-digit', month: '2-digit' });
+                            newSatHistory.push({
+                                rawDate: date,
+                                date: formattedDate,
+                                temp: temp,
+                                contribution: contribution
+                            });
+                        }
+                    } else {
+                        const minTemp = mergedMinData.get(date);
+                        newForecastDailyTemps.push({
+                            rawDate: date,
+                            temp: temp,
+                            minTemp: minTemp !== undefined ? minTemp : temp
+                        });
+                    }
+                });
+                
+                if (newSatHistory.length === 0 && newForecastDailyTemps.length === 0) {
+                    throw new Error('Отримано порожні дані погоди.');
+                }
+                
+                satHistory = newSatHistory;
+                forecastDailyTemps = newForecastDailyTemps;
+                
+                localStorage.setItem('satHistory', JSON.stringify(satHistory));
+                localStorage.setItem('forecastDailyTemps', JSON.stringify(forecastDailyTemps));
+                localStorage.setItem('weather-lat-saved', lat);
+                localStorage.setItem('weather-lon-saved', lon);
+                localStorage.setItem('viticulture-weather-sat-sync-timestamp', Date.now().toString());
+                
+                recalculateSAT();
+                if (typeof updateFrostWarning === 'function') updateFrostWarning();
+                showToast(`Синхронізацію САТ завершено! Отримано ${satHistory.length} днів спостережень.`, 'success');
+                
+            } catch (err) {
+                console.error(err);
+                showToast(`Не вдалося синхронізувати дані САТ: ${err.message}`, 'error');
+            } finally {
+                isSyncingWeather = false;
+                if (btn) btn.disabled = false;
+                if (spinner) spinner.classList.add('hidden');
+            }
+        }
+
+        async function syncCurrentWeather(forceRefresh = false) {
+            const lat = parseFloat(document.getElementById('weather-lat').value) || 49.23;
+            const lon = parseFloat(document.getElementById('weather-lon').value) || 28.46;
+            
+            const btn = document.getElementById('btn-sync-current-weather');
+            const btnMgmt = document.getElementById('btn-sync-current-weather-mgmt');
+            const spinner = document.getElementById('sync-current-spinner');
+            const spinnerMgmt = document.getElementById('sync-current-spinner-mgmt');
+            
+            // Check cache
+            const cacheStr = localStorage.getItem('viticulture-weather-current-cache');
+            if (!forceRefresh && cacheStr) {
+                try {
+                    const cache = JSON.parse(cacheStr);
+                    const ageMs = Date.now() - cache.timestamp;
+                    if (ageMs < 3 * 60 * 60 * 1000 && cache.lat === lat && cache.lon === lon) {
+                        document.getElementById('disease-temp').value = cache.temp;
+                        document.getElementById('disease-rain').value = cache.rain;
+                        document.getElementById('disease-humidity').value = cache.humidity;
+                        
+                        calculateDiseaseRisk();
+                        
+                        const minsAgo = Math.round(ageMs / 60000);
+                        showToast(`Використано кеш погоди (отримано ${minsAgo} хв тому з Open-Meteo): ${cache.temp}°C, вологість ${cache.humidity}%, опади ${cache.rain} мм`, 'info');
+                        return;
+                    }
+                } catch(e) { console.error(e); }
+            }
+
+            if (btn) btn.disabled = true;
+            if (btnMgmt) btnMgmt.disabled = true;
+            if (spinner) spinner.classList.remove('hidden');
+            if (spinnerMgmt) spinnerMgmt.classList.remove('hidden');
+            
+            try {
+                const url = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,relative_humidity_2m&daily=precipitation_sum&timezone=auto`;
+                const res = await fetch(url);
+                if (!res.ok) throw new Error('Помилка сервера погоди');
+                const data = await res.json();
+                
+                if (data.current) {
+                    const temp = Math.round(data.current.temperature_2m);
+                    const humidity = Math.round(data.current.relative_humidity_2m);
+                    let rain = 0;
+                    if (data.daily && data.daily.precipitation_sum && data.daily.precipitation_sum.length > 0) {
+                        rain = Math.round(data.daily.precipitation_sum[0]);
+                    }
+                    
+                    document.getElementById('disease-temp').value = temp;
+                    document.getElementById('disease-rain').value = rain;
+                    document.getElementById('disease-humidity').value = humidity;
+                    
+                    calculateDiseaseRisk();
+                    
+                    // Save to cache
+                    const newCache = {
+                        timestamp: Date.now(),
+                        lat,
+                        lon,
+                        temp,
+                        humidity,
+                        rain
+                    };
+                    localStorage.setItem('viticulture-weather-current-cache', JSON.stringify(newCache));
+                    
+                    showToast(`Дані погоди оновлено успішно! Температура: ${temp}°C, вологість: ${humidity}%, опади за сьогодні: ${rain} мм`, 'success');
+                } else {
+                    throw new Error('Невірний формат відповіді API');
+                }
+            } catch (err) {
+                console.error(err);
+                showToast(`Не вдалося завантажити поточну погоду: ${err.message}`, 'error');
+            } finally {
+                if (btn) btn.disabled = false;
+                if (btnMgmt) btnMgmt.disabled = false;
+                if (spinner) spinner.classList.add('hidden');
+                if (spinnerMgmt) spinnerMgmt.classList.add('hidden');
+            }
+        }
+
         function recalculateSAT() {
             let cumulativeSAT = 0;
             
@@ -3135,17 +3457,16 @@
             const dbProducts = getProductDB();
             
             // Build dryFertilizers list from database products of type 'fertilizer'
-            const dbFertilizers = dbProducts.filter(p => p.type === 'fertilizer' || p.category.includes('fertilizer'));
+            const dbFertilizers = dbProducts.filter(p => p && (p.type === 'fertilizer' || (p.category && p.category.includes('fertilizer'))));
             
             dryFertilizers = dbFertilizers.map(p => {
-                const n = p.composition.npk ? (p.composition.npk.n || 0) : 0;
-                const pVal = p.composition.npk ? (p.composition.npk.p || 0) : 0;
-                const k = p.composition.npk ? (p.composition.npk.k || 0) : 0;
+                const comp = p.composition || {};
+                const npk = comp.npk || {};
                 return {
                     name: p.name,
-                    n: n,
-                    p: pVal,
-                    k: k,
+                    n: npk.n || 0,
+                    p: npk.p || 0,
+                    k: npk.k || 0,
                     checked: false,
                     dose: 0
                 };
@@ -3379,18 +3700,59 @@
             
             const newItem = { name, n, p, k, checked: true, dose: 0 };
             
-            let customList = [];
-            const custom = localStorage.getItem('viticulture-custom-dry-fert');
-            if (custom) {
-                try {
-                    customList = JSON.parse(custom);
-                } catch(e) { console.error(e); }
+            // Add to product database
+            const newDbProduct = {
+                id: `prod-${Date.now()}`,
+                name: name,
+                type: "fertilizer",
+                category: (n > 20) ? "n_fertilizer" : "complex_fertilizer",
+                composition: {
+                    activeIngredients: [],
+                    npk: { n, p, k },
+                    micronutrients: {}
+                },
+                dosage: {
+                    perLiter: "2-3 г/л",
+                    perHectare: "—",
+                    perBush: "20-30 г"
+                },
+                applicationScope: "Створено через калькулятор NPK",
+                compatibility: {
+                    compatible: [],
+                    incompatible: [],
+                    notes: ""
+                },
+                techSpecs: {
+                    waitPeriod: "—",
+                    maxTreatments: 3,
+                    tempRange: "—",
+                    phOptimal: "6.0"
+                },
+                isCustom: true,
+                updatedAt: new Date().toISOString().split('T')[0]
+            };
+            
+            const products = getProductDB();
+            const exists = products.find(p => p.name.toLowerCase() === name.toLowerCase());
+            if (exists) {
+                if (exists.type === 'fertilizer' && exists.composition) {
+                    exists.composition.npk = { n, p, k };
+                    exists.updatedAt = new Date().toISOString().split('T')[0];
+                    saveProductDB();
+                }
+            } else {
+                products.push(newDbProduct);
+                saveProductDB();
             }
             
-            customList.push({ name, n, p, k });
-            localStorage.setItem('viticulture-custom-dry-fert', JSON.stringify(customList));
+            // Re-sync dry fertilizers list to prevent duplication and load properly
+            initDryFertilizers();
             
-            dryFertilizers.push(newItem);
+            // Ensure the newly added item is checked
+            const addedItem = dryFertilizers.find(f => f.name.toLowerCase() === name.toLowerCase());
+            if (addedItem) {
+                addedItem.checked = true;
+            }
             
             nameInput.value = '';
             nInput.value = '';
@@ -5099,6 +5461,19 @@
             }
         }
 
+        function handleProductCategoryChange() {
+            const category = document.getElementById('add-prod-category').value;
+            const typeSelect = document.getElementById('add-prod-type');
+            if (category.includes('fertilizer')) {
+                typeSelect.value = 'fertilizer';
+            } else if (['fungicide', 'insecticide', 'acaricide'].includes(category)) {
+                typeSelect.value = 'ppp';
+            } else if (category === 'biostimulant' || category === 'micronutrient') {
+                typeSelect.value = 'supplement';
+            }
+            handleProductTypeChange();
+        }
+
         function handleAddProductNameInput() {
             const nameInput = document.getElementById('add-prod-name');
             const name = nameInput.value.trim().toLowerCase();
@@ -5337,6 +5712,8 @@
             // Sync with NPK calculator if it's a fertilizer
             if (type === 'fertilizer' || category.includes('fertilizer')) {
                 initDryFertilizers();
+                if (typeof renderNPKFertilizersList === 'function') renderNPKFertilizersList();
+                if (typeof runNPKCalculations === 'function') runNPKCalculations();
             }
         }
 
@@ -5351,17 +5728,19 @@
             
             document.getElementById('add-prod-category').value = p.category;
             
-            if (p.type === 'fertilizer' && p.composition.npk) {
+            if (p.type === 'fertilizer' && p.composition && p.composition.npk) {
                 document.getElementById('add-prod-n').value = p.composition.npk.n || 0;
                 document.getElementById('add-prod-p').value = p.composition.npk.p || 0;
                 document.getElementById('add-prod-k').value = p.composition.npk.k || 0;
             }
             
             let comp = '';
-            if (p.composition.activeIngredients && p.composition.activeIngredients.length > 0) {
-                comp = p.composition.activeIngredients.map(ai => `${ai.name} ${ai.percent}%`).join(', ');
-            } else if (p.composition.npk) {
-                comp = `NPK ${p.composition.npk.n}-${p.composition.npk.p}-${p.composition.npk.k}`;
+            if (p.composition) {
+                if (p.composition.activeIngredients && p.composition.activeIngredients.length > 0) {
+                    comp = p.composition.activeIngredients.map(ai => `${ai.name} ${ai.percent}%`).join(', ');
+                } else if (p.composition.npk) {
+                    comp = `NPK ${p.composition.npk.n || 0}-${p.composition.npk.p || 0}-${p.composition.npk.k || 0}`;
+                }
             }
             
             document.getElementById('add-prod-composition').value = comp;
@@ -5427,6 +5806,32 @@
             const cachedTodo = localStorage.getItem('vineyardTodo');
             if (cachedTodo) {
                 todoList = JSON.parse(cachedTodo);
+            }
+
+            // Load weather lat/lon from localStorage
+            const cachedLat = localStorage.getItem('weather-lat');
+            const cachedLon = localStorage.getItem('weather-lon');
+            if (cachedLat) {
+                const elLat = document.getElementById('weather-lat');
+                if (elLat) elLat.value = cachedLat;
+            }
+            if (cachedLon) {
+                const elLon = document.getElementById('weather-lon');
+                if (elLon) elLon.value = cachedLon;
+            }
+            
+            // Add listeners to save changes
+            const elLat = document.getElementById('weather-lat');
+            const elLon = document.getElementById('weather-lon');
+            if (elLat) {
+                elLat.addEventListener('change', (e) => {
+                    localStorage.setItem('weather-lat', e.target.value);
+                });
+            }
+            if (elLon) {
+                elLon.addEventListener('change', (e) => {
+                    localStorage.setItem('weather-lon', e.target.value);
+                });
             }
             
             const keyInput = document.getElementById('gemini-key-input');

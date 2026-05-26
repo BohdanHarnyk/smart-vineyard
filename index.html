@@ -335,11 +335,11 @@
                                         <p class="text-[9px] text-stone-400 uppercase tracking-widest font-bold">Синхронізація з API та ручне введення</p>
                                     </div>
                                 </div>
-                                <svg id="data-mgmt-chevron" class="w-4 h-4 text-stone-400 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <svg id="data-mgmt-chevron" class="w-4 h-4 text-stone-400 transition-transform duration-300 rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 9l-7 7-7-7" />
                                 </svg>
                             </div>
-                            <div id="data-mgmt-body" class="transition-[max-height,opacity] duration-300 ease-in-out overflow-hidden max-h-0 opacity-0">
+                            <div id="data-mgmt-body" class="transition-[max-height,opacity] duration-300 ease-in-out overflow-hidden max-h-[850px] opacity-100">
                                 <div class="space-y-6 pb-2">
 
                         <!-- API Weather Settings & Sync -->
@@ -357,10 +357,16 @@
                                     <input type="number" id="weather-lon" value="28.46" step="0.01" min="-180" max="180" class="w-full p-3 rounded-xl bg-white border border-stone-200 outline-none font-bold text-xs text-stone-800 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 transition-all">
                                 </div>
                             </div>
-                            <button id="btn-sync-sat" onclick="syncWeather(false)" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white py-3 rounded-xl font-black transition-all text-xs uppercase tracking-wider flex items-center justify-center gap-2 shadow-sm hover:shadow-md">
-                                <span id="sync-sat-spinner" class="hidden animate-spin">⏳</span>
-                                <span>🔄 Завантажити погоду з API</span>
-                            </button>
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                <button id="btn-sync-sat" onclick="syncWeather(false)" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white py-3 rounded-xl font-black transition-all text-xs uppercase tracking-wider flex items-center justify-center gap-2 shadow-sm hover:shadow-md">
+                                    <span id="sync-sat-spinner" class="hidden animate-spin">⏳</span>
+                                    <span>🌡️ Оновити САТ з API</span>
+                                </button>
+                                <button id="btn-sync-current-weather-mgmt" onclick="syncCurrentWeather(true)" class="w-full bg-emerald-650 hover:bg-emerald-750 text-white py-3 rounded-xl font-black transition-all text-xs uppercase tracking-wider flex items-center justify-center gap-2 shadow-sm hover:shadow-md">
+                                    <span id="sync-current-spinner-mgmt" class="hidden animate-spin">⏳</span>
+                                    <span>🌦️ Оновити погоду з API</span>
+                                </button>
+                            </div>
                         </div>
                         
                         <div class="relative flex py-1 items-center">
@@ -690,7 +696,7 @@
                             </div>
                             <div class="space-y-1">
                                 <label class="text-[10px] font-black uppercase text-stone-400">Категорія <span class="text-rose-500">*</span></label>
-                                <select id="add-prod-category" class="w-full p-3.5 rounded-xl bg-stone-50 border border-stone-200 font-bold text-xs outline-none focus:border-emerald-500 text-stone-850">
+                                <select id="add-prod-category" onchange="handleProductCategoryChange()" class="w-full p-3.5 rounded-xl bg-stone-50 border border-stone-200 font-bold text-xs outline-none focus:border-emerald-500 text-stone-850">
                                     <option value="fungicide">🛡️ Фунгіциди</option>
                                     <option value="insecticide">🐛 Інсектициди</option>
                                     <option value="acaricide">🕷️ Акарициди</option>
@@ -2396,6 +2402,23 @@
             }
         }
 
+        function toggleDataManagement() {
+            const body = document.getElementById('data-mgmt-body');
+            const chevron = document.getElementById('data-mgmt-chevron');
+            if (!body) return;
+            
+            const isCollapsed = body.classList.contains('max-h-0');
+            if (isCollapsed) {
+                body.classList.remove('max-h-0', 'opacity-0');
+                body.classList.add('max-h-[850px]', 'opacity-100');
+                if (chevron) chevron.classList.add('rotate-180');
+            } else {
+                body.classList.remove('max-h-[850px]', 'opacity-100');
+                body.classList.add('max-h-0', 'opacity-0');
+                if (chevron) chevron.classList.remove('rotate-180');
+            }
+        }
+
         let isSyncingWeather = false;
 
         async function syncWeather(forceRefresh = false) {
@@ -2588,16 +2611,18 @@
             }
         }
 
-        async function syncCurrentWeather() {
+        async function syncCurrentWeather(forceRefresh = false) {
             const lat = parseFloat(document.getElementById('weather-lat').value) || 49.23;
             const lon = parseFloat(document.getElementById('weather-lon').value) || 28.46;
             
             const btn = document.getElementById('btn-sync-current-weather');
+            const btnMgmt = document.getElementById('btn-sync-current-weather-mgmt');
             const spinner = document.getElementById('sync-current-spinner');
+            const spinnerMgmt = document.getElementById('sync-current-spinner-mgmt');
             
             // Check cache
             const cacheStr = localStorage.getItem('viticulture-weather-current-cache');
-            if (cacheStr) {
+            if (!forceRefresh && cacheStr) {
                 try {
                     const cache = JSON.parse(cacheStr);
                     const ageMs = Date.now() - cache.timestamp;
@@ -2609,14 +2634,16 @@
                         calculateDiseaseRisk();
                         
                         const minsAgo = Math.round(ageMs / 60000);
-                        alert(`Використано кешовані дані погоди (отримано ${minsAgo} хв тому з Open-Meteo):\nТемпература: ${cache.temp}°C\nВологість: ${cache.humidity}%\nОпади: ${cache.rain} мм`);
+                        showToast(`Використано кеш погоди (отримано ${minsAgo} хв тому з Open-Meteo): ${cache.temp}°C, вологість ${cache.humidity}%, опади ${cache.rain} мм`, 'info');
                         return;
                     }
                 } catch(e) { console.error(e); }
             }
 
             if (btn) btn.disabled = true;
+            if (btnMgmt) btnMgmt.disabled = true;
             if (spinner) spinner.classList.remove('hidden');
+            if (spinnerMgmt) spinnerMgmt.classList.remove('hidden');
             
             try {
                 const url = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,relative_humidity_2m&daily=precipitation_sum&timezone=auto`;
@@ -2649,17 +2676,18 @@
                     };
                     localStorage.setItem('viticulture-weather-current-cache', JSON.stringify(newCache));
                     
-                    alert(`Дані погоди оновлено успішно!\nТемпература: ${temp}°C\nВологість: ${humidity}%\nОпади за сьогодні: ${rain} мм`);
+                    showToast(`Дані погоди оновлено успішно! Температура: ${temp}°C, вологість: ${humidity}%, опади за сьогодні: ${rain} мм`, 'success');
                 } else {
                     throw new Error('Невірний формат відповіді API');
                 }
             } catch (err) {
                 console.error(err);
-                alert(`Не вдалося завантажити поточну погоду: ${err.message}`);
+                showToast(`Не вдалося завантажити поточну погоду: ${err.message}`, 'error');
             } finally {
-                isSyncingWeather = false;
                 if (btn) btn.disabled = false;
+                if (btnMgmt) btnMgmt.disabled = false;
                 if (spinner) spinner.classList.add('hidden');
+                if (spinnerMgmt) spinnerMgmt.classList.add('hidden');
             }
         }
 
@@ -3998,17 +4026,16 @@
             const dbProducts = getProductDB();
             
             // Build dryFertilizers list from database products of type 'fertilizer'
-            const dbFertilizers = dbProducts.filter(p => p.type === 'fertilizer' || p.category.includes('fertilizer'));
+            const dbFertilizers = dbProducts.filter(p => p && (p.type === 'fertilizer' || (p.category && p.category.includes('fertilizer'))));
             
             dryFertilizers = dbFertilizers.map(p => {
-                const n = p.composition.npk ? (p.composition.npk.n || 0) : 0;
-                const pVal = p.composition.npk ? (p.composition.npk.p || 0) : 0;
-                const k = p.composition.npk ? (p.composition.npk.k || 0) : 0;
+                const comp = p.composition || {};
+                const npk = comp.npk || {};
                 return {
                     name: p.name,
-                    n: n,
-                    p: pVal,
-                    k: k,
+                    n: npk.n || 0,
+                    p: npk.p || 0,
+                    k: npk.k || 0,
                     checked: false,
                     dose: 0
                 };
@@ -4242,18 +4269,59 @@
             
             const newItem = { name, n, p, k, checked: true, dose: 0 };
             
-            let customList = [];
-            const custom = localStorage.getItem('viticulture-custom-dry-fert');
-            if (custom) {
-                try {
-                    customList = JSON.parse(custom);
-                } catch(e) { console.error(e); }
+            // Add to product database
+            const newDbProduct = {
+                id: `prod-${Date.now()}`,
+                name: name,
+                type: "fertilizer",
+                category: (n > 20) ? "n_fertilizer" : "complex_fertilizer",
+                composition: {
+                    activeIngredients: [],
+                    npk: { n, p, k },
+                    micronutrients: {}
+                },
+                dosage: {
+                    perLiter: "2-3 г/л",
+                    perHectare: "—",
+                    perBush: "20-30 г"
+                },
+                applicationScope: "Створено через калькулятор NPK",
+                compatibility: {
+                    compatible: [],
+                    incompatible: [],
+                    notes: ""
+                },
+                techSpecs: {
+                    waitPeriod: "—",
+                    maxTreatments: 3,
+                    tempRange: "—",
+                    phOptimal: "6.0"
+                },
+                isCustom: true,
+                updatedAt: new Date().toISOString().split('T')[0]
+            };
+            
+            const products = getProductDB();
+            const exists = products.find(p => p.name.toLowerCase() === name.toLowerCase());
+            if (exists) {
+                if (exists.type === 'fertilizer' && exists.composition) {
+                    exists.composition.npk = { n, p, k };
+                    exists.updatedAt = new Date().toISOString().split('T')[0];
+                    saveProductDB();
+                }
+            } else {
+                products.push(newDbProduct);
+                saveProductDB();
             }
             
-            customList.push({ name, n, p, k });
-            localStorage.setItem('viticulture-custom-dry-fert', JSON.stringify(customList));
+            // Re-sync dry fertilizers list to prevent duplication and load properly
+            initDryFertilizers();
             
-            dryFertilizers.push(newItem);
+            // Ensure the newly added item is checked
+            const addedItem = dryFertilizers.find(f => f.name.toLowerCase() === name.toLowerCase());
+            if (addedItem) {
+                addedItem.checked = true;
+            }
             
             nameInput.value = '';
             nInput.value = '';
@@ -5984,6 +6052,19 @@
             }
         }
 
+        function handleProductCategoryChange() {
+            const category = document.getElementById('add-prod-category').value;
+            const typeSelect = document.getElementById('add-prod-type');
+            if (category.includes('fertilizer')) {
+                typeSelect.value = 'fertilizer';
+            } else if (['fungicide', 'insecticide', 'acaricide'].includes(category)) {
+                typeSelect.value = 'ppp';
+            } else if (category === 'biostimulant' || category === 'micronutrient') {
+                typeSelect.value = 'supplement';
+            }
+            handleProductTypeChange();
+        }
+
         function handleAddProductNameInput() {
             const nameInput = document.getElementById('add-prod-name');
             const name = nameInput.value.trim().toLowerCase();
@@ -6222,6 +6303,8 @@
             // Sync with NPK calculator if it's a fertilizer
             if (type === 'fertilizer' || category.includes('fertilizer')) {
                 initDryFertilizers();
+                if (typeof renderNPKFertilizersList === 'function') renderNPKFertilizersList();
+                if (typeof runNPKCalculations === 'function') runNPKCalculations();
             }
         }
 
@@ -6236,17 +6319,19 @@
             
             document.getElementById('add-prod-category').value = p.category;
             
-            if (p.type === 'fertilizer' && p.composition.npk) {
+            if (p.type === 'fertilizer' && p.composition && p.composition.npk) {
                 document.getElementById('add-prod-n').value = p.composition.npk.n || 0;
                 document.getElementById('add-prod-p').value = p.composition.npk.p || 0;
                 document.getElementById('add-prod-k').value = p.composition.npk.k || 0;
             }
             
             let comp = '';
-            if (p.composition.activeIngredients && p.composition.activeIngredients.length > 0) {
-                comp = p.composition.activeIngredients.map(ai => `${ai.name} ${ai.percent}%`).join(', ');
-            } else if (p.composition.npk) {
-                comp = `NPK ${p.composition.npk.n}-${p.composition.npk.p}-${p.composition.npk.k}`;
+            if (p.composition) {
+                if (p.composition.activeIngredients && p.composition.activeIngredients.length > 0) {
+                    comp = p.composition.activeIngredients.map(ai => `${ai.name} ${ai.percent}%`).join(', ');
+                } else if (p.composition.npk) {
+                    comp = `NPK ${p.composition.npk.n || 0}-${p.composition.npk.p || 0}-${p.composition.npk.k || 0}`;
+                }
             }
             
             document.getElementById('add-prod-composition').value = comp;
