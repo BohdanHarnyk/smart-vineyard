@@ -3994,22 +3994,33 @@
         let dryFertilizers = [];
 
         function initDryFertilizers() {
-            dryFertilizers = JSON.parse(JSON.stringify(defaultDryFertilizers));
+            // Get all fertilizers from Product Database (built-in + custom)
+            const dbProducts = getProductDB();
             
-            const custom = localStorage.getItem('viticulture-custom-dry-fert');
-            if (custom) {
-                try {
-                    const parsed = JSON.parse(custom);
-                    dryFertilizers = dryFertilizers.concat(parsed);
-                } catch(e) { console.error(e); }
-            }
+            // Build dryFertilizers list from database products of type 'fertilizer'
+            const dbFertilizers = dbProducts.filter(p => p.type === 'fertilizer' || p.category.includes('fertilizer'));
             
+            dryFertilizers = dbFertilizers.map(p => {
+                const n = p.composition.npk ? (p.composition.npk.n || 0) : 0;
+                const pVal = p.composition.npk ? (p.composition.npk.p || 0) : 0;
+                const k = p.composition.npk ? (p.composition.npk.k || 0) : 0;
+                return {
+                    name: p.name,
+                    n: n,
+                    p: pVal,
+                    k: k,
+                    checked: false,
+                    dose: 0
+                };
+            });
+            
+            // Re-apply saved checked/dose states from localStorage
             const savedState = localStorage.getItem('viticulture-dry-fert-state');
             if (savedState) {
                 try {
                     const state = JSON.parse(savedState);
                     dryFertilizers.forEach(f => {
-                        const saved = state.find(s => s.name === f.name);
+                        const saved = state.find(s => s.name.toLowerCase() === f.name.toLowerCase());
                         if (saved) {
                             f.checked = saved.checked;
                             f.dose = saved.dose;
@@ -4017,6 +4028,7 @@
                     });
                 } catch(e) { console.error(e); }
             } else {
+                // Default checked items
                 dryFertilizers.forEach(f => {
                     if (f.name.includes("Карбамід") || f.name.includes("Монофосфат") || f.name.includes("Сульфат")) {
                         f.checked = true;
@@ -6206,6 +6218,11 @@
             
             // Auto select newly saved product
             selectProduct(product.id);
+            
+            // Sync with NPK calculator if it's a fertilizer
+            if (type === 'fertilizer' || category.includes('fertilizer')) {
+                initDryFertilizers();
+            }
         }
 
         function editProduct(id) {
@@ -6265,11 +6282,17 @@
                 `;
                 
                 showToast(`Препарат «${p.name}» видалено з бази.`, 'info');
+                
+                // Sync with NPK calculator if it's a fertilizer
+                if (p.type === 'fertilizer' || p.category.includes('fertilizer')) {
+                    initDryFertilizers();
+                }
             }
         }
 
         // Window Onload initialization
         window.onload = () => {
+            initProductDB();
             // Load SAT History
             const cachedSAT = localStorage.getItem('satHistory');
             if (cachedSAT) {
