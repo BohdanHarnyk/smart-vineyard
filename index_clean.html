@@ -4198,12 +4198,10 @@
             // Load SAT History
             const cachedSAT = localStorage.getItem('satHistory');
             if (cachedSAT) {
-                satHistory = JSON.parse(cachedSAT);
-                let cumulative = 0;
-                satHistory.forEach(entry => {
-                    cumulative += entry.contribution;
-                });
-                totalSAT = cumulative;
+                try {
+                    satHistory = JSON.parse(cachedSAT);
+                    recalculateSAT();
+                } catch(e) { console.error(e); }
             }
             
             // Load Phase Checklist
