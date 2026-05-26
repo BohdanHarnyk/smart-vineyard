@@ -226,14 +226,7 @@
                                     </div>
                                 </div>
                             </div>
-                            
-                            <!-- Mode Switcher Segmented Control -->
-                            <div class="flex bg-stone-100 p-1 rounded-2xl gap-1 mb-6 border border-stone-200/40">
-                                <button onclick="setThermalMode('sat')" id="thermal-mode-sat" class="flex-grow py-2.5 rounded-xl text-xs font-black transition-all bg-emerald-600 text-white shadow-sm">САТ (Активні)</button>
-                                <button onclick="setThermalMode('set')" id="thermal-mode-set" class="flex-grow py-2.5 rounded-xl text-xs font-black transition-all text-stone-500 hover:text-stone-850">СЕТ (Ефективні)</button>
-                            </div>
-                            
-                            <!-- Cumulative Value Block -->
+                             <!-- Cumulative Value Block -->
                             <div class="p-6 bg-gradient-to-br from-emerald-500/10 to-teal-500/5 rounded-3xl border border-emerald-100 flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
                                 <div>
                                     <p class="text-xs text-emerald-800 font-extrabold uppercase tracking-wider mb-1" id="tracker-display-label">Накопичений САТ сезону:</p>
@@ -412,52 +405,6 @@
 
         <!-- TAB: VARIETIES -->
         <section id="tab-varieties" class="tab-content space-y-6">
-            <!-- SAT Suitability Checker Widget -->
-            <div class="bg-gradient-to-br from-emerald-900 to-emerald-950 text-white p-6 md:p-8 rounded-[40px] shadow-2xl border border-emerald-800/60 relative overflow-hidden">
-                <!-- Ambient light glow backgrounds -->
-                <div class="absolute -right-16 -top-16 w-36 h-36 bg-emerald-500/20 rounded-full blur-3xl pointer-events-none"></div>
-                <div class="absolute -left-16 -bottom-16 w-36 h-36 bg-emerald-400/15 rounded-full blur-3xl pointer-events-none"></div>
-                
-                <div class="flex flex-col lg:flex-row gap-6 items-stretch justify-between relative z-10">
-                    <!-- Input section -->
-                    <div class="lg:w-1/2 space-y-4">
-                        <div>
-                            <h3 class="text-xl font-black text-white flex items-center gap-2">
-                                ☀️ Детектор визрівання сортів за САТ
-                            </h3>
-                            <p class="text-xs text-emerald-400 font-bold uppercase tracking-wider mt-1">Перевірка сумісності клімату для 122 сортів</p>
-                        </div>
-                        
-                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                            <div class="space-y-2">
-                                <label class="text-[10px] font-black uppercase tracking-widest text-emerald-300">Назва сорту:</label>
-                                <div class="relative">
-                                    <input type="text" id="sat-check-name" list="sat-check-varieties" oninput="runSatSuitabilityCheck()" placeholder="Оберіть або введіть сорт..." class="w-full p-4 rounded-2xl bg-white/5 border border-white/20 outline-none text-sm font-black text-white placeholder-emerald-300/40 focus:bg-white/10 focus:border-emerald-400 transition-all">
-                                    <datalist id="sat-check-varieties">
-                                        <!-- Injected dynamically -->
-                                    </datalist>
-                                </div>
-                            </div>
-                            <div class="space-y-2">
-                                <label class="text-[10px] font-black uppercase tracking-widest text-emerald-300" id="sat-check-local-label">САТ місцевості (°C):</label>
-                                <input type="number" id="sat-check-local-sat" value="2700" min="500" max="4500" step="50" oninput="runSatSuitabilityCheck()" class="w-full p-4 rounded-2xl bg-white/5 border border-white/20 outline-none text-sm font-black text-white focus:bg-white/10 focus:border-emerald-400 transition-all">
-                            </div>
-                        </div>
-                        <p class="text-[10px] text-emerald-300/70 italic leading-relaxed">
-                            💡 Кліматичний САТ в Україні: Північ ~2400-2600°C, Центр ~2600-2800°C, Південь ~3000-3400°C.
-                        </p>
-                    </div>
-                    
-                    <!-- Results display card -->
-                    <div class="lg:w-1/2 bg-emerald-950/60 p-6 rounded-3xl border border-emerald-800/80 flex flex-col justify-center min-h-[140px]" id="sat-check-result-card">
-                        <div class="text-center text-emerald-300/50 py-4">
-                            <span class="text-3xl block mb-2">🍇</span>
-                            <p class="text-xs font-black uppercase tracking-widest">Введіть сорт винограду для аналізу</p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
             <div class="bg-white p-8 rounded-[40px] custom-shadow border border-emerald-100">
                 <!-- Sub-tab Selector -->
                 <div class="flex bg-stone-100 p-1 rounded-2xl gap-1 mb-8 max-w-md">
@@ -600,7 +547,12 @@
                     <form id="form-add-variety" onsubmit="saveCustomVariety(event)" class="space-y-4">
                         <div class="space-y-1">
                             <div class="flex justify-between items-center">
-                                <label class="text-[10px] font-black uppercase text-stone-400">Назва сорту <span class="text-rose-500">*</span></label>
+                                <div class="flex items-center gap-2">
+                                    <label class="text-[10px] font-black uppercase text-stone-400">Назва сорту <span class="text-rose-500">*</span></label>
+                                    <button type="button" onclick="fetchVarietyInfoAI()" class="text-[9px] px-2 py-0.5 rounded-md bg-gradient-to-r from-purple-600 to-indigo-600 text-white font-extrabold hover:opacity-90 active:scale-95 transition-all flex items-center gap-1">
+                                        <span>✨ Завантажити з AI</span>
+                                    </button>
+                                </div>
                                 <span class="text-[8px] font-bold text-emerald-600 uppercase tracking-wider hidden" id="add-var-autocomplete-badge">Знайдено в каталозі (автозаповнення)</span>
                             </div>
                             <input type="text" id="add-var-name" required placeholder="Напр. Велес" oninput="handleAddVarNameInput()" class="w-full p-3.5 rounded-xl bg-stone-50 border border-stone-200 font-bold text-xs outline-none focus:border-emerald-500 text-stone-850">
@@ -709,105 +661,109 @@
                         </select>
                     </div>
 
-                    <!-- 3-Column Elements Inputs -->
-                    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                        <!-- Nitrogen (N) -->
-                        <div class="bg-emerald-950/40 p-5 rounded-3xl border border-emerald-800/40 space-y-4">
-                            <div class="border-b border-emerald-800/60 pb-2">
-                                <h4 class="text-sm font-black text-emerald-400">🧪 Азотне живлення (N)</h4>
+                    <!-- Targets Input Row -->
+                    <div class="bg-emerald-950/40 p-5 rounded-3xl border border-emerald-800/40 space-y-4">
+                        <h4 class="text-xs font-black text-emerald-400 uppercase tracking-wider">🎯 Цільові норми чистих елементів живлення (г/кущ за сезон)</h4>
+                        <div class="grid grid-cols-3 gap-4">
+                            <div class="space-y-1">
+                                <label class="text-[9px] font-black uppercase tracking-widest text-emerald-300/80">Азот (N)</label>
+                                <input type="number" id="npk-target-n" value="15" min="0" oninput="runNPKCalculations()" class="w-full p-3.5 rounded-xl bg-white/5 border border-white/20 outline-none text-md font-black text-white focus:bg-white/10 focus:border-emerald-400 transition-all">
                             </div>
-                            <div class="space-y-2">
-                                <label class="text-[10px] font-black uppercase tracking-widest text-emerald-300/80">Потреба N (г/кущ)</label>
-                                <input type="number" id="npk-target-n" value="15" min="0" oninput="runNPKCalculations()" class="w-full p-4 rounded-xl bg-white/5 border border-white/20 outline-none text-xl font-black text-white focus:bg-white/10 focus:border-emerald-400 transition-all">
+                            <div class="space-y-1">
+                                <label class="text-[9px] font-black uppercase tracking-widest text-emerald-300/80">Фосфор (P)</label>
+                                <input type="number" id="npk-target-p" value="5" min="0" oninput="runNPKCalculations()" class="w-full p-3.5 rounded-xl bg-white/5 border border-white/20 outline-none text-md font-black text-white focus:bg-white/10 focus:border-emerald-400 transition-all">
                             </div>
-                            <div class="space-y-2">
-                                <label class="text-[10px] font-black uppercase tracking-widest text-emerald-300/80">Вибір добрива</label>
-                                <select id="npk-fertilizer-n" onchange="applyNPKFertilizerSelect('n')" class="w-full p-3.5 rounded-xl bg-emerald-900 border border-emerald-700 outline-none font-bold text-xs text-white cursor-pointer hover:bg-emerald-800 transition-all">
-                                    <option value="urea">Карбамід (Сечовина, 46% N)</option>
-                                    <option value="nitrate">Аміачна селітра (34% N)</option>
-                                    <option value="yaramila">YaraMila Complex (12% N)</option>
-                                    <option value="calcium">Кальцієва селітра (15% N)</option>
-                                    <option value="custom">-- Власне добриво (% N) --</option>
-                                </select>
-                            </div>
-                            <div class="space-y-2">
-                                <label class="text-[10px] font-black uppercase tracking-widest text-emerald-300/80">% Азоту (ДР)</label>
-                                <input type="number" id="npk-percent-n" value="46" min="1" max="100" oninput="runNPKCalculations()" class="w-full p-4 rounded-xl bg-white/5 border border-white/20 outline-none text-xl font-black text-white focus:bg-white/10 focus:border-emerald-400 transition-all">
-                            </div>
-                        </div>
-
-                        <!-- Phosphorus (P) -->
-                        <div class="bg-emerald-950/40 p-5 rounded-3xl border border-emerald-800/40 space-y-4">
-                            <div class="border-b border-emerald-800/60 pb-2">
-                                <h4 class="text-sm font-black text-emerald-400">🧪 Фосфорне живлення (P)</h4>
-                            </div>
-                            <div class="space-y-2">
-                                <label class="text-[10px] font-black uppercase tracking-widest text-emerald-300/80">Потреба P (г/кущ)</label>
-                                <input type="number" id="npk-target-p" value="5" min="0" oninput="runNPKCalculations()" class="w-full p-4 rounded-xl bg-white/5 border border-white/20 outline-none text-xl font-black text-white focus:bg-white/10 focus:border-emerald-400 transition-all">
-                            </div>
-                            <div class="space-y-2">
-                                <label class="text-[10px] font-black uppercase tracking-widest text-emerald-300/80">Вибір добрива</label>
-                                <select id="npk-fertilizer-p" onchange="applyNPKFertilizerSelect('p')" class="w-full p-3.5 rounded-xl bg-emerald-900 border border-emerald-700 outline-none font-bold text-xs text-white cursor-pointer hover:bg-emerald-800 transition-all">
-                                    <option value="monopotassium">Монофосфат калію (52% P)</option>
-                                    <option value="yaramila">YaraMila Complex (11% P)</option>
-                                    <option value="custom">-- Власне добриво (% P) --</option>
-                                </select>
-                            </div>
-                            <div class="space-y-2">
-                                <label class="text-[10px] font-black uppercase tracking-widest text-emerald-300/80">% Фосфору (ДР)</label>
-                                <input type="number" id="npk-percent-p" value="52" min="1" max="100" oninput="runNPKCalculations()" class="w-full p-4 rounded-xl bg-white/5 border border-white/20 outline-none text-xl font-black text-white focus:bg-white/10 focus:border-emerald-400 transition-all">
-                            </div>
-                        </div>
-
-                        <!-- Potassium (K) -->
-                        <div class="bg-emerald-950/40 p-5 rounded-3xl border border-emerald-800/40 space-y-4">
-                            <div class="border-b border-emerald-800/60 pb-2">
-                                <h4 class="text-sm font-black text-emerald-400">🧪 Калійне живлення (K)</h4>
-                            </div>
-                            <div class="space-y-2">
-                                <label class="text-[10px] font-black uppercase tracking-widest text-emerald-300/80">Потреба K (г/кущ)</label>
-                                <input type="number" id="npk-target-k" value="5" min="0" oninput="runNPKCalculations()" class="w-full p-4 rounded-xl bg-white/5 border border-white/20 outline-none text-xl font-black text-white focus:bg-white/10 focus:border-emerald-400 transition-all">
-                            </div>
-                            <div class="space-y-2">
-                                <label class="text-[10px] font-black uppercase tracking-widest text-emerald-300/80">Вибір добрива</label>
-                                <select id="npk-fertilizer-k" onchange="applyNPKFertilizerSelect('k')" class="w-full p-3.5 rounded-xl bg-emerald-900 border border-emerald-700 outline-none font-bold text-xs text-white cursor-pointer hover:bg-emerald-800 transition-all">
-                                    <option value="monopotassium">Монофосфат калію (34% K)</option>
-                                    <option value="sulfate">Сульфат калію (50% K)</option>
-                                    <option value="yaramila">YaraMila Complex (18% K)</option>
-                                    <option value="custom">-- Власне добриво (% K) --</option>
-                                </select>
-                            </div>
-                            <div class="space-y-2">
-                                <label class="text-[10px] font-black uppercase tracking-widest text-emerald-300/80">% Калію (ДР)</label>
-                                <input type="number" id="npk-percent-k" value="34" min="1" max="100" oninput="runNPKCalculations()" class="w-full p-4 rounded-xl bg-white/5 border border-white/20 outline-none text-xl font-black text-white focus:bg-white/10 focus:border-emerald-400 transition-all">
+                            <div class="space-y-1">
+                                <label class="text-[9px] font-black uppercase tracking-widest text-emerald-300/80">Калій (K)</label>
+                                <input type="number" id="npk-target-k" value="5" min="0" oninput="runNPKCalculations()" class="w-full p-3.5 rounded-xl bg-white/5 border border-white/20 outline-none text-md font-black text-white focus:bg-white/10 focus:border-emerald-400 transition-all">
                             </div>
                         </div>
                     </div>
 
-                    <!-- NPK Result Display -->
-                    <div class="mt-8 bg-emerald-950/60 p-6 md:p-8 rounded-3xl border border-emerald-800/80 space-y-4">
-                        <h4 class="text-xs font-black uppercase tracking-wider text-emerald-400">Розрахована фізична вага добрив для внесення:</h4>
-                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                            <div class="bg-emerald-900/50 p-4 rounded-2xl border border-emerald-800 flex items-center justify-between">
-                                <div>
-                                    <p class="text-[10px] font-black text-emerald-400 uppercase tracking-widest">Азотне добриво (N)</p>
-                                    <p class="text-xs text-white/70 mt-0.5" id="npk-result-label-n">Карбамід (Сечовина)</p>
+                    <!-- Split Layout: Left checklist/addition, Right analytics/results -->
+                    <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+                        <!-- Left Column: Active Fertilizers Checklist & Custom Form (7 cols) -->
+                        <div class="lg:col-span-7 space-y-6">
+                            <div class="bg-emerald-950/40 p-5 rounded-3xl border border-emerald-800/40 space-y-4">
+                                <div class="flex justify-between items-center border-b border-emerald-800/60 pb-2">
+                                    <h4 class="text-sm font-black text-emerald-400">⚖️ Вибір добрив та дозування</h4>
+                                    <button type="button" onclick="autoSolveNPK()" class="px-3 py-1.5 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-white text-[10px] font-black transition-all shadow-sm hover:scale-[1.02] active:scale-[0.98]">
+                                        ⚡ Авто-розрахунок доз
+                                    </button>
                                 </div>
-                                <span class="text-2xl font-black text-white" id="npk-result-n">0 г</span>
+                                
+                                <div id="npk-fertilizers-list" class="space-y-3 max-h-[300px] overflow-y-auto custom-scrollbar">
+                                    <!-- Dynamic list of fertilizers from JS -->
+                                </div>
+
+                                <!-- Custom Fertilizer Form -->
+                                <div class="border-t border-emerald-800/40 pt-4 space-y-3">
+                                    <h5 class="text-[10px] font-black text-emerald-400 uppercase tracking-widest">➕ Створити власне сухе добриво</h5>
+                                    <div class="grid grid-cols-1 sm:grid-cols-4 gap-2">
+                                        <input type="text" id="npk-custom-name" placeholder="Назва добрива" class="p-2.5 rounded-xl bg-white/5 border border-white/20 outline-none text-xs font-bold text-white focus:bg-white/10 focus:border-emerald-400 transition-all sm:col-span-2">
+                                        <div class="grid grid-cols-3 gap-1 sm:col-span-2">
+                                            <input type="number" id="npk-custom-n" placeholder="N %" min="0" max="100" class="p-2.5 rounded-xl bg-white/5 border border-white/20 outline-none text-xs font-bold text-white text-center focus:bg-white/10 focus:border-emerald-400 transition-all">
+                                            <input type="number" id="npk-custom-p" placeholder="P %" min="0" max="100" class="p-2.5 rounded-xl bg-white/5 border border-white/20 outline-none text-xs font-bold text-white text-center focus:bg-white/10 focus:border-emerald-400 transition-all">
+                                            <input type="number" id="npk-custom-k" placeholder="K %" min="0" max="100" class="p-2.5 rounded-xl bg-white/5 border border-white/20 outline-none text-xs font-bold text-white text-center focus:bg-white/10 focus:border-emerald-400 transition-all">
+                                        </div>
+                                    </div>
+                                    <button type="button" onclick="addCustomFertilizer()" class="w-full py-2.5 rounded-xl bg-emerald-700 hover:bg-emerald-600 text-white text-xs font-black transition-all">
+                                        Додати до списку
+                                    </button>
+                                </div>
                             </div>
-                            <div class="bg-emerald-900/50 p-4 rounded-2xl border border-emerald-800 flex items-center justify-between">
-                                <div>
-                                    <p class="text-[10px] font-black text-emerald-400 uppercase tracking-widest">Фосфорне добриво (P)</p>
-                                    <p class="text-xs text-white/70 mt-0.5" id="npk-result-label-p">Монофосфат калію</p>
+                        </div>
+
+                        <!-- Right Column: Analytics & Total Output Weights (5 cols) -->
+                        <div class="lg:col-span-5 space-y-6">
+                            <div class="bg-emerald-950/60 p-5 rounded-3xl border border-emerald-800/80 space-y-6 text-white">
+                                <h4 class="text-xs font-black uppercase tracking-wider text-emerald-400 border-b border-emerald-800/60 pb-2">📊 Покриття цільових норм</h4>
+                                
+                                <div class="space-y-4">
+                                    <!-- Progress N -->
+                                    <div class="space-y-1">
+                                        <div class="flex justify-between text-xs font-bold">
+                                            <span>Азот (N)</span>
+                                            <span id="npk-stat-n">0 / 15 г (0%)</span>
+                                        </div>
+                                        <div class="w-full bg-emerald-900/60 h-2.5 rounded-full overflow-hidden">
+                                            <div id="npk-bar-n" class="bg-emerald-500 h-full rounded-full transition-all duration-300" style="width: 0%"></div>
+                                        </div>
+                                    </div>
+
+                                    <!-- Progress P -->
+                                    <div class="space-y-1">
+                                        <div class="flex justify-between text-xs font-bold">
+                                            <span>Фосфор (P)</span>
+                                            <span id="npk-stat-p">0 / 5 г (0%)</span>
+                                        </div>
+                                        <div class="w-full bg-emerald-900/60 h-2.5 rounded-full overflow-hidden">
+                                            <div id="npk-bar-p" class="bg-emerald-500 h-full rounded-full transition-all duration-300" style="width: 0%"></div>
+                                        </div>
+                                    </div>
+
+                                    <!-- Progress K -->
+                                    <div class="space-y-1">
+                                        <div class="flex justify-between text-xs font-bold">
+                                            <span>Калій (K)</span>
+                                            <span id="npk-stat-k">0 / 5 г (0%)</span>
+                                        </div>
+                                        <div class="w-full bg-emerald-900/60 h-2.5 rounded-full overflow-hidden">
+                                            <div id="npk-bar-k" class="bg-emerald-500 h-full rounded-full transition-all duration-300" style="width: 0%"></div>
+                                        </div>
+                                    </div>
                                 </div>
-                                <span class="text-2xl font-black text-white" id="npk-result-p">0 г</span>
-                            </div>
-                            <div class="bg-emerald-900/50 p-4 rounded-2xl border border-emerald-800 flex items-center justify-between">
-                                <div>
-                                    <p class="text-[10px] font-black text-emerald-400 uppercase tracking-widest">Калійне добриво (K)</p>
-                                    <p class="text-xs text-white/70 mt-0.5" id="npk-result-label-k">Монофосфат калію</p>
+
+                                <div class="border-t border-emerald-800/60 pt-4 space-y-3">
+                                    <h4 class="text-xs font-black uppercase tracking-wider text-emerald-400">⚖️ Загальна вага для внесення:</h4>
+                                    <div id="npk-results-summary" class="space-y-2">
+                                        <!-- Will show total weights for each fertilizer chosen -->
+                                    </div>
+                                    <div class="flex justify-between items-center bg-emerald-900/40 p-3 rounded-2xl border border-emerald-800/40 mt-2">
+                                        <span class="text-[10px] font-black text-emerald-300 uppercase tracking-widest">Сумарна вага суміші</span>
+                                        <span class="text-lg font-black text-white" id="npk-total-weight-mixture">0.0 кг</span>
+                                    </div>
                                 </div>
-                                <span class="text-2xl font-black text-white" id="npk-result-k">0 г</span>
                             </div>
                         </div>
                     </div>
@@ -829,13 +785,19 @@
                             </div>
 
                             <!-- Input widgets depending on active water mode -->
-                            <div id="water-inputs-bushes" class="space-y-2">
-                                <label class="text-[10px] font-black uppercase tracking-widest text-emerald-300/80">Фаза розвитку крони (норма на кущ)</label>
-                                <select id="protection-leaf-phase" onchange="runProtectionCalculations()" class="w-full p-3.5 rounded-xl bg-emerald-900 border border-emerald-700 outline-none font-bold text-xs text-white cursor-pointer hover:bg-emerald-800 transition-all">
-                                    <option value="0.3">Молоді пагони (0.3 л/кущ)</option>
-                                    <option value="0.7" selected>Перед цвітінням (0.7 л/кущ)</option>
-                                    <option value="1.2">Повне листя / Дозрівання (1.2 л/кущ)</option>
-                                </select>
+                            <div id="water-inputs-bushes" class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                <div class="space-y-2">
+                                    <label class="text-[10px] font-black uppercase tracking-widest text-emerald-300/80">Фаза розвитку крони</label>
+                                    <select id="protection-leaf-phase" onchange="updateProtectionWaterFromPhase()" class="w-full p-3.5 rounded-xl bg-emerald-900 border border-emerald-700 outline-none font-bold text-xs text-white cursor-pointer hover:bg-emerald-800 transition-all">
+                                        <option value="0.3">Молоді пагони (0.3 л/кущ)</option>
+                                        <option value="0.7" selected>Перед цвітінням (0.7 л/кущ)</option>
+                                        <option value="1.2">Повне листя / Дозрівання (1.2 л/кущ)</option>
+                                    </select>
+                                </div>
+                                <div class="space-y-2">
+                                    <label class="text-[10px] font-black uppercase tracking-widest text-emerald-300/80">Вилив на кущ (л)</label>
+                                    <input type="number" id="protection-water-override" value="0.7" min="0.05" step="0.05" oninput="runProtectionCalculations()" class="w-full p-3.5 rounded-xl bg-white/5 border border-white/20 outline-none text-base font-black text-white focus:bg-white/10 focus:border-emerald-400 transition-all">
+                                </div>
                             </div>
                             
                             <div id="water-inputs-area" class="grid grid-cols-2 gap-4 hidden">
@@ -941,27 +903,30 @@
 
                         <!-- Column 2: Venturi Injection Stock tank -->
                         <div class="bg-emerald-950/40 p-5 rounded-3xl border border-emerald-800/40 space-y-4">
-                            <div class="border-b border-emerald-800/60 pb-2">
-                                <h4 class="text-sm font-black text-emerald-400">🧪 Дозатор Вентурі / Маточний бак</h4>
+                            <div class="flex items-center gap-2 border-b border-emerald-800/60 pb-2">
+                                <input type="checkbox" id="fert-use-venturi" checked onchange="toggleVenturiMode()" class="rounded text-emerald-650 focus:ring-emerald-500 bg-white/10 border-white/20 h-4 w-4 cursor-pointer">
+                                <label for="fert-use-venturi" class="text-xs font-black text-emerald-400 cursor-pointer select-none">🧪 Використовувати дозатор Вентурі / маточний бак</label>
                             </div>
-                            <div class="space-y-2">
-                                <label class="text-[10px] font-black uppercase tracking-widest text-emerald-300/80">Об'єм маточного бака (літри)</label>
-                                <input type="number" id="fert-stock-vol" value="10" min="1" oninput="runFertigationCalculations()" class="w-full p-3.5 rounded-xl bg-white/5 border border-white/20 outline-none text-base font-black text-white focus:bg-white/10 focus:border-emerald-400 transition-all">
-                            </div>
-                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <div id="venturi-inputs-container" class="space-y-4">
                                 <div class="space-y-2">
-                                    <label class="text-[10px] font-black uppercase tracking-widest text-emerald-300/80">Всмоктування (ділення)</label>
-                                    <select id="fert-inject-ratio" onchange="applyFertInjectPreset()" class="w-full p-3.5 rounded-xl bg-emerald-900 border border-emerald-700 outline-none font-bold text-xs text-white cursor-pointer hover:bg-emerald-800 transition-all">
-                                        <option value="0.01">1:100 (1%)</option>
-                                        <option value="0.02">1:50 (2%)</option>
-                                        <option value="0.005">1:200 (0.5%)</option>
-                                        <option value="0.1">1:10 (10%)</option>
-                                        <option value="custom">-- Інший коефіцієнт --</option>
-                                    </select>
+                                    <label class="text-[10px] font-black uppercase tracking-widest text-emerald-300/80">Об'єм маточного бака (літри)</label>
+                                    <input type="number" id="fert-stock-vol" value="10" min="1" oninput="runFertigationCalculations()" class="w-full p-3.5 rounded-xl bg-white/5 border border-white/20 outline-none text-base font-black text-white focus:bg-white/10 focus:border-emerald-400 transition-all">
                                 </div>
-                                <div class="space-y-2">
-                                    <label class="text-[10px] font-black uppercase tracking-widest text-emerald-300/80">Коефіцієнт (K)</label>
-                                    <input type="number" id="fert-inject-k" value="0.01" min="0.0001" step="0.001" oninput="runFertigationCalculations()" class="w-full p-3.5 rounded-xl bg-white/5 border border-white/20 outline-none text-base font-black text-white focus:bg-white/10 focus:border-emerald-400 transition-all">
+                                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                    <div class="space-y-2">
+                                        <label class="text-[10px] font-black uppercase tracking-widest text-emerald-300/80">Всмоктування (ділення)</label>
+                                        <select id="fert-inject-ratio" onchange="applyFertInjectPreset()" class="w-full p-3.5 rounded-xl bg-emerald-900 border border-emerald-700 outline-none font-bold text-xs text-white cursor-pointer hover:bg-emerald-800 transition-all">
+                                            <option value="0.01">1:100 (1%)</option>
+                                            <option value="0.02">1:50 (2%)</option>
+                                            <option value="0.005">1:200 (0.5%)</option>
+                                            <option value="0.1">1:10 (10%)</option>
+                                            <option value="custom">-- Інший коефіцієнт --</option>
+                                        </select>
+                                    </div>
+                                    <div class="space-y-2">
+                                        <label class="text-[10px] font-black uppercase tracking-widest text-emerald-300/80">Коефіцієнт (K)</label>
+                                        <input type="number" id="fert-inject-k" value="0.01" min="0.0001" step="0.001" oninput="runFertigationCalculations()" class="w-full p-3.5 rounded-xl bg-white/5 border border-white/20 outline-none text-base font-black text-white focus:bg-white/10 focus:border-emerald-400 transition-all">
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -1010,18 +975,45 @@
                             </div>
                         </div>
 
-                        <div class="bg-emerald-950/60 p-5 rounded-2xl border border-emerald-850">
+                        <div class="bg-emerald-950/60 p-5 rounded-2xl border border-emerald-850" id="fert-card-stock">
                             <h5 class="text-[10px] font-black uppercase tracking-widest text-emerald-400">🧪 Розчин у Маточному Баку</h5>
-                            <div class="mt-2 flex items-baseline gap-1 text-white">
-                                <span class="text-2xl font-black" id="fert-res-stock">2.00</span>
-                                <span class="text-xs font-bold text-emerald-300">кг</span>
+                            <div id="fert-card-stock-content" class="space-y-1">
+                                <div class="mt-2 flex items-baseline gap-1 text-white">
+                                    <span class="text-2xl font-black" id="fert-res-stock">2.00</span>
+                                    <span class="text-xs font-bold text-emerald-300">кг</span>
+                                </div>
+                                <div class="mt-1 flex items-baseline gap-1 text-emerald-200/70 text-[10px]">
+                                    💧 Для бака: <span class="font-black text-white" id="fert-res-stock-vol">10 л</span>
+                                </div>
+                                <div class="mt-1 flex items-baseline gap-1 text-emerald-200/70 text-[10px]">
+                                    🧪 Маточний розчин під кущ: <span class="font-black text-white" id="fert-res-bush-stock-vol">150 мл</span>
+                                </div>
                             </div>
-                            <div class="mt-1 flex items-baseline gap-1 text-emerald-200/70 text-[10px]">
-                                💧 Для бака: <span class="font-black text-white" id="fert-res-stock-vol">10 л</span>
+                            <div id="fert-card-stock-disabled" class="hidden text-emerald-300/40 text-xs py-4 text-center">
+                                Вимкнено (змішування в основній ємності)
                             </div>
-                            <div class="mt-1 flex items-baseline gap-1 text-emerald-200/70 text-[10px]">
-                                🧪 Маточний розчин під кущ: <span class="font-black text-white" id="fert-res-bush-stock-vol">150 мл</span>
+                        </div>
+                    </div>
+
+                    <!-- Venturi Math Explanation Card -->
+                    <div class="bg-emerald-950/40 p-6 rounded-3xl border border-emerald-800/40 space-y-3 mt-6">
+                        <h4 class="text-xs font-black text-emerald-400 uppercase tracking-wider flex items-center gap-2">
+                            <span>📚 Математика інжекції Вентурі та маточного розчину</span>
+                        </h4>
+                        <div class="text-[11px] text-emerald-300/80 space-y-2 leading-relaxed">
+                            <p>
+                                <strong>Коефіцієнт всмоктування K:</strong> Визначає співвідношення змішування маточного розчину з основним потоком води. 
+                                Наприклад, при K = 0.01 (пропорція 1:100), кожен 1 літр концентрату з маточного бака буде рівномірно розведений у 100 літрах чистої води з поливної магістралі.
+                            </p>
+                            <p>
+                                <strong>Формула концентрації маточного розчину:</strong> Щоб подати необхідну масу добрив M<sub>total</sub> у загальному об'ємі поливної води V<sub>water</sub>, використовуючи маточний бак об'ємом V<sub>stock</sub> та дозатор з коефіцієнтом K, концентрація в баку повинна быть збільшена в 1/K разів. Маса сухого добрива для розчинення в маточному баку обчислюється так:
+                            </p>
+                            <div class="bg-emerald-950/60 p-3 rounded-xl border border-emerald-900 text-center font-mono text-xs text-white">
+                                M<sub>stock</sub> = (M<sub>total</sub> × V<sub>stock</sub>) / (V<sub>water</sub> × K)
                             </div>
+                            <p class="text-[10px] text-emerald-400/70 italic">
+                                * Примітка: Якщо розрахована маса M<sub>stock</sub> перевищує ліміт розчинності добрива (зазвичай 150-200 г на 1 л води при кімнатній температурі), вам знадобиться більший маточний бак або менш концентрована подача.
+                            </p>
                         </div>
                     </div>
                 </div>
@@ -1355,15 +1347,15 @@
                             <p><strong>Суть модуля:</strong> Автоматизація складних математичних розрахунків для дозування хімікатів та добрив без ризику помилитися.</p>
                             
                             <p class="font-black text-stone-850 mt-4 mb-1">🧪 Калькулятор NPK (Сухі добрива):</p>
-                            <p>Кожен кущ винограду потребує певної кількості діючої речовини азоту (N), фосфору (P) та калію (K) залежно від фази сезону. Введіть цільову потребу в чистій речовині на кущ у грамах. Оберіть комплексне добриво (наприклад, YaraMila Complex) та прості однокомпонентні добрива для азотного або калійного коригування. Калькулятор автоматично розрахує необхідну вагу комплексного добрива, а також порахує, скільки грамів селітри чи монофосфату потрібно досипати, щоб повністю покрити дефіцити.</p>
+                            <p>Кожен кущ винограду потребує певної кількості діючої речовини азоту (N), фосфору (P) та калію (K) залежно від фази сезону. Введіть цільову потребу в чистій речовині на кущ у грамах. Скористайтеся новою інтерактивною таблицею-checklist добрив: позначте наявні у вас сухі добрива (наприклад, Амофос, Калійна селітра, Карбамід або додайте власні через форму «➕ Додати власне добриво»). Натисніть кнопку <code>⚡ Автоматичний підбір доз добрив</code>, і система за допомогою послідовних математичних рівнянь вирахує оптимальні дози для кожного обраного добрива, мінімізуючи надлишок азоту та калію.</p>
 
                             <p class="font-black text-stone-850 mt-4 mb-1">🌦️ Захист & Оприскування (Бакові суміші):</p>
-                            <p>Для економії часу пестициди змішують в одному обприскувачі (бакова суміш). Вкажіть загальний об'єм бака (наприклад, <code>10 л</code>) та додайте препарати із зазначенням їхньої дози на 1 літр води (наприклад, Хорус <code>0.3 г/л</code>, Топаз <code>0.2 мл/л</code>). Програма виведе готову рецептуру із загальною масою кожного препарату, яку потрібно зважити на терезах. Також калькулятор вирахує кількість лимонної кислоти для підкислення води (до pH 5.5-6.0), щоб запобігти розпаду пестицидів у лужній воді.</p>
+                            <p>Для економії часу пестициди змішують в одному обприскувачі (бакова суміш). Вкажіть загальний об'єм бака (наприклад, <code>10 л</code>) та додайте препарати із зазначенням їхньої дози на 1 літр води (наприклад, Хорус <code>0.3 г/л</code>, Топаз <code>0.2 мл/л</code>). Програма виведе готову рецептуру із загальною масою кожного препарату. Також додано **ручний оверрайд норми виливу на кущ**: ви можете вибрати фазу розвитку або напряму ввести потрібний літраж на кущ, що миттєво оновить розрахунок. Калькулятор автоматично вирахує кількість лимонної кислоти для підкислення води (до pH 5.5-6.0), щоб запобігти розпаду пестицидів у лужній воді.</p>
 
                             <p class="font-black text-stone-850 mt-4 mb-1">💧 Калькулятор Фертигації (Крапельне живлення):</p>
                             <p>При підживленні через краплю важливо не перевищити допустиму концентрацію солей у прикореневій зоні (індекс електропровідності EC). Введіть кількість кущів, водовилив крапельниць та цільову масу добрив. Калькулятор обчислить тривалість поливу та очікуваний індекс EC розчину.
-                            <span class="text-rose-600 font-bold block mt-1">⚠️ Увага: Якщо розрахований EC перевищує 2.0 mS/cm, система покаже попередження. Це означає високий ризик осмотичного опіку коріння лози (сіль витягуватиме вологу з коренів назад у ґрунт). Необхідно або збільшити об'єм води для поливу, або зменшити кількість добрив.</span>
-                            Також розраховується вага добрив для маточного розчину, якщо ви використовуєте інжектор Вентурі.</p>
+                            <span class="text-rose-600 font-bold block mt-1">⚠️ Увага: Якщо розрахований EC перевищує 2.0 mS/cm, система покаже попередження. Це означає високий ризик осмотичного опіку коріння лози. Необхідно або збільшити об'єм води для поливу, або зменшити кількість добрив.</span>
+                            Додано **тумблер використання інжектора Вентурі / маточного бака**. Якщо його вимкнути, система розрахує дози для прямого розчинення в основній поливній ємності. При ввімкненому тумблері розраховується вага добрив для концентрованого маточного розчину відповідно до коефіцієнта всмоктування інжектора (наприклад, 1:100). Також додано інтерактивну картку з математичним описом формул розбавлення.</p>
                         </div>
                     </div>
                 </div>
@@ -1418,6 +1410,30 @@
                                 <li><strong>Кандидати на посадку:</strong> Сорти, які ви обговорюєте з асистентом і розглядаєте для придбання, можна додавати в список "Кандидати на посадку". Вони відображатимуться на бічній панелі у чаті для зручного порівняння параметрів.</li>
                             </ol>
                         </div>
+                    </div>
+            </div>
+
+            <!-- Database Backup & Restore Panel -->
+            <div class="bg-stone-900 text-white p-8 rounded-[40px] shadow-2xl space-y-6 mt-8">
+                <div class="flex items-center gap-4">
+                    <span class="text-3xl">💾</span>
+                    <div>
+                        <h3 class="text-xl font-black">Резервне копіювання бази даних</h3>
+                        <p class="text-[10px] text-stone-400 uppercase tracking-widest font-bold">Збереження колекції сортів та налаштувань</p>
+                    </div>
+                </div>
+                <p class="text-xs opacity-80 leading-relaxed">
+                    Ви можете експортувати всі свої дані (включаючи каталог сортів винограду, саджанці у школці, логи робіт, а також збережені налаштування калькуляторів) в один резервний JSON-файл для збереження на комп'ютері чи перенесення на інший пристрій.
+                </p>
+                <div class="flex flex-col sm:flex-row gap-4">
+                    <button onclick="exportDatabase()" class="flex-1 py-3 px-6 rounded-2xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-black transition-all flex items-center justify-center gap-2 shadow-lg">
+                        📥 Експорт бази даних
+                    </button>
+                    <div class="flex-1 relative">
+                        <input type="file" id="import-db-file" onchange="importDatabase(event)" accept=".json" class="hidden">
+                        <label for="import-db-file" class="w-full py-3 px-6 rounded-2xl bg-stone-800 hover:bg-stone-700 text-stone-300 hover:text-white border border-stone-700/80 text-xs font-black transition-all flex items-center justify-center gap-2 shadow-md cursor-pointer text-center">
+                            📤 Імпорт бази даних
+                        </label>
                     </div>
                 </div>
             </div>
@@ -1799,30 +1815,19 @@
 
         function recalculateSAT() {
             let cumulativeSAT = 0;
-            let cumulativeSET = 0;
             
             satHistory.forEach(entry => {
-                // Standard calculations
                 if (entry.temp >= 10) {
                     entry.sat_contribution = parseFloat(entry.temp.toFixed(1));
-                    entry.set_contribution = parseFloat((entry.temp - 10).toFixed(1));
                 } else {
                     entry.sat_contribution = 0;
-                    entry.set_contribution = 0;
                 }
-                
-                // Backwards compatibility
                 entry.contribution = entry.sat_contribution;
-                
                 cumulativeSAT += entry.sat_contribution;
-                cumulativeSET += entry.set_contribution;
-                
                 entry.cumulative = parseFloat(cumulativeSAT.toFixed(1));
-                entry.cumulativeSET = parseFloat(cumulativeSET.toFixed(1));
             });
             
             totalSAT = cumulativeSAT;
-            totalSET = cumulativeSET;
             localStorage.setItem('satHistory', JSON.stringify(satHistory));
             
             updateSATDisplay();
@@ -1833,16 +1838,84 @@
 
         // --- UPDATE DISPLAY ---
         function updateSATDisplay() {
-            const activeVal = thermalMode === 'sat' ? totalSAT : totalSET;
-            document.getElementById('sat-total').innerText = Math.round(activeVal) + '°C';
+            document.getElementById('sat-total').innerText = Math.round(totalSAT) + '°C';
             
             const headerSatDisplay = document.getElementById('current-sat-display');
             if (headerSatDisplay) {
-                headerSatDisplay.innerText = Math.round(activeVal) + '°';
+                headerSatDisplay.innerText = Math.round(totalSAT) + '°';
             }
-            const headerCounterLabel = document.getElementById('header-counter-label');
-            if (headerCounterLabel) {
-                headerCounterLabel.innerText = thermalMode === 'sat' ? 'Поточний САТ' : 'Поточна СЕТ';
+        }
+
+        // Close Add Variety Modal
+        function closeAddVarietyModal() {
+            document.getElementById('modal-add-variety').classList.add('hidden');
+        }
+
+        async function fetchVarietyInfoAI() {
+            const name = document.getElementById('add-var-name').value.trim();
+            if (!name) {
+                alert('Будь ласка, спочатку введіть назву сорту винограду для пошуку через AI.');
+                return;
+            }
+            
+            const btn = document.querySelector('button[onclick="fetchVarietyInfoAI()"]');
+            const originalText = btn.innerHTML;
+            btn.disabled = true;
+            btn.innerHTML = '<span>⏳ Шукаємо...</span>';
+            
+            const systemInstruction = "Ти — досвідчений український ампелограф (експерт із сортів винограду). Повертай лише валідний JSON за схемою.";
+            const prompt = `Знайди детальну агрономічну інформацію про сорт винограду "${name}".
+Поверни відповідь виключно у форматі JSON із такими полями (мовою відповіді має бути українська):
+{
+  "name": "Назва сорту українською",
+  "rip": "кількість днів дозрівання (наприклад: '110-115 дн.')",
+  "col": "колір ягоди: 'W' (білий), 'R' (червоний/рожевий), 'B' (чорний/синій)",
+  "taste": "опис смаку (наприклад: 'Мускат з тонами шавлії')",
+  "bunch": "середня вага грона (наприклад: '600-1000 г')",
+  "seed": "наявність кісточок: 'З кіст.' або 'Безкіст.'",
+  "care": "короткі особливості догляду та вразливості сорту (до 150 символів)"
+}
+Якщо сорт не знайдено, поверни:
+{
+  "error": "Сорт не знайдено"
+}`;
+
+            try {
+                const responseText = await fetchGeminiAPI(prompt, systemInstruction, true);
+                const data = JSON.parse(responseText);
+                
+                if (data.error) {
+                    alert(`AI не знайшов сорт "${name}". Спробуйте іншу або точнішу назву.`);
+                    return;
+                }
+                
+                // Fill the form fields
+                if (data.col) document.getElementById('add-var-color').value = data.col;
+                if (data.rip) document.getElementById('add-var-rip').value = data.rip;
+                if (data.bunch) document.getElementById('add-var-bunch').value = data.bunch;
+                if (data.seed) document.getElementById('add-var-seed').value = data.seed;
+                if (data.taste) document.getElementById('add-var-taste').value = data.taste;
+                if (data.care) document.getElementById('add-var-care').value = data.care;
+                if (data.name) document.getElementById('add-var-name').value = data.name;
+                
+                // Visual feedback border-glow
+                const inputsToHighlight = ['add-var-name', 'add-var-color', 'add-var-rip', 'add-var-bunch', 'add-var-seed', 'add-var-taste', 'add-var-care'];
+                inputsToHighlight.forEach(id => {
+                    const el = document.getElementById(id);
+                    if (el) {
+                        el.classList.add('ring-2', 'ring-emerald-500', 'border-emerald-500');
+                        setTimeout(() => {
+                            el.classList.remove('ring-2', 'ring-emerald-500', 'border-emerald-500');
+                        }, 2500);
+                    }
+                });
+                
+            } catch (e) {
+                console.error(e);
+                alert(`Помилка AI автозаповнення: ${e.message}`);
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = originalText;
             }
         }
 
@@ -1854,9 +1927,8 @@
             }
             
             container.innerHTML = satHistory.map((entry, idx) => {
-                const label = thermalMode === 'sat' ? 'САТ' : 'СЕТ';
-                const contrib = thermalMode === 'sat' ? (entry.sat_contribution || entry.temp) : (entry.set_contribution !== undefined ? entry.set_contribution : 0);
-                const badgeColor = thermalMode === 'sat' ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-800';
+                const contrib = entry.sat_contribution || entry.temp;
+                const badgeColor = 'bg-emerald-100 text-emerald-800';
                 return `
                     <div class="flex justify-between items-center bg-stone-50 p-2.5 rounded-xl border border-stone-200/60 text-xs font-bold text-stone-700">
                         <div class="flex items-center gap-3">
@@ -1864,7 +1936,7 @@
                             <span>t° сер: <strong class="text-stone-850">${entry.temp}°C</strong></span>
                         </div>
                         <div class="flex items-center gap-2">
-                            <span class="${badgeColor} px-2 py-0.5 rounded-md font-extrabold text-[9px]">+${contrib}° ${label}</span>
+                            <span class="${badgeColor} px-2 py-0.5 rounded-md font-extrabold text-[9px]">+${contrib}° САТ</span>
                             <button onclick="deleteSATEntry(${idx})" class="text-stone-300 hover:text-rose-500 font-black transition-all ml-1">✕</button>
                         </div>
                     </div>
@@ -1878,60 +1950,33 @@
             const milestoneLabel = document.getElementById('milestone-name');
             const statusLabel = document.getElementById('sat-status-label');
             
-            const activeVal = thermalMode === 'sat' ? totalSAT : totalSET;
+            let milestone = 200;
+            let label = "До прокидання бруньки (200°С САТ)";
             
-            let milestone = thermalMode === 'sat' ? 200 : 80;
-            let label = thermalMode === 'sat' ? "До прокидання бруньки (200°С САТ)" : "До прокидання бруньки (80°С СЕТ)";
-            
-            if (thermalMode === 'sat') {
-                if (totalSAT >= 1000) {
-                    milestone = 2500;
-                    label = "До повної стиглості ягід (2500°С)";
-                } else if (totalSAT >= 800) {
-                    milestone = 1000;
-                    label = "До формування зав'язі (1000°С)";
-                } else if (totalSAT >= 200) {
-                    milestone = 800;
-                    label = "До початку цвітіння (800°С)";
-                }
-                
-                if (totalSAT >= 2500) {
-                    statusLabel.innerText = "Урожай дозрів!";
-                } else if (totalSAT >= 1000) {
-                    statusLabel.innerText = "Формування ягоди";
-                } else if (totalSAT >= 800) {
-                    statusLabel.innerText = "Період цвітіння";
-                } else if (totalSAT >= 200) {
-                    statusLabel.innerText = "Активна вегетація";
-                } else {
-                    statusLabel.innerText = "Пробудження бруньок";
-                }
-            } else {
-                if (totalSET >= 500) {
-                    milestone = 1200;
-                    label = "До повної стиглості ягід (1200°С)";
-                } else if (totalSET >= 350) {
-                    milestone = 500;
-                    label = "До формування зав'язі (500°С)";
-                } else if (totalSET >= 80) {
-                    milestone = 350;
-                    label = "До початку цвітіння (350°С)";
-                }
-                
-                if (totalSET >= 1200) {
-                    statusLabel.innerText = "Урожай дозрів!";
-                } else if (totalSET >= 500) {
-                    statusLabel.innerText = "Формування ягоди";
-                } else if (totalSET >= 350) {
-                    statusLabel.innerText = "Період цвітіння";
-                } else if (totalSET >= 80) {
-                    statusLabel.innerText = "Активна вегетація";
-                } else {
-                    statusLabel.innerText = "Пробудження бруньок";
-                }
+            if (totalSAT >= 1000) {
+                milestone = 2500;
+                label = "До повної стиглості ягід (2500°С)";
+            } else if (totalSAT >= 800) {
+                milestone = 1000;
+                label = "До формування зав'язі (1000°С)";
+            } else if (totalSAT >= 200) {
+                milestone = 800;
+                label = "До початку цвітіння (800°С)";
             }
             
-            const pct = Math.min(100, Math.round((activeVal / milestone) * 100));
+            if (totalSAT >= 2500) {
+                statusLabel.innerText = "Урожай дозрів!";
+            } else if (totalSAT >= 1000) {
+                statusLabel.innerText = "Формування ягоди";
+            } else if (totalSAT >= 800) {
+                statusLabel.innerText = "Період цвітіння";
+            } else if (totalSAT >= 200) {
+                statusLabel.innerText = "Активна вегетація";
+            } else {
+                statusLabel.innerText = "Пробудження бруньок";
+            }
+            
+            const pct = Math.min(100, Math.round((totalSAT / milestone) * 100));
             milestoneLabel.innerText = label;
             percentLabel.innerText = pct + '%';
             bar.style.width = pct + '%';
@@ -1948,21 +1993,19 @@
             }
             
             const labels = satHistory.length > 0 ? satHistory.map(e => e.date) : ['Старт'];
-            const activeData = satHistory.length > 0 
-                ? satHistory.map(e => (thermalMode === 'sat' ? e.cumulative : (e.cumulativeSET || 0))) 
-                : [0];
+            const activeData = satHistory.length > 0 ? satHistory.map(e => e.cumulative) : [0];
 
             chartInstance = new Chart(ctx, {
                 type: 'line',
                 data: {
                     labels: labels,
                     datasets: [{
-                        label: thermalMode === 'sat' ? 'Накопичений САТ (°C)' : 'Накопичена СЕТ (GDD) (°C)',
+                        label: 'Накопичений САТ (°C)',
                         data: activeData,
-                        borderColor: thermalMode === 'sat' ? '#059669' : '#d97706',
-                        backgroundColor: thermalMode === 'sat' ? 'rgba(5, 150, 105, 0.05)' : 'rgba(217, 119, 6, 0.05)',
+                        borderColor: '#059669',
+                        backgroundColor: 'rgba(5, 150, 105, 0.05)',
                         borderWidth: 3,
-                        pointBackgroundColor: thermalMode === 'sat' ? '#059669' : '#d97706',
+                        pointBackgroundColor: '#059669',
                         pointBorderColor: '#ffffff',
                         pointBorderWidth: 2,
                         pointRadius: satHistory.length > 0 ? 4 : 0,
@@ -1994,18 +2037,17 @@
         function updateChart() {
             if (chartInstance) {
                 chartInstance.data.labels = satHistory.length > 0 ? satHistory.map(e => e.date) : ['Старт'];
-                const activeData = satHistory.length > 0 
-                    ? satHistory.map(e => (thermalMode === 'sat' ? e.cumulative : (e.cumulativeSET || 0))) 
-                    : [0];
+                const activeData = satHistory.length > 0 ? satHistory.map(e => e.cumulative) : [0];
                 chartInstance.data.datasets[0].data = activeData;
-                chartInstance.data.datasets[0].label = thermalMode === 'sat' ? 'Накопичений САТ (°C)' : 'Накопичена СЕТ (GDD) (°C)';
-                chartInstance.data.datasets[0].borderColor = thermalMode === 'sat' ? '#059669' : '#d97706';
-                chartInstance.data.datasets[0].backgroundColor = thermalMode === 'sat' ? 'rgba(5, 150, 105, 0.05)' : 'rgba(217, 119, 6, 0.05)';
-                chartInstance.data.datasets[0].pointBackgroundColor = thermalMode === 'sat' ? '#059669' : '#d97706';
+                chartInstance.data.datasets[0].label = 'Накопичений САТ (°C)';
+                chartInstance.data.datasets[0].borderColor = '#059669';
+                chartInstance.data.datasets[0].backgroundColor = 'rgba(5, 150, 105, 0.05)';
+                chartInstance.data.datasets[0].pointBackgroundColor = '#059669';
                 chartInstance.data.datasets[0].pointRadius = satHistory.length > 0 ? 4 : 0;
                 chartInstance.update();
             }
         }
+
 
         // --- DISEASE RISK PREDICTOR LOGIC ---
         function calculateDiseaseRisk() {
@@ -2605,114 +2647,8 @@
             }
         }
 
-        function initSatChecker() {
-            const datalist = document.getElementById('sat-check-varieties');
-            if (datalist) {
-                datalist.innerHTML = Object.keys(varietyData).map(name => `
-                    <option value="${name}">
-                `).join('');
-            }
-            
-            const savedLocalSat = localStorage.getItem('user-local-sat');
-            if (savedLocalSat) {
-                document.getElementById('sat-check-local-sat').value = savedLocalSat;
-            }
-            
-            runSatSuitabilityCheck();
-        }
-
-        function runSatSuitabilityCheck() {
-            const nameInput = document.getElementById('sat-check-name').value.trim();
-            const localValInput = parseFloat(document.getElementById('sat-check-local-sat').value) || (thermalMode === 'sat' ? 2700 : 1200);
-            
-            localStorage.setItem('user-local-sat', localValInput);
-            
-            const resultCard = document.getElementById('sat-check-result-card');
-            
-            if (!nameInput) {
-                resultCard.innerHTML = `
-                    <div class="text-center text-emerald-300/50 py-4">
-                        <span class="text-3xl block mb-2">🍇</span>
-                        <p class="text-xs font-black uppercase tracking-widest">Введіть сорт винограду для аналізу</p>
-                    </div>
-                `;
-                return;
-            }
-            
-            const d = varietyData[nameInput];
-            if (!d) {
-                resultCard.innerHTML = `
-                    <div class="text-center text-rose-300/80 py-4">
-                        <span class="text-3xl block mb-2">🤷‍♂️</span>
-                        <p class="text-xs font-black uppercase tracking-widest">Сорт "${nameInput}" не знайдено в базі</p>
-                        <p class="text-[10px] mt-1 opacity-70">Оберіть сорт із випадаючого списку або перевірте правильність написання.</p>
-                    </div>
-                `;
-                return;
-            }
-            
-            const catInfo = getCatInfoByRip(d.rip);
-            
-            const targetMin = thermalMode === 'sat' ? catInfo.minCat : catInfo.minSet;
-            const targetMax = thermalMode === 'sat' ? catInfo.maxCat : catInfo.maxSet;
-            const targetRange = thermalMode === 'sat' ? catInfo.catRange : catInfo.setRange;
-            const label = thermalMode === 'sat' ? 'САТ' : 'СЕТ';
-            
-            const diffMax = localValInput - targetMax;
-            const diffMin = localValInput - targetMin;
-            
-            let statusBadgeClass = '';
-            let statusText = '';
-            let sugarText = '';
-            let icon = '';
-            let advice = '';
-            
-            if (localValInput >= targetMax) {
-                statusBadgeClass = 'bg-emerald-500 text-white';
-                statusText = 'Сприятливий клімат';
-                sugarText = 'Відмінний цукор (18-22% і більше), ягода визріє на 100% навіть у холодні сезони.';
-                icon = '🟢';
-                advice = `Запас тепла становить <strong>+${Math.round(diffMax)}°C ${label}</strong>. Ягода повністю визріє, а лоза встигне добре підготуватися до зими.`;
-            } else if (localValInput >= targetMin) {
-                statusBadgeClass = 'bg-amber-500 text-white';
-                statusText = 'Гранична зона визрівання';
-                sugarText = 'Задовільний або середній цукор (15-17%). Ягода визріє повністю лише в теплі сезони.';
-                icon = '🟡';
-                advice = `Запас ${label} мінімальний (від <strong>${Math.round(diffMin)}°C</strong> до <strong>${Math.round(diffMax)}°C</strong>). Рекомендується посадка з південної сторони будівель, видалення листя біля грон та нормування врожаю.`;
-            } else {
-                statusBadgeClass = 'bg-rose-500 text-white';
-                statusText = 'Ризик недозрівання';
-                sugarText = 'Низький рівень цукру, ягода залишиться кислою або не встигне забарвитися.';
-                icon = '🔴';
-                advice = `Нестача тепла становить <strong>${Math.abs(Math.round(diffMin))}°C ${label}</strong>. Сорт не рекомендується для відкритого ґрунту у вашому регіоні. Потрібна теплиця або пристінна культура.`;
-            }
-            
-            resultCard.innerHTML = `
-                <div class="space-y-4 fade-in">
-                    <div class="flex items-center justify-between gap-4 flex-wrap">
-                        <div class="flex items-center gap-2">
-                            <span class="text-xl">${icon}</span>
-                            <div>
-                                <h4 class="font-black text-white text-sm">${nameInput}</h4>
-                                <p class="text-[10px] text-emerald-300 font-bold uppercase tracking-wider">${catInfo.group} • ${label}: ${targetRange}</p>
-                            </div>
-                        </div>
-                        <span class="px-3 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-wider ${statusBadgeClass}">${statusText}</span>
-                    </div>
-                    
-                    <div class="bg-emerald-900/40 p-4 rounded-2xl border border-emerald-800/40 text-xs space-y-2">
-                        <div>
-                            <span class="block text-[9px] font-black text-emerald-400 uppercase tracking-widest mb-0.5">🍭 Цукронакопичення</span>
-                            <p class="text-white font-medium">${sugarText}</p>
-                        </div>
-                        <div class="border-t border-emerald-800/40 pt-2">
-                            <span class="block text-[9px] font-black text-emerald-400 uppercase tracking-widest mb-0.5">📋 Агро-рекомендація</span>
-                            <p class="text-emerald-100">${advice}</p>
-                        </div>
-                    </div>
-                </div>
-            `;
-        }
+        function initSatChecker() {}
+        function runSatSuitabilityCheck() {}
 
         // --- SPECIALIZED VITICULTURE CALCULATORS LOGIC ---
         let activeSubCalc = 'npk';
@@ -2762,72 +2698,212 @@
             runNPKCalculations();
         }
 
-        const fertPresets = {
-            urea: { label: 'Карбамід (Сечовина)', percent: 46 },
-            nitrate: { label: 'Аміачна селітра', percent: 34 },
-            yaramila_n: { label: 'YaraMila Complex', percent: 12 },
-            calcium: { label: 'Кальцієва селітра', percent: 15 },
-            monopotassium_p: { label: 'Монофосфат калію', percent: 52 },
-            yaramila_p: { label: 'YaraMila Complex', percent: 11 },
-            monopotassium_k: { label: 'Монофосфат калію', percent: 34 },
-            sulfate: { label: 'Сульфат калію', percent: 50 },
-            yaramila_k: { label: 'YaraMila Complex', percent: 18 }
-        };
+        const defaultDryFertilizers = [
+            { name: "Карбамід (Сечовина)", n: 46, p: 0, k: 0 },
+            { name: "Аміачна селітра", n: 34, p: 0, k: 0 },
+            { name: "Монофосфат калію", n: 0, p: 52, k: 34 },
+            { name: "Сульфат калію", n: 0, p: 0, k: 50 },
+            { name: "YaraMila Complex", n: 12, p: 11, k: 18 },
+            { name: "Кальцієва селітра", n: 15, p: 0, k: 0 }
+        ];
 
-        function applyNPKFertilizerSelect(element) {
-            const selectVal = document.getElementById(`npk-fertilizer-${element}`).value;
-            const percentInput = document.getElementById(`npk-percent-${element}`);
-            const resultLabel = document.getElementById(`npk-result-label-${element}`);
+        let dryFertilizers = [];
+
+        function initDryFertilizers() {
+            dryFertilizers = JSON.parse(JSON.stringify(defaultDryFertilizers));
             
-            let presetKey = selectVal;
-            if (selectVal === 'yaramila') {
-                presetKey = `yaramila_${element}`;
-            } else if (selectVal === 'monopotassium') {
-                presetKey = `monopotassium_${element}`;
+            const custom = localStorage.getItem('viticulture-custom-dry-fert');
+            if (custom) {
+                try {
+                    const parsed = JSON.parse(custom);
+                    dryFertilizers = dryFertilizers.concat(parsed);
+                } catch(e) { console.error(e); }
             }
             
-            if (fertPresets[presetKey]) {
-                percentInput.value = fertPresets[presetKey].percent;
-                percentInput.readOnly = true;
-                percentInput.classList.add('opacity-60');
-                resultLabel.innerText = fertPresets[presetKey].label;
+            const savedState = localStorage.getItem('viticulture-dry-fert-state');
+            if (savedState) {
+                try {
+                    const state = JSON.parse(savedState);
+                    dryFertilizers.forEach(f => {
+                        const saved = state.find(s => s.name === f.name);
+                        if (saved) {
+                            f.checked = saved.checked;
+                            f.dose = saved.dose;
+                        }
+                    });
+                } catch(e) { console.error(e); }
             } else {
-                percentInput.readOnly = false;
-                percentInput.classList.remove('opacity-60');
-                resultLabel.innerText = 'Власне добриво';
+                dryFertilizers.forEach(f => {
+                    if (f.name.includes("Карбамід") || f.name.includes("Монофосфат") || f.name.includes("Сульфат")) {
+                        f.checked = true;
+                    }
+                });
             }
             
+            renderNPKFertilizersList();
+            runNPKCalculations();
+        }
+
+        function renderNPKFertilizersList() {
+            const container = document.getElementById('npk-fertilizers-list');
+            if (!container) return;
+            
+            const bushes = parseInt(document.getElementById('shared-bushes').value) || 0;
+            
+            container.innerHTML = dryFertilizers.map((item, index) => {
+                const checked = item.checked ? 'checked' : '';
+                const disabled = item.checked ? '' : 'disabled';
+                const dose = item.dose !== undefined ? item.dose : 0;
+                const totalWeightG = dose * bushes;
+                const totalWeightStr = totalWeightG >= 1000 
+                    ? (totalWeightG / 1000).toFixed(2) + ' кг' 
+                    : Math.round(totalWeightG) + ' г';
+                
+                return `
+                    <div class="flex items-center gap-3 bg-emerald-900/30 p-3 rounded-2xl border border-emerald-800/30">
+                        <input type="checkbox" id="npk-check-${index}" onchange="toggleNPKFertilizer(${index})" ${checked} class="rounded text-emerald-650 focus:ring-emerald-500 bg-white/10 border-white/20 h-4 w-4 cursor-pointer">
+                        <div class="flex-grow min-w-0">
+                            <span class="text-xs font-bold text-white block truncate">${item.name}</span>
+                            <span class="text-[9px] text-emerald-400 font-extrabold uppercase tracking-widest">N:${item.n}% P:${item.p}% K:${item.k}%</span>
+                        </div>
+                        <div class="flex items-center gap-1.5 shrink-0">
+                            <input type="number" id="npk-dose-${index}" value="${dose}" min="0" oninput="updateNPKDose(${index}, this.value)" ${disabled} class="w-16 p-1.5 rounded-lg bg-white/5 border border-white/20 outline-none text-center text-xs font-black text-white focus:bg-white/10 focus:border-emerald-400 transition-all disabled:opacity-30">
+                            <span class="text-[9px] text-emerald-300 font-bold">г/кущ</span>
+                        </div>
+                        <span class="text-[11px] font-black text-emerald-300 w-20 text-right shrink-0">${totalWeightStr}</span>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function toggleNPKFertilizer(index) {
+            const checkbox = document.getElementById(`npk-check-${index}`);
+            dryFertilizers[index].checked = checkbox.checked;
+            saveDryFertilizersState();
+            renderNPKFertilizersList();
+            runNPKCalculations();
+        }
+
+        function updateNPKDose(index, val) {
+            dryFertilizers[index].dose = parseFloat(val) || 0;
+            saveDryFertilizersState();
+            renderNPKFertilizersList();
+            runNPKCalculations();
+        }
+
+        function saveDryFertilizersState() {
+            const state = dryFertilizers.map(f => ({ name: f.name, checked: !!f.checked, dose: f.dose || 0 }));
+            localStorage.setItem('viticulture-dry-fert-state', JSON.stringify(state));
+        }
+
+        function addCustomFertilizer() {
+            const nameInput = document.getElementById('npk-custom-name');
+            const nInput = document.getElementById('npk-custom-n');
+            const pInput = document.getElementById('npk-custom-p');
+            const kInput = document.getElementById('npk-custom-k');
+            
+            const name = nameInput.value.trim();
+            const n = parseInt(nInput.value) || 0;
+            const p = parseInt(pInput.value) || 0;
+            const k = parseInt(kInput.value) || 0;
+            
+            if (!name) {
+                alert('Будь ласка, введіть назву добрива.');
+                return;
+            }
+            
+            const newItem = { name, n, p, k, checked: true, dose: 0 };
+            
+            let customList = [];
+            const custom = localStorage.getItem('viticulture-custom-dry-fert');
+            if (custom) {
+                try {
+                    customList = JSON.parse(custom);
+                } catch(e) { console.error(e); }
+            }
+            
+            customList.push({ name, n, p, k });
+            localStorage.setItem('viticulture-custom-dry-fert', JSON.stringify(customList));
+            
+            dryFertilizers.push(newItem);
+            
+            nameInput.value = '';
+            nInput.value = '';
+            pInput.value = '';
+            kInput.value = '';
+            
+            saveDryFertilizersState();
+            renderNPKFertilizersList();
             runNPKCalculations();
         }
 
         function runNPKCalculations() {
-            const bushes = parseInt(document.getElementById('shared-bushes').value) || 0;
-            
-            // Nitrogen (N)
             const targetN = parseFloat(document.getElementById('npk-target-n').value) || 0;
-            const percentN = parseFloat(document.getElementById('npk-percent-n').value) || 1;
-            const massN = (targetN * bushes * 100) / percentN;
-            document.getElementById('npk-result-n').innerText = massN >= 1000 
-                ? (massN / 1000).toFixed(2) + ' кг' 
-                : Math.round(massN) + ' г';
-                
-            // Phosphorus (P)
             const targetP = parseFloat(document.getElementById('npk-target-p').value) || 0;
-            const percentP = parseFloat(document.getElementById('npk-percent-p').value) || 1;
-            const massP = (targetP * bushes * 100) / percentP;
-            document.getElementById('npk-result-p').innerText = massP >= 1000 
-                ? (massP / 1000).toFixed(2) + ' кг' 
-                : Math.round(massP) + ' г';
-                
-            // Potassium (K)
             const targetK = parseFloat(document.getElementById('npk-target-k').value) || 0;
-            const percentK = parseFloat(document.getElementById('npk-percent-k').value) || 1;
-            const massK = (targetK * bushes * 100) / percentK;
-            document.getElementById('npk-result-k').innerText = massK >= 1000 
-                ? (massK / 1000).toFixed(2) + ' кг' 
-                : Math.round(massK) + ' г';
+            const bushes = parseInt(document.getElementById('shared-bushes').value) || 0;
 
-            // Detect manual edit and set dropdown to Custom if target doesn't match phase
+            let suppliedN = 0;
+            let suppliedP = 0;
+            let suppliedK = 0;
+            
+            let mixtureDetailsHtml = '';
+            let mixtureTotalWeightG = 0;
+
+            dryFertilizers.forEach(item => {
+                if (item.checked) {
+                    const dose = item.dose || 0;
+                    suppliedN += (dose * item.n) / 100;
+                    suppliedP += (dose * item.p) / 100;
+                    suppliedK += (dose * item.k) / 100;
+                    
+                    const weightG = dose * bushes;
+                    mixtureTotalWeightG += weightG;
+                    
+                    const weightStr = weightG >= 1000 
+                        ? (weightG / 1000).toFixed(2) + ' кг' 
+                        : Math.round(weightG) + ' г';
+                        
+                    mixtureDetailsHtml += `
+                        <div class="flex justify-between items-center text-xs">
+                            <span class="opacity-80">${item.name}</span>
+                            <span class="font-bold">${weightStr}</span>
+                        </div>
+                    `;
+                }
+            });
+
+            const pctN = targetN > 0 ? Math.round((suppliedN / targetN) * 100) : 0;
+            const pctP = targetP > 0 ? Math.round((suppliedP / targetP) * 100) : 0;
+            const pctK = targetK > 0 ? Math.round((suppliedK / targetK) * 100) : 0;
+
+            const statNEl = document.getElementById('npk-stat-n');
+            if (statNEl) statNEl.innerText = `${suppliedN.toFixed(1)} / ${targetN} г (${pctN}%)`;
+            const statPEl = document.getElementById('npk-stat-p');
+            if (statPEl) statPEl.innerText = `${suppliedP.toFixed(1)} / ${targetP} г (${pctP}%)`;
+            const statKEl = document.getElementById('npk-stat-k');
+            if (statKEl) statKEl.innerText = `${suppliedK.toFixed(1)} / ${targetK} г (${pctK}%)`;
+
+            updateProgressBar('npk-bar-n', pctN);
+            updateProgressBar('npk-bar-p', pctP);
+            updateProgressBar('npk-bar-k', pctK);
+
+            const summaryEl = document.getElementById('npk-results-summary');
+            if (summaryEl) {
+                summaryEl.innerHTML = mixtureDetailsHtml || `
+                    <div class="text-center text-emerald-300/40 py-2 text-xs">
+                        Немає обраних добрив
+                    </div>
+                `;
+            }
+            
+            const totalMixtureEl = document.getElementById('npk-total-weight-mixture');
+            if (totalMixtureEl) totalMixtureEl.innerText = (mixtureTotalWeightG / 1000).toFixed(2) + ' кг';
+
+            localStorage.setItem('viticulture-npk-target-n', targetN);
+            localStorage.setItem('viticulture-npk-target-p', targetP);
+            localStorage.setItem('viticulture-npk-target-k', targetK);
+            
             const currentPreset = document.getElementById('npk-phase-preset').value;
             if (currentPreset && currentPreset !== 'custom') {
                 const presetVals = npkPresets[currentPreset];
@@ -2836,6 +2912,83 @@
                 }
             }
             saveCalculatorsState();
+        }
+
+        function updateProgressBar(barId, pct) {
+            const bar = document.getElementById(barId);
+            if (!bar) return;
+            bar.style.width = Math.min(pct, 100) + '%';
+            
+            if (pct < 90) {
+                bar.className = "bg-amber-500 h-full rounded-full transition-all duration-300";
+            } else if (pct <= 110) {
+                bar.className = "bg-emerald-500 h-full rounded-full transition-all duration-300";
+            } else {
+                bar.className = "bg-rose-500 h-full rounded-full transition-all duration-300";
+            }
+        }
+
+        function autoSolveNPK() {
+            const targetN = parseFloat(document.getElementById('npk-target-n').value) || 0;
+            const targetP = parseFloat(document.getElementById('npk-target-p').value) || 0;
+            const targetK = parseFloat(document.getElementById('npk-target-k').value) || 0;
+
+            const checkedFertilizers = dryFertilizers.filter(f => f.checked);
+            if (checkedFertilizers.length === 0) {
+                alert('Будь ласка, оберіть хоча б одне добриво (відмітьте галочкою) для автоматичного розрахунку.');
+                return;
+            }
+
+            dryFertilizers.forEach(f => {
+                if (f.checked) f.dose = 0;
+            });
+
+            let remainingN = targetN;
+            let remainingP = targetP;
+            let remainingK = targetK;
+
+            const fertP = checkedFertilizers.find(f => f.p > 0);
+            if (fertP && remainingP > 0) {
+                const dose = (remainingP * 100) / fertP.p;
+                fertP.dose = Math.round(dose * 10) / 10;
+                
+                remainingN -= (fertP.dose * fertP.n) / 100;
+                remainingK -= (fertP.dose * fertP.k) / 100;
+                remainingP = 0;
+            }
+
+            const fertK = checkedFertilizers.find(f => f.k > 0 && f.p === 0) || checkedFertilizers.find(f => f.k > 0);
+            if (fertK && remainingK > 0) {
+                const dose = (remainingK * 100) / fertK.k;
+                fertK.dose = Math.round((fertK.dose || 0 + dose) * 10) / 10;
+                
+                remainingN -= (dose * fertK.n) / 100;
+                remainingK = 0;
+            }
+
+            const fertN = checkedFertilizers.find(f => f.n > 0 && f.p === 0 && f.k === 0) || checkedFertilizers.find(f => f.n > 0);
+            if (fertN && remainingN > 0) {
+                const dose = (remainingN * 100) / fertN.n;
+                fertN.dose = Math.round((fertN.dose || 0 + dose) * 10) / 10;
+                remainingN = 0;
+            }
+
+            dryFertilizers.forEach(f => {
+                if (f.checked && f.dose < 0) f.dose = 0;
+            });
+
+            saveDryFertilizersState();
+            renderNPKFertilizersList();
+            runNPKCalculations();
+        }
+
+        function updateProtectionWaterFromPhase() {
+            const phaseSelect = document.getElementById('protection-leaf-phase');
+            const overrideInput = document.getElementById('protection-water-override');
+            if (phaseSelect && overrideInput) {
+                overrideInput.value = phaseSelect.value;
+            }
+            runProtectionCalculations();
         }
 
         function switchWaterMode(mode) {
@@ -2927,7 +3080,7 @@
             let areaSotka = 0;
             
             if (protectionWaterMode === 'bushes') {
-                const leafPhaseRate = parseFloat(document.getElementById('protection-leaf-phase').value) || 0.7;
+                const leafPhaseRate = parseFloat(document.getElementById('protection-water-override').value) || 0.7;
                 waterVolume = bushes * leafPhaseRate;
                 areaSotka = waterVolume / 6.0;
                 document.getElementById('protection-water-explanation').innerText = `Розраховано на основі ${bushes} кущів по ${leafPhaseRate} л`;
@@ -2982,6 +3135,26 @@
             }
             
             saveCalculatorsState();
+        }
+
+        function toggleVenturiMode() {
+            const useVenturiEl = document.getElementById('fert-use-venturi');
+            const useVenturi = useVenturiEl ? useVenturiEl.checked : true;
+            const container = document.getElementById('venturi-inputs-container');
+            
+            const cardContent = document.getElementById('fert-card-stock-content');
+            const cardDisabled = document.getElementById('fert-card-stock-disabled');
+            
+            if (useVenturi) {
+                if (container) container.classList.remove('hidden');
+                if (cardContent) cardContent.classList.remove('hidden');
+                if (cardDisabled) cardDisabled.classList.add('hidden');
+            } else {
+                if (container) container.classList.add('hidden');
+                if (cardContent) cardContent.classList.add('hidden');
+                if (cardDisabled) cardDisabled.classList.remove('hidden');
+            }
+            runFertigationCalculations();
         }
 
         function applyFertInjectPreset() {
@@ -3049,21 +3222,31 @@
                 `;
             }
             
-            const stockMassGrams = totalWater > 0 && injectK > 0 
-                ? (totalMass * stockVol) / (totalWater * injectK) 
-                : 0;
-            document.getElementById('fert-res-stock').innerText = stockMassGrams >= 1000 
-                ? (stockMassGrams / 1000).toFixed(2) + ' кг' 
-                : Math.round(stockMassGrams) + ' г';
-            document.getElementById('fert-res-stock-vol').innerText = stockVol + ' л';
+            const useVenturiEl = document.getElementById('fert-use-venturi');
+            const useVenturi = useVenturiEl ? useVenturiEl.checked : true;
             
-            // Ready mixture and stock solution per bush
-            document.getElementById('fert-res-bush-mix-vol').innerText = targetWater.toFixed(1) + ' л';
-            const stockPerBushL = targetWater * injectK;
-            const stockPerBushStr = stockPerBushL < 1.0 
-                ? Math.round(stockPerBushL * 1000) + ' мл' 
-                : stockPerBushL.toFixed(2) + ' л';
-            document.getElementById('fert-res-bush-stock-vol').innerText = stockPerBushStr;
+            if (useVenturi) {
+                const stockMassGrams = totalWater > 0 && injectK > 0 
+                    ? (totalMass * stockVol) / (totalWater * injectK) 
+                    : 0;
+                document.getElementById('fert-res-stock').innerText = stockMassGrams >= 1000 
+                    ? (stockMassGrams / 1000).toFixed(2) + ' кг' 
+                    : Math.round(stockMassGrams) + ' г';
+                document.getElementById('fert-res-stock-vol').innerText = stockVol + ' л';
+                
+                // Ready mixture and stock solution per bush
+                document.getElementById('fert-res-bush-mix-vol').innerText = targetWater.toFixed(1) + ' л';
+                const stockPerBushL = targetWater * injectK;
+                const stockPerBushStr = stockPerBushL < 1.0 
+                    ? Math.round(stockPerBushL * 1000) + ' мл' 
+                    : stockPerBushL.toFixed(2) + ' л';
+                document.getElementById('fert-res-bush-stock-vol').innerText = stockPerBushStr;
+            } else {
+                document.getElementById('fert-res-stock').innerText = '0 г';
+                document.getElementById('fert-res-stock-vol').innerText = '0 л';
+                document.getElementById('fert-res-bush-mix-vol').innerText = targetWater.toFixed(1) + ' л';
+                document.getElementById('fert-res-bush-stock-vol').innerText = '0 мл';
+            }
             
             saveCalculatorsState();
         }
@@ -3080,14 +3263,9 @@
                 npkTargetN: document.getElementById('npk-target-n').value,
                 npkTargetP: document.getElementById('npk-target-p').value,
                 npkTargetK: document.getElementById('npk-target-k').value,
-                npkFertilizerN: document.getElementById('npk-fertilizer-n').value,
-                npkFertilizerP: document.getElementById('npk-fertilizer-p').value,
-                npkFertilizerK: document.getElementById('npk-fertilizer-k').value,
-                npkPercentN: document.getElementById('npk-percent-n').value,
-                npkPercentP: document.getElementById('npk-percent-p').value,
-                npkPercentK: document.getElementById('npk-percent-k').value,
                 protectionWaterMode: protectionWaterMode,
                 protectionLeafPhase: document.getElementById('protection-leaf-phase').value,
+                protectionWaterOverride: document.getElementById('protection-water-override').value,
                 protectionArea: document.getElementById('protection-area').value,
                 protectionSprayRate: document.getElementById('protection-spray-rate').value,
                 protectionMixerItems: protectionMixerItems,
@@ -3097,7 +3275,8 @@
                 fertDryDose: document.getElementById('fert-dry-dose').value,
                 fertStockVol: document.getElementById('fert-stock-vol').value,
                 fertInjectRatio: document.getElementById('fert-inject-ratio').value,
-                fertInjectK: document.getElementById('fert-inject-k').value
+                fertInjectK: document.getElementById('fert-inject-k').value,
+                fertUseVenturi: document.getElementById('fert-use-venturi').checked
             };
             localStorage.setItem('viticulture-calculators-state', JSON.stringify(state));
         }
@@ -3107,6 +3286,8 @@
             if (cachedBushes) {
                 document.getElementById('shared-bushes').value = cachedBushes;
             }
+            
+            initDryFertilizers(); // Initializes the checklist of dry fertilizers from localStorage
             
             const cachedStateStr = localStorage.getItem('viticulture-calculators-state');
             if (!cachedStateStr) {
@@ -3126,22 +3307,13 @@
                 if (state.npkTargetN) document.getElementById('npk-target-n').value = state.npkTargetN;
                 if (state.npkTargetP) document.getElementById('npk-target-p').value = state.npkTargetP;
                 if (state.npkTargetK) document.getElementById('npk-target-k').value = state.npkTargetK;
-                if (state.npkFertilizerN) document.getElementById('npk-fertilizer-n').value = state.npkFertilizerN;
-                if (state.npkFertilizerP) document.getElementById('npk-fertilizer-p').value = state.npkFertilizerP;
-                if (state.npkFertilizerK) document.getElementById('npk-fertilizer-k').value = state.npkFertilizerK;
-                if (state.npkPercentN) document.getElementById('npk-percent-n').value = state.npkPercentN;
-                if (state.npkPercentP) document.getElementById('npk-percent-p').value = state.npkPercentP;
-                if (state.npkPercentK) document.getElementById('npk-percent-k').value = state.npkPercentK;
-                
-                applyNPKFertilizerSelect('n');
-                applyNPKFertilizerSelect('p');
-                applyNPKFertilizerSelect('k');
                 
                 if (state.protectionWaterMode) {
                     protectionWaterMode = state.protectionWaterMode;
                     switchWaterMode(protectionWaterMode);
                 }
                 if (state.protectionLeafPhase) document.getElementById('protection-leaf-phase').value = state.protectionLeafPhase;
+                if (state.protectionWaterOverride) document.getElementById('protection-water-override').value = state.protectionWaterOverride;
                 if (state.protectionArea) document.getElementById('protection-area').value = state.protectionArea;
                 if (state.protectionSprayRate) document.getElementById('protection-spray-rate').value = state.protectionSprayRate;
                 if (state.protectionMixerItems) {
@@ -3158,6 +3330,12 @@
                 if (state.fertStockVol) document.getElementById('fert-stock-vol').value = state.fertStockVol;
                 if (state.fertInjectRatio) document.getElementById('fert-inject-ratio').value = state.fertInjectRatio;
                 if (state.fertInjectK) document.getElementById('fert-inject-k').value = state.fertInjectK;
+                if (state.hasOwnProperty('fertUseVenturi')) {
+                    document.getElementById('fert-use-venturi').checked = state.fertUseVenturi;
+                } else {
+                    document.getElementById('fert-use-venturi').checked = true;
+                }
+                toggleVenturiMode();
                 applyFertInjectPreset();
                 
                 const subtab = localStorage.getItem('activeSubCalc') || 'npk';
@@ -3671,7 +3849,13 @@
                         btn.innerText = '🎙️';
                         btn.classList.remove('animate-pulse', 'text-rose-600', 'bg-rose-50');
                     }
-                    if (event.error !== 'no-speech') {
+                    if (event.error === 'not-allowed') {
+                        if (window.location.protocol === 'file:') {
+                            alert('Голосове введення заблоковано браузером на протоколі "file://".\n\nДля використання мікрофона запустіть проект через локальний HTTP-сервер (наприклад: npx serve або Live Server) або відкрийте його через http://localhost.');
+                        } else {
+                            alert('Доступ до мікрофона заблоковано. Будь ласка, дозвольте доступ до мікрофона в налаштуваннях вашого браузера.');
+                        }
+                    } else if (event.error !== 'no-speech') {
                         alert(`Помилка голосового введення: ${event.error}`);
                     }
                 };
@@ -3746,36 +3930,25 @@
 
         // --- THERMAL TRACKER MODE SWITCHER ---
         function setThermalMode(mode) {
-            thermalMode = mode;
-            localStorage.setItem('viticulture-thermal-mode', mode);
+            thermalMode = 'sat';
+            localStorage.setItem('viticulture-thermal-mode', 'sat');
             
-            // Update toggle buttons visual state
             const satBtn = document.getElementById('thermal-mode-sat');
+            if (satBtn) satBtn.className = "flex-grow py-2 rounded-xl text-xs font-black transition-all bg-emerald-600 text-white shadow-sm";
             const setBtn = document.getElementById('thermal-mode-set');
+            if (setBtn) setBtn.className = "flex-grow py-2 rounded-xl text-xs font-black transition-all text-stone-500 hover:text-stone-850";
             
-            if (mode === 'sat') {
-                satBtn.className = "flex-grow py-2 rounded-xl text-xs font-black transition-all bg-emerald-600 text-white shadow-sm";
-                setBtn.className = "flex-grow py-2 rounded-xl text-xs font-black transition-all text-stone-500 hover:text-stone-850";
-                
-                document.getElementById('tracker-title').innerText = "Трекер САТ";
-                document.getElementById('tracker-subtitle').innerText = "Сума Активних Температур (t° >= 10°C)";
-                document.getElementById('tracker-display-label').innerText = "Накопичений САТ сезону:";
-                document.getElementById('tracker-base-label').innerText = "Базова температура старту: 10°C";
-                
-                const localLabel = document.getElementById('sat-check-local-label');
-                if (localLabel) localLabel.innerText = "САТ місцевості (°C):";
-            } else {
-                satBtn.className = "flex-grow py-2 rounded-xl text-xs font-black transition-all text-stone-500 hover:text-stone-850";
-                setBtn.className = "flex-grow py-2 rounded-xl text-xs font-black transition-all bg-emerald-600 text-white shadow-sm";
-                
-                document.getElementById('tracker-title').innerText = "Трекер СЕТ";
-                document.getElementById('tracker-subtitle').innerText = "Сума Ефективних Температур (t° - 10°C)";
-                document.getElementById('tracker-display-label').innerText = "Накопичена СЕТ сезону:";
-                document.getElementById('tracker-base-label').innerText = "Поріг накопичення: t° понад 10°C";
-                
-                const localLabel = document.getElementById('sat-check-local-label');
-                if (localLabel) localLabel.innerText = "СЕТ місцевості (°C):";
-            }
+            const trackerTitle = document.getElementById('tracker-title');
+            if (trackerTitle) trackerTitle.innerText = "Трекер САТ";
+            const trackerSubtitle = document.getElementById('tracker-subtitle');
+            if (trackerSubtitle) trackerSubtitle.innerText = "Сума Активних Температур (t° >= 10°C)";
+            const trackerDisplayLabel = document.getElementById('tracker-display-label');
+            if (trackerDisplayLabel) trackerDisplayLabel.innerText = "Накопичений САТ сезону:";
+            const trackerBaseLabel = document.getElementById('tracker-base-label');
+            if (trackerBaseLabel) trackerBaseLabel.innerText = "Базова температура старту: 10°C";
+            
+            const localLabel = document.getElementById('sat-check-local-label');
+            if (localLabel) localLabel.innerText = "САТ місцевості (°C):";
             
             updateSATDisplay();
             renderSATLog();
@@ -3939,6 +4112,69 @@
             }
             
             stats.innerText = `Виконано: ${completedTasks.length} з ${todoList.length}`;
+        }
+
+        function exportDatabase() {
+            const data = {};
+            for (let i = 0; i < localStorage.length; i++) {
+                const key = localStorage.key(i);
+                if (key && (key.startsWith('viticulture-') || key === 'satHistory' || key === 'forecastDailyTemps' || key === 'phaseChecklists' || key === 'phaseChecklistDates' || key === 'todoList' || key === 'weather-lat' || key === 'weather-lon' || key === 'weather-lat-saved' || key === 'weather-lon-saved')) {
+                    data[key] = localStorage.getItem(key);
+                }
+            }
+            
+            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(data));
+            const downloadAnchor = document.createElement('a');
+            downloadAnchor.setAttribute("href", dataStr);
+            downloadAnchor.setAttribute("download", `GrapeGrew_backup_${new Date().toISOString().slice(0, 10)}.json`);
+            document.body.appendChild(downloadAnchor);
+            downloadAnchor.click();
+            downloadAnchor.remove();
+        }
+
+        function importDatabase(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const data = JSON.parse(e.target.result);
+                    
+                    const keys = Object.keys(data);
+                    const valid = keys.some(key => key.startsWith('viticulture-') || key === 'satHistory' || key === 'todoList');
+                    if (!valid && keys.length > 0) {
+                        alert('Помилка: файл не містить валідних даних GrapeGrew.');
+                        return;
+                    }
+                    
+                    if (confirm('Ви впевнені, що хочете імпортувати резервну копію? Поточні дані у додатку будуть перезаписані!')) {
+                        // Clear existing keys
+                        const keysToRemove = [];
+                        for (let i = 0; i < localStorage.length; i++) {
+                            const key = localStorage.key(i);
+                            if (key && (key.startsWith('viticulture-') || key === 'satHistory' || key === 'forecastDailyTemps' || key === 'phaseChecklists' || key === 'phaseChecklistDates' || key === 'todoList' || key === 'weather-lat' || key === 'weather-lon' || key === 'weather-lat-saved' || key === 'weather-lon-saved')) {
+                                keysToRemove.push(key);
+                            }
+                        }
+                        keysToRemove.forEach(k => localStorage.removeItem(k));
+                        
+                        // Set imported keys
+                        for (const key in data) {
+                            if (data.hasOwnProperty(key)) {
+                                localStorage.setItem(key, data[key]);
+                            }
+                        }
+                        
+                        alert('Базу даних успішно відновлено! Сторінка буде перезавантажена.');
+                        window.location.reload();
+                    }
+                } catch (err) {
+                    console.error(err);
+                    alert('Помилка при зчитуванні файлу резервної копії.');
+                }
+            };
+            reader.readAsText(file);
         }
 
         // Window Onload initialization
