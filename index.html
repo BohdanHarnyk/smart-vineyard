@@ -246,11 +246,6 @@
                                 </div>
                             </div>
                             
-                            <!-- Mode Switcher Segmented Control -->
-                            <div class="flex bg-stone-100 p-1 rounded-2xl gap-1 mb-6 border border-stone-200/40">
-                                <button onclick="setThermalMode('sat')" id="thermal-mode-sat" class="flex-grow py-2.5 rounded-xl text-xs font-black transition-all bg-emerald-600 text-white shadow-sm">САТ (Активні)</button>
-                                <button onclick="setThermalMode('set')" id="thermal-mode-set" class="flex-grow py-2.5 rounded-xl text-xs font-black transition-all text-stone-500 hover:text-stone-850">СЕТ (Ефективні)</button>
-                            </div>
                             
                             <!-- Cumulative Value Block -->
                             <div class="p-6 bg-gradient-to-br from-emerald-500/10 to-teal-500/5 rounded-3xl border border-emerald-100 flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
@@ -486,54 +481,7 @@
             </div>
         </section>
 
-        <!-- TAB: VARIETIES -->
         <section id="tab-varieties" class="tab-content space-y-6">
-            <!-- SAT Suitability Checker Widget -->
-            <div class="bg-gradient-to-br from-emerald-900 to-emerald-950 text-white p-6 md:p-8 rounded-[40px] shadow-2xl border border-emerald-800/60 relative overflow-hidden">
-                <!-- Ambient light glow backgrounds -->
-                <div class="absolute -right-16 -top-16 w-36 h-36 bg-emerald-500/20 rounded-full blur-3xl pointer-events-none"></div>
-                <div class="absolute -left-16 -bottom-16 w-36 h-36 bg-emerald-400/15 rounded-full blur-3xl pointer-events-none"></div>
-                
-                <div class="flex flex-col lg:flex-row gap-6 items-stretch justify-between relative z-10">
-                    <!-- Input section -->
-                    <div class="lg:w-1/2 space-y-4">
-                        <div>
-                            <h3 class="text-xl font-black text-white flex items-center gap-2">
-                                ☀️ Детектор визрівання сортів за САТ
-                            </h3>
-                            <p class="text-xs text-emerald-400 font-bold uppercase tracking-wider mt-1">Перевірка сумісності клімату для 122 сортів</p>
-                        </div>
-                        
-                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                            <div class="space-y-2">
-                                <label class="text-[10px] font-black uppercase tracking-widest text-emerald-300">Назва сорту:</label>
-                                <div class="relative">
-                                    <input type="text" id="sat-check-name" list="sat-check-varieties" oninput="runSatSuitabilityCheck()" placeholder="Оберіть або введіть сорт..." class="w-full p-4 rounded-2xl bg-white/5 border border-white/20 outline-none text-sm font-black text-white placeholder-emerald-300/40 focus:bg-white/10 focus:border-emerald-400 transition-all">
-                                    <datalist id="sat-check-varieties">
-                                        <!-- Injected dynamically -->
-                                    </datalist>
-                                </div>
-                            </div>
-                            <div class="space-y-2">
-                                <label class="text-[10px] font-black uppercase tracking-widest text-emerald-300" id="sat-check-local-label">САТ місцевості (°C):</label>
-                                <input type="number" id="sat-check-local-sat" value="2700" min="500" max="4500" step="50" oninput="runSatSuitabilityCheck()" class="w-full p-4 rounded-2xl bg-white/5 border border-white/20 outline-none text-sm font-black text-white focus:bg-white/10 focus:border-emerald-400 transition-all">
-                            </div>
-                        </div>
-                        <p class="text-[10px] text-emerald-300/70 italic leading-relaxed">
-                            💡 Кліматичний САТ в Україні: Північ ~2400-2600°C, Центр ~2600-2800°C, Південь ~3000-3400°C.
-                        </p>
-                    </div>
-                    
-                    <!-- Results display card -->
-                    <div class="lg:w-1/2 bg-emerald-950/60 p-6 rounded-3xl border border-emerald-800/80 flex flex-col justify-center min-h-[140px]" id="sat-check-result-card">
-                        <div class="text-center text-emerald-300/50 py-4">
-                            <span class="text-3xl block mb-2">🍇</span>
-                            <p class="text-xs font-black uppercase tracking-widest">Введіть сорт винограду для аналізу</p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
             <div class="bg-white p-8 rounded-[40px] custom-shadow border border-emerald-100">
                 <!-- Sub-tab Selector -->
                 <div class="flex bg-stone-100 p-1 rounded-2xl gap-1 mb-8 max-w-md">
@@ -3107,6 +3055,71 @@
 
         function closeAddVarietyModal() {
             document.getElementById('modal-add-variety').classList.add('hidden');
+        }
+
+        async function fetchVarietyInfoAI() {
+            const name = document.getElementById('add-var-name').value.trim();
+            if (!name) {
+                alert('Будь ласка, спочатку введіть назву сорту винограду для пошуку через AI.');
+                return;
+            }
+            
+            const btn = document.querySelector('button[onclick="fetchVarietyInfoAI()"]');
+            const originalText = btn.innerHTML;
+            btn.disabled = true;
+            btn.innerHTML = '<span>⏳ Шукаємо...</span>';
+            
+            const systemInstruction = "Ти — досвідчений український агроном та ампелограф. Повертай лише валідний JSON за схемою.";
+            const prompt = `Знайди детальну агрономічну інформацію про сорт винограду "${name}".
+Поверни відповідь виключно у форматі JSON із такими полями (мовою відповіді має бути українська):
+{
+  "name": "Назва сорту українською",
+  "rip": "кількість днів дозрівання (наприклад: '110-115 дн.')",
+  "col": "колір ягоди: 'W' (білий), 'R' (червоний/рожевий), 'B' (чорний/синій)",
+  "taste": "опис смаку (наприклад: 'Мускат з тонами шавлії')",
+  "bunch": "середня вага грона (наприклад: '600-1000 г')",
+  "seed": "наявність кісточок: 'З кіст.' або 'Безкіст.'",
+  "care": "короткі особливості догляду та вразливості сорту (до 150 символів)"
+}
+Якщо сорт не знайдено, поверни:
+{
+  "error": "Сорт не знайдено"
+}`;
+
+            try {
+                const responseText = await fetchGeminiAPI(prompt, systemInstruction, true);
+                const data = JSON.parse(responseText);
+                
+                if (data.error) {
+                    alert(`AI не знайшов сорт "${name}". Спробуйте іншу або точнішу назву.`);
+                    return;
+                }
+                
+                if (data.col) document.getElementById('add-var-color').value = data.col;
+                if (data.rip) document.getElementById('add-var-rip').value = data.rip;
+                if (data.bunch) document.getElementById('add-var-bunch').value = data.bunch;
+                if (data.seed) document.getElementById('add-var-seed').value = data.seed;
+                if (data.taste) document.getElementById('add-var-taste').value = data.taste;
+                if (data.care) document.getElementById('add-var-care').value = data.care;
+                if (data.name) document.getElementById('add-var-name').value = data.name;
+                
+                const inputsToHighlight = ['add-var-name', 'add-var-color', 'add-var-rip', 'add-var-bunch', 'add-var-seed', 'add-var-taste', 'add-var-care'];
+                inputsToHighlight.forEach(id => {
+                    const el = document.getElementById(id);
+                    if (el) {
+                        el.classList.add('ring-2', 'ring-emerald-500', 'border-emerald-500');
+                        setTimeout(() => {
+                            el.classList.remove('ring-2', 'ring-emerald-500', 'border-emerald-500');
+                        }, 2500);
+                    }
+                });
+            } catch (err) {
+                console.error(err);
+                alert(`Не вдалося завантажити дані від AI: ${err.message}`);
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = originalText;
+            }
         }
 
         function saveCustomVariety(event) {
