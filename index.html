@@ -5808,6 +5808,12 @@
                     const parsed = JSON.parse(saved);
                     // Filter out any default items that are duplicated
                     const customItems = parsed.filter(item => item.isCustom);
+                    
+                    // Remove default items that have custom overrides (by ID)
+                    customItems.forEach(custom => {
+                        productDB = productDB.filter(p => p.id !== custom.id);
+                    });
+                    
                     productDB = productDB.concat(customItems);
                 } catch(e) { console.error(e); }
             }
@@ -5986,8 +5992,9 @@
                 compositionHTML = '<p class="text-xs text-stone-400 italic">Склад не вказано</p>';
             }
 
+            const isDefaultOverride = defaultProductDB.some(d => d.id === p.id);
             const deleteBtnHTML = p.isCustom 
-                ? `<button onclick="deleteProduct('${p.id}')" class="flex-1 py-2.5 rounded-xl border border-rose-250 text-rose-600 font-bold hover:bg-rose-50 transition-all text-[11px] uppercase tracking-wider flex items-center justify-center gap-1">🗑️ Видалити</button>`
+                ? `<button onclick="deleteProduct('${p.id}')" class="flex-1 py-2.5 rounded-xl border border-rose-250 text-rose-600 font-bold hover:bg-rose-50 transition-all text-[11px] uppercase tracking-wider flex items-center justify-center gap-1">${isDefaultOverride ? '🗑️ Скинути' : '🗑️ Видалити'}</button>`
                 : `<button disabled class="flex-1 py-2.5 rounded-xl border border-stone-200 text-stone-400 font-bold text-[11px] uppercase tracking-wider cursor-not-allowed opacity-50 flex items-center justify-center gap-1" title="Системний препарат не можна видалити">🔒 Системний</button>`;
                 
             panel.innerHTML = `
@@ -6052,11 +6059,12 @@
             document.getElementById('form-add-product').reset();
             document.getElementById('add-prod-id').value = '';
             document.getElementById('product-modal-title').innerText = "➕ Новий препарат";
+            handleProductTypeChange();
             
             if (prefilledName) {
                 document.getElementById('add-prod-name').value = prefilledName;
                 document.getElementById('add-prod-category').value = prefilledCategory;
-                // Auto-trigger autocomplete logic
+                handleProductCategoryChange();
                 handleAddProductNameInput();
             }
             
@@ -6374,24 +6382,43 @@
         function deleteProduct(id) {
             const p = productDB.find(prod => prod.id === id);
             if (!p) return;
-            if (!p.isCustom) {
+            
+            const isDefaultOverride = defaultProductDB.some(d => d.id === id);
+            if (!p.isCustom && !isDefaultOverride) {
                 showToast('Системні препарати не можна видаляти.', 'error');
                 return;
             }
             
-            if (confirm(`Ви впевнені, що хочете видалити препарат «${p.name}» з бази?`)) {
-                productDB = productDB.filter(prod => prod.id !== id);
-                saveProductDB();
-                renderProductGrid();
+            const confirmMsg = isDefaultOverride 
+                ? `Ви впевнені, що хочете скинути налаштування препарату «${p.name}» до початкових?`
+                : `Ви впевнені, що хочете видалити препарат «${p.name}» з бази?`;
                 
-                document.getElementById('prod-details-panel').innerHTML = `
-                    <div class="text-center text-stone-300 py-32">
-                        <span class="text-7xl block mb-4 opacity-20">🗄</span>
-                        <p class="font-black text-sm uppercase tracking-widest opacity-40">Виберіть препарат зі списку</p>
-                    </div>
-                `;
-                
-                showToast(`Препарат «${p.name}» видалено з бази.`, 'info');
+            if (confirm(confirmMsg)) {
+                if (isDefaultOverride) {
+                    // Restore from defaultProductDB
+                    const original = defaultProductDB.find(d => d.id === id);
+                    const idx = productDB.findIndex(prod => prod.id === id);
+                    if (idx > -1 && original) {
+                        productDB[idx] = JSON.parse(JSON.stringify(original));
+                    }
+                    showToast(`Налаштування препарату «${p.name}» скинуто до початкових.`, 'success');
+                    saveProductDB();
+                    renderProductGrid();
+                    selectProduct(id);
+                } else {
+                    // Delete completely
+                    productDB = productDB.filter(prod => prod.id !== id);
+                    showToast(`Препарат «${p.name}» видалено з бази.`, 'info');
+                    saveProductDB();
+                    renderProductGrid();
+                    activeProduct = null;
+                    document.getElementById('prod-details-panel').innerHTML = `
+                        <div class="text-center text-stone-300 py-32">
+                            <span class="text-7xl block mb-4 opacity-20">🗄</span>
+                            <p class="font-black text-sm uppercase tracking-widest opacity-40">Виберіть препарат зі списку</p>
+                        </div>
+                    `;
+                }
                 
                 // Sync with NPK calculator if it's a fertilizer
                 if (p.type === 'fertilizer' || p.category.includes('fertilizer')) {
