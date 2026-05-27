@@ -3852,19 +3852,25 @@
             
             const savedLocalSat = localStorage.getItem('user-local-sat');
             if (savedLocalSat) {
-                document.getElementById('sat-check-local-sat').value = savedLocalSat;
+                const localSatInput = document.getElementById('sat-check-local-sat');
+                if (localSatInput) localSatInput.value = savedLocalSat;
             }
             
             runSatSuitabilityCheck();
         }
 
         function runSatSuitabilityCheck() {
-            const nameInput = document.getElementById('sat-check-name').value.trim();
-            const localValInput = parseFloat(document.getElementById('sat-check-local-sat').value) || (thermalMode === 'sat' ? 2700 : 1200);
+            const nameInputEl = document.getElementById('sat-check-name');
+            if (!nameInputEl) return;
+            const nameInput = nameInputEl.value.trim();
+            
+            const localSatEl = document.getElementById('sat-check-local-sat');
+            const localValInput = localSatEl ? (parseFloat(localSatEl.value) || (thermalMode === 'sat' ? 2700 : 1200)) : (thermalMode === 'sat' ? 2700 : 1200);
             
             localStorage.setItem('user-local-sat', localValInput);
             
             const resultCard = document.getElementById('sat-check-result-card');
+            if (!resultCard) return;
             
             if (!nameInput) {
                 resultCard.innerHTML = `
