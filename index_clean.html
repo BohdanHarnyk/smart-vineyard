@@ -1431,9 +1431,42 @@
                             </ol>
                         </div>
                     </div>
-            </div>
+                </div>
 
-            <!-- Database Backup & Restore Panel -->
+                <!-- Accordion 7 -->
+                <div class="guide-accordion-item bg-white rounded-3xl border border-stone-200/60 shadow-sm transition-all hover:border-emerald-300">
+                    <button onclick="toggleGuideAccordion(6)" class="w-full p-6 text-left flex justify-between items-center gap-4">
+                        <span class="text-sm font-black text-emerald-950 flex items-center gap-2">
+                            🗄 База препаратів & Керування складом (CRUD)
+                        </span>
+                        <span class="accordion-chevron text-stone-400 font-black">▼</span>
+                    </button>
+                    <div class="accordion-content-wrapper">
+                        <div class="p-6 pt-0 border-t border-stone-100 text-xs text-stone-700 leading-relaxed space-y-3 font-medium">
+                            <p><strong>Суть модуля:</strong> Ведення власного реєстру засобів захисту рослин (ЗЗР), добрив та стимуляторів. Це дозволяє синхронізувати ваші препарати з калькулятором бакових сумішей та калькулятором добрив NPK.</p>
+                            <p><strong>Покрокова інструкція:</strong></p>
+                            <ol class="list-decimal pl-5 space-y-1.5">
+                                <li><strong>Перегляд та фільтрація:</strong> Перейдіть у вкладку "База препаратів". Ви побачите повний перелік наявних засобів, які можна фільтрувати за категоріями (Фунгіциди, Інсектициди, Азотні добрива тощо).</li>
+                                <li><strong>Створення нового препарату:</strong> Натисніть кнопку <code>➕ Додати препарат</code>. У вікні, що відкрилося:
+                                    <ul class="list-disc pl-5 mt-1 space-y-1">
+                                        <li>Введіть назву (наприклад, <em>«Скор 250 EC»</em>).</li>
+                                        <li>Ви можете скористатися кнопкою <code>✨ Завантажити з AI</code>: штучний інтелект автоматично знайде в інтернеті та заповнить діючу речовину, сумісність, норми витрат та рН-рекомендації для цього препарату.</li>
+                                        <li>Для добрив обов'язково вкажіть відсотковий вміст NPK (азот, фосфор, калій), щоб калькулятор міг використовувати це добриво в розрахунках.</li>
+                                        <li>Натисніть "Зберегти". Новий препарат миттєво з'явиться в базі та буде доступний для вибору в калькуляторах.</li>
+                                    </ul>
+                                </li>
+                                <li><strong>Редагування препаратів:</strong> Натисніть на будь-який препарат та оберіть <code>✏️ Редагувати</code>, щоб змінити діючу речовину чи дозування.</li>
+                                <li><strong>Видалення та Скидання (Reset to Default):</strong>
+                                    <ul class="list-disc pl-5 mt-1 space-y-1">
+                                        <li><strong>Для користувацьких препаратів:</strong> кнопка 🗑️ видаляє їх назавжди.</li>
+                                        <li><strong>Для системних препаратів (вбудованих за замовчуванням):</strong> замість повного видалення кнопка виконує роль <code>Скинути до початкового</code>. Вона очищує ваші локальні зміни та повертає опис препарату до стандартного заводського стану.</li>
+                                    </ul>
+                                </li>
+                            </ol>
+                        </div>
+                    </div>
+                </div>
+            </div>
             <div class="bg-stone-900 text-white p-8 rounded-[40px] shadow-2xl space-y-6 mt-8">
                 <div class="flex items-center gap-4">
                     <span class="text-3xl">💾</span>
