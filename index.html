@@ -1594,6 +1594,42 @@
 
 
 
+                        <!-- Modal: Swap Product (Alternative Selection) -->
+            <div id="modal-swap-product" class="fixed inset-0 bg-stone-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+                <div class="bg-white w-full max-w-md rounded-[32px] p-6 shadow-2xl border border-stone-200/50 space-y-4 max-h-[90vh] overflow-y-auto custom-scrollbar">
+                    <div class="flex justify-between items-center border-b border-stone-100 pb-3">
+                        <h3 class="text-sm font-black text-emerald-950 uppercase tracking-wider">🔄 Заміна препарату</h3>
+                        <button type="button" onclick="closeSwapModal()" class="text-stone-400 hover:text-stone-600 text-lg">✕</button>
+                    </div>
+                    
+                    <div class="space-y-4">
+                        <div class="p-3.5 bg-stone-50 rounded-2xl border border-stone-200/60 text-xs">
+                            <span class="block text-[9px] font-black text-stone-400 uppercase tracking-widest mb-1">Оригінальний препарат:</span>
+                            <div class="flex justify-between items-center">
+                                <span id="swap-orig-name" class="font-extrabold text-stone-850 text-sm">Хорус 75 WG</span>
+                                <span id="swap-orig-dosage" class="text-[10px] bg-stone-200 text-stone-700 px-2 py-0.5 rounded-md font-bold">0.3 г/л</span>
+                            </div>
+                        </div>
+                        
+                        <div class="space-y-2">
+                            <span class="block text-[9px] font-black text-stone-400 uppercase tracking-widest">Доступні альтернативи (збіг спектру):</span>
+                            <div id="swap-alternatives-list" class="space-y-2 max-h-[250px] overflow-y-auto pr-1 custom-scrollbar">
+                                <!-- Generated Dynamically -->
+                            </div>
+                        </div>
+                        
+                        <div class="flex gap-2 pt-2">
+                            <button onclick="confirmProductSwap()" class="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white py-3 rounded-2xl font-black text-xs uppercase tracking-wider transition-all shadow-sm">
+                                Підтвердити
+                            </button>
+                            <button id="btn-reset-swap" onclick="resetProductSwap()" class="bg-rose-50 hover:bg-rose-100 text-rose-600 border border-rose-200/50 px-4 py-3 rounded-2xl text-xs font-black uppercase tracking-wider transition-all">
+                                Скинути
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
             <!-- Modal: Add Custom Product -->
             <div id="modal-add-product" class="fixed inset-0 bg-stone-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
                 <div class="bg-white w-full max-w-md rounded-[32px] p-6 shadow-2xl border border-stone-200/50 space-y-4 max-h-[90vh] overflow-y-auto custom-scrollbar">
@@ -2170,181 +2206,48 @@
             return 7;
         }
 
-        function selectStep(id) {
-            currentActivePhase = Number(id);
-            renderPhaseNav();
-            const s = phasesData[id];
-            
-            // Generate checklist state if not exists or lengths changed
-            if (!phaseChecklists[id] || phaseChecklists[id].length !== s.protectionActions.length) {
-                phaseChecklists[id] = Array(s.protectionActions.length).fill(false);
+                // --- PHASE THREATS DATABASE ---
+        const phaseThreats = {
+            1: {
+                disorders: { name: "Хлороз, підмерзання", desc: "Хлороз через низьку температуру ґрунту (залізне голодування), весняні заморозки.", keyword: "селітра" },
+                pathogens: { name: "Чорна плямистість, оїдіум", desc: "Активація зимуючих спор фомопсису та оїдіуму на корі.", keyword: "оїдіум" },
+                pests: { name: "Бруньковий кліщ", desc: "Зимуючий кліщ прокидається та пошкоджує лусочки бруньок.", keyword: "кліщ" }
+            },
+            2: {
+                disorders: { name: "Азотне/Магнієве голодування", desc: "Світлішання листя через швидкий ріст за нестачі поживних речовин.", keyword: "азот" },
+                pathogens: { name: "Антракноз, оїдіум", desc: "Первинні інфекції антракнозу та оїдіуму на молодих пагонах.", keyword: "оїдіум" },
+                pests: { name: "Павутинний кліщ, цикадки", desc: "Вихід кліщів на нижню сторону листя, початок льоту цикадок.", keyword: "кліщ" }
+            },
+            3: {
+                disorders: { name: "Осипання зав'язі (дефіцит Бору)", desc: "Погане запліднення через брак бору та холодну погоду.", keyword: "бор" },
+                pathogens: { name: "Мілдью, оїдіум, чорна гниль", desc: "Критичний період зараження майбутніх грон мілдью та оїдіумом.", keyword: "мілдью" },
+                pests: { name: "Гронова листовійка", desc: "Літ першого покоління метеликів, відкладання яєць у суцвіття.", keyword: "листовійка" }
+            },
+            4: {
+                disorders: { name: "Сонячні опіки, дефіцит Кальцію", desc: "Опіки ягід при різкому підвищенні температур, нестача еластичності шкірки.", keyword: "кальцій" },
+                pathogens: { name: "Мілдью, оїдіум, антракноз", desc: "Швидке ураження молодої ягоди грибками при високій вологості.", keyword: "мілдью" },
+                pests: { name: "Павутинний кліщ, совки", desc: "Збільшення популяції павутинного кліща на листі, гусінь совок.", keyword: "кліщ" }
+            },
+            5: {
+                disorders: { name: "Калієве голодування", desc: "Крайовий некроз листя через перенаправлення калію в ягоди.", keyword: "калій" },
+                pathogens: { name: "Сіра гниль, оїдіум", desc: "Розвиток сірої гнилі всередині грон, які закриваються для провітрювання.", keyword: "сіра гниль" },
+                pests: { name: "Гронова листовійка (2-ге покоління)", desc: "Пошкодження ягід гусеницями другого покоління, що веде до гнилей.", keyword: "листовійка" }
+            },
+            6: {
+                disorders: { name: "Розтріскування ягід, дефіцит Са", desc: "Тріск ягід після дощів через слабкі стінки клітин та надлишок вологи.", keyword: "кальцій" },
+                pathogens: { name: "Сіра та біла гнилі, оїдіум", desc: "Зараження дозріваючих грон через тріщини ягід, спалахи оїдіуму.", keyword: "сіра гниль" },
+                pests: { name: "Оси, птахи, цикадка Меткальфа", desc: "Пошкодження ягід осами, птахами; виділення липкої роси цикадками.", keyword: "оси" }
+            },
+            7: {
+                disorders: { name: "Невизрівання лози", desc: "Погане накопичення крохмалю, ризик вимерзання через слабке визрівання пагонів.", keyword: "калій" },
+                pathogens: { name: "Зимуючі стадії патогенів", desc: "Концентрація спор мілдью та оїдіуму на опалому листі та лозі.", keyword: "залізний купорос" },
+                pests: { name: "Зимуючі шкідники під корою", desc: "Шкідники шукають укриття під корою та в ґрунті.", keyword: "кора" }
             }
-            if (!phaseNutritionChecklists[id] || phaseNutritionChecklists[id].length !== s.nutritionActions.length) {
-                phaseNutritionChecklists[id] = Array(s.nutritionActions.length).fill(false);
-            }
-            
-            const checkedCount = phaseChecklists[id].filter(Boolean).length;
-            const percent = s.protectionActions.length ? Math.round((checkedCount / s.protectionActions.length) * 100) : 0;
+        };
 
-            const nutritionCheckedCount = phaseNutritionChecklists[id].filter(Boolean).length;
-            const nutritionPercent = s.nutritionActions.length ? Math.round((nutritionCheckedCount / s.nutritionActions.length) * 100) : 0;
-
-            // Forecast calculations
-            const prediction = getPhasePrediction(id);
-            let predictionHTML = '';
-            if (prediction.reached) {
-                predictionHTML = `
-                    <span class="inline-flex items-center gap-1 bg-emerald-100 text-emerald-800 text-[10px] font-black px-2.5 py-1 rounded-lg border border-emerald-200 mt-1">
-                        ✅ ${prediction.text}
-                    </span>
-                `;
-            } else {
-                predictionHTML = `
-                    <span class="inline-flex items-center gap-1 bg-amber-100 text-amber-800 text-[10px] font-black px-2.5 py-1 rounded-lg border border-amber-200 mt-1">
-                        ⏳ ${prediction.text}
-                    </span>
-                `;
-            }
-
-            const protTipsHTML = s.protectionTips.map(tip => `<li class="flex items-start gap-2 text-stone-600 text-xs"><span class="text-emerald-500">💡</span><span>${tip}</span></li>`).join('');
-            const nutrTipsHTML = s.nutritionTips.map(tip => `<li class="flex items-start gap-2 text-stone-600 text-xs"><span class="text-emerald-500">💡</span><span>${tip}</span></li>`).join('');
-
-            document.getElementById('phase-content').innerHTML = `
-                <div class="fade-in h-full flex flex-col justify-between">
-                    <div>
-                        <div class="flex justify-between items-start mb-6 border-b border-emerald-100 pb-6 pb-6">
-                            <div>
-                                <h2 class="text-3xl font-black text-emerald-950">${s.title}</h2>
-                                <div class="flex flex-col gap-1 mt-1">
-                                    <p class="text-emerald-600 font-bold uppercase tracking-widest text-xs">📅 Орієнтовний термін: ${s.time}</p>
-                                    <div>${predictionHTML}</div>
-                                </div>
-                            </div>
-                            <span class="text-6xl opacity-20">${s.icon}</span>
-                        </div>
-                        
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                            <!-- Left: Protection and Action Steps -->
-                            <div class="space-y-6">
-                                <div class="bg-emerald-900 text-white p-5 rounded-3xl shadow-lg border-b-4 border-emerald-700">
-                                    <span class="text-[9px] font-black uppercase text-emerald-300 tracking-wider">🛡️ Захисний Баковий Коктейль (дозування на 10л)</span>
-                                    <p class="text-sm font-bold mt-1">${s.mix}</p>
-                                </div>
-
-                                <!-- Collapsible Recommendations -->
-                                <div class="bg-emerald-50/50 p-4 rounded-2xl border border-emerald-100/50">
-                                    <details class="group">
-                                        <summary class="flex justify-between items-center cursor-pointer select-none text-xs font-black uppercase text-emerald-800 tracking-wider">
-                                            <span>💡 Рекомендації та замітки</span>
-                                            <span class="transition-transform group-open:rotate-180">▼</span>
-                                        </summary>
-                                        <ul class="mt-3 space-y-2 pl-1">
-                                            ${protTipsHTML || '<li class="text-stone-400 text-xs italic">Специфічні рекомендації відсутні</li>'}
-                                        </ul>
-                                    </details>
-                                </div>
-                                
-                                <div>
-                                    <div class="flex justify-between items-center mb-3">
-                                        <span class="text-xs font-black uppercase text-stone-500 tracking-wider">📋 Операційні завдання (Захист)</span>
-                                        <span class="text-xs font-black text-emerald-600">${percent}% виконано</span>
-                                    </div>
-                                    <ul class="space-y-2.5">
-                                        ${s.protectionActions.map((act, idx) => {
-                                            const isChecked = phaseChecklists[id][idx] ? 'checked' : '';
-                                            const key = `${id}-${idx}`;
-                                            const dateVal = phaseChecklistDates[key] || '';
-                                            return `
-                                                <li class="flex flex-col bg-stone-50 p-3.5 rounded-2xl border border-stone-200/60 hover:bg-emerald-50/20 transition-all select-none">
-                                                    <div class="flex items-start gap-3 cursor-pointer" onclick="togglePhaseStep(${id}, ${idx})">
-                                                        <input type="checkbox" ${isChecked} class="w-4 h-4 mt-0.5 rounded border-stone-300 text-emerald-600 focus:ring-emerald-500 pointer-events-none">
-                                                        <div class="text-xs text-stone-700 font-medium ${isChecked ? 'line-through opacity-50' : ''}">
-                                                            <div class="font-bold text-emerald-950">${act.work}</div>
-                                                            <div class="text-[10px] text-stone-500 mt-1 flex flex-wrap gap-1">
-                                                                <span class="bg-stone-250/70 px-1.5 py-0.5 rounded">Препарат: <b>${act.product}</b></span>
-                                                                <span class="bg-stone-250/70 px-1.5 py-0.5 rounded">Доза: <b>${act.dosage}</b></span>
-                                                                <span class="bg-stone-250/70 px-1.5 py-0.5 rounded">Метод: <b>${act.method}</b></span>
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                    ${isChecked ? `
-                                                    <div class="flex items-center gap-2 pl-7 mt-2" onclick="event.stopPropagation()">
-                                                        <span class="text-[9px] font-black uppercase text-emerald-700 bg-emerald-100/70 px-2 py-0.5 rounded-md">Дата виконання:</span>
-                                                        <input type="date" value="${dateVal}" onchange="updatePhaseStepDate(${id}, ${idx}, false, this.value); event.stopPropagation();" class="bg-transparent border-0 p-0 text-emerald-800 text-[11px] font-black outline-none cursor-pointer focus:underline w-28">
-                                                    </div>
-                                                    ` : ''}
-                                                </li>
-                                            `;
-                                        }).join('')}
-                                    </ul>
-                                </div>
-                            </div>
-                            
-                            <!-- Right: Nutrition, pH, and notes -->
-                            <div class="bg-emerald-50/50 p-6 rounded-[30px] border border-emerald-100/80 flex flex-col justify-between">
-                                <div class="space-y-4">
-                                    <div>
-                                        <span class="text-[10px] font-black uppercase text-emerald-700 block mb-2 tracking-widest">💧 Кореневе & Позакореневе Живлення</span>
-                                        <p class="text-xs text-stone-700 leading-relaxed font-semibold bg-white p-4 rounded-2xl border border-emerald-100 shadow-sm">${s.nutrition}</p>
-                                    </div>
-
-                                    <!-- Collapsible Recommendations -->
-                                    <div class="bg-white/80 p-4 rounded-2xl border border-emerald-100/40">
-                                        <details class="group">
-                                            <summary class="flex justify-between items-center cursor-pointer select-none text-xs font-black uppercase text-emerald-850 tracking-wider">
-                                                <span>💡 Технологічні замітки</span>
-                                                <span class="transition-transform group-open:rotate-180">▼</span>
-                                            </summary>
-                                            <ul class="mt-3 space-y-2 pl-1">
-                                                ${nutrTipsHTML || '<li class="text-stone-400 text-xs italic">Специфічні замітки відсутні</li>'}
-                                            </ul>
-                                        </details>
-                                    </div>
-                                    
-                                    <div>
-                                        <div class="flex justify-between items-center mb-3">
-                                            <span class="text-xs font-black uppercase text-stone-500 tracking-wider">📋 Операційні завдання (Живлення)</span>
-                                            <span class="text-xs font-black text-emerald-600">${nutritionPercent}% виконано</span>
-                                        </div>
-                                        <ul class="space-y-2.5">
-                                            ${s.nutritionActions.map((act, idx) => {
-                                                const isChecked = phaseNutritionChecklists[id][idx] ? 'checked' : '';
-                                                const key = `${id}-${idx}`;
-                                                const dateVal = phaseNutritionChecklistDates[key] || '';
-                                                return `
-                                                    <li class="flex flex-col bg-white p-3.5 rounded-2xl border border-stone-200/60 hover:bg-emerald-50/20 transition-all select-none">
-                                                        <div class="flex items-start gap-3 cursor-pointer" onclick="toggleNutritionPhaseStep(${id}, ${idx})">
-                                                            <input type="checkbox" ${isChecked} class="w-4 h-4 mt-0.5 rounded border-stone-300 text-emerald-600 focus:ring-emerald-500 pointer-events-none">
-                                                            <div class="text-xs text-stone-700 font-medium ${isChecked ? 'line-through opacity-50' : ''}">
-                                                                <div class="font-bold text-emerald-950">${act.work}</div>
-                                                                <div class="text-[10px] text-stone-500 mt-1 flex flex-wrap gap-1">
-                                                                    <span class="bg-stone-100 px-1.5 py-0.5 rounded">Препарат: <b>${act.product}</b></span>
-                                                                    <span class="bg-stone-100 px-1.5 py-0.5 rounded">Доза: <b>${act.dosage}</b></span>
-                                                                    <span class="bg-stone-100 px-1.5 py-0.5 rounded">Метод: <b>${act.method}</b></span>
-                                                                </div>
-                                                            </div>
-                                                        </div>
-                                                        ${isChecked ? `
-                                                        <div class="flex items-center gap-2 pl-7 mt-2" onclick="event.stopPropagation()">
-                                                            <span class="text-[9px] font-black uppercase text-emerald-700 bg-emerald-100/70 px-2 py-0.5 rounded-md">Дата виконання:</span>
-                                                            <input type="date" value="${dateVal}" onchange="updatePhaseStepDate(${id}, ${idx}, true, this.value); event.stopPropagation();" class="bg-transparent border-0 p-0 text-emerald-800 text-[11px] font-black outline-none cursor-pointer focus:underline w-28">
-                                                        </div>
-                                                        ` : ''}
-                                                    </li>
-                                                `;
-                                            }).join('')}
-                                        </ul>
-                                    </div>
-                                </div>
-                                <div class="mt-6 bg-white/60 p-4 rounded-2xl border border-emerald-100 text-[10px] text-emerald-800 font-medium italic">
-                                    💡 Рекомендація: Завжди заміряйте рН робочого розчину перед обприскуванням. Оптимальний рівень для бакових сумішей: 5.5 - 6.0.
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            `;
-        }
+        let phaseSwaps = {};
+        let activeSwapContext = null;
+        let selectedAlternativeId = null;
 
         const phaseSatTargets = {
             1: 0,
@@ -2447,294 +2350,625 @@
             }
         }
 
-        function toggleDataManagement() {
-            const body = document.getElementById('data-mgmt-body');
-            const chevron = document.getElementById('data-mgmt-chevron');
-            if (!body) return;
+        function getProductTargets(p) {
+            if (p.targets && p.targets.length > 0) return p.targets;
             
-            const isCollapsed = body.classList.contains('max-h-0');
-            if (isCollapsed) {
-                body.classList.remove('max-h-0', 'opacity-0');
-                body.classList.add('max-h-[850px]', 'opacity-100');
-                if (chevron) chevron.classList.add('rotate-180');
-            } else {
-                body.classList.remove('max-h-[850px]', 'opacity-100');
-                body.classList.add('max-h-0', 'opacity-0');
-                if (chevron) chevron.classList.remove('rotate-180');
-            }
+            const text = (p.applicationScope || '').toLowerCase();
+            const targets = [];
+            if (text.includes('оїдіум') || text.includes('оідіум')) targets.push('оїдіум');
+            if (text.includes('мілдью')) targets.push('мілдью');
+            if (text.includes('сір') || text.includes('гниль') || text.includes('ботритис')) targets.push('сіра гниль');
+            if (text.includes('кліщ')) targets.push('кліщі');
+            if (text.includes('листовійк')) targets.push('листовійка');
+            if (text.includes('азот') || text.includes('селітра') || text.includes('карбамід')) targets.push('азотне живлення');
+            if (text.includes('калій') || text.includes('монофосфат')) targets.push('калійне живлення');
+            if (text.includes('фосфор') || text.includes('суперфосфат')) targets.push('фосфорне живлення');
+            if (text.includes('корен')) targets.push('ріст коренів');
+            return targets;
         }
 
-        let isSyncingWeather = false;
+        function getMatchingProductsFromDB(productString) {
+            const list = getProductDB();
+            const matches = [];
+            list.forEach(p => {
+                if (productString.toLowerCase().includes(p.name.toLowerCase()) || 
+                    p.name.toLowerCase().includes(productString.toLowerCase())) {
+                    matches.push(p);
+                }
+            });
+            return matches;
+        }
 
-        async function syncWeather(forceRefresh = false) {
-            if (isSyncingWeather) {
-                showToast('Синхронізація вже триває...', 'warning');
+        function getAlternativesForProduct(productString, blockType) {
+            const allProducts = getProductDB();
+            const origMatched = getMatchingProductsFromDB(productString);
+            
+            let origTargets = [];
+            let origType = blockType === 'protection' ? 'ppp' : 'fertilizer';
+            
+            if (origMatched.length > 0) {
+                origMatched.forEach(p => {
+                    origTargets = origTargets.concat(getProductTargets(p));
+                });
+                origTargets = [...new Set(origTargets)];
+                origType = origMatched[0].type;
+            } else {
+                const text = productString.toLowerCase();
+                if (text.includes('оїдіум') || text.includes('оідіум')) origTargets.push('оїдіум');
+                if (text.includes('мілдью')) origTargets.push('мілдью');
+                if (text.includes('сір') || text.includes('гниль') || text.includes('ботритис')) origTargets.push('сіра гниль');
+                if (text.includes('кліщ')) origTargets.push('кліщі');
+                if (text.includes('листовійк')) origTargets.push('листовійка');
+                if (text.includes('азот') || text.includes('селітра') || text.includes('карбамід')) origTargets.push('азотне живлення');
+                if (text.includes('калій') || text.includes('монофосфат')) origTargets.push('калійне живлення');
+                if (text.includes('фосфор') || text.includes('суперфосфат')) origTargets.push('фосфорне живлення');
+            }
+            
+            return allProducts.filter(p => {
+                if (origMatched.some(om => om.id === p.id)) return false;
+                if (p.type !== origType) return false;
+                const pTargets = getProductTargets(p);
+                return pTargets.some(t => origTargets.includes(t));
+            });
+        }
+
+        function parseDosageValueAndUnit(dosageStr) {
+            const match = dosageStr.match(/^\s*([\d\.]+)\s*([a-zA-Zа-яА-ЯіїєІЇЄ]+)(.*)$/);
+            if (match) {
+                return {
+                    value: parseFloat(match[1]),
+                    unit: match[2],
+                    suffix: match[3] || ''
+                };
+            }
+            return null;
+        }
+
+        function parseAndScaleFallbackDosage(origDosageStr, altProduct) {
+            const is10L = origDosageStr.includes('10л');
+            const isPerLiter = origDosageStr.includes('/л') || origDosageStr.includes('на 1л') || origDosageStr.includes('/ 1л');
+            
+            const altDosageL = altProduct.dosage.perLiter;
+            const altDosageHa = altProduct.dosage.perHectare;
+            const altDosageBush = altProduct.dosage.perBush;
+            
+            if (is10L && altDosageL && altDosageL !== '—') {
+                const nums = altDosageL.match(/[\d\.]+/g);
+                if (nums && nums.length > 0) {
+                    const scaled = nums.map(n => parseFloat(n) * 10);
+                    const unitMatch = altDosageL.match(/[a-zA-Zа-яА-ЯіїєІЇЄ]+/);
+                    const unit = unitMatch ? unitMatch[0] : 'г';
+                    if (scaled.length > 1) {
+                        return `${scaled[0]}-${scaled[1]}${unit}/10л`;
+                    }
+                    return `${scaled[0]}${unit}/10л`;
+                }
+            }
+            
+            if (isPerLiter && altDosageL && altDosageL !== '—') {
+                return altDosageL;
+            }
+            
+            if (origDosageStr.includes('га') && altDosageHa && altDosageHa !== '—') {
+                return altDosageHa;
+            }
+            
+            if (origDosageStr.includes('кущ') && altDosageBush && altDosageBush !== '—') {
+                return altDosageBush;
+            }
+            
+            return altDosageL || altDosageHa || altDosageBush || "За інструкцією";
+        }
+
+        function calculateSwappedDosage(origProductName, origDosageStr, altProduct) {
+            const db = getProductDB();
+            const origProductObj = db.find(p => p.name.toLowerCase() === origProductName.toLowerCase() || origProductName.toLowerCase().includes(p.name.toLowerCase()));
+            
+            if (!origProductObj) {
+                return parseAndScaleFallbackDosage(origDosageStr, altProduct);
+            }
+            
+            const parsedOrig = parseDosageValueAndUnit(origDosageStr);
+            if (!parsedOrig) {
+                return parseAndScaleFallbackDosage(origDosageStr, altProduct);
+            }
+            
+            if (origProductObj.type === 'fertilizer' && altProduct.type === 'fertilizer') {
+                const npkA = origProductObj.composition.npk;
+                const npkB = altProduct.composition.npk;
+                if (npkA && npkB) {
+                    const maxVal = Math.max(npkA.n, npkA.p, npkA.k);
+                    let nutrientKey = '';
+                    if (maxVal > 0) {
+                        if (maxVal === npkA.n) nutrientKey = 'n';
+                        else if (maxVal === npkA.p) nutrientKey = 'p';
+                        else if (maxVal === npkA.k) nutrientKey = 'k';
+                    }
+                    if (nutrientKey && npkB[nutrientKey] > 0) {
+                        const ratio = npkA[nutrientKey] / npkB[nutrientKey];
+                        const newValue = parseFloat((parsedOrig.value * ratio).toFixed(2));
+                        return `${newValue}${parsedOrig.unit}${parsedOrig.suffix}`;
+                    }
+                }
+            }
+            
+            if (origProductObj.type === 'ppp' && altProduct.type === 'ppp') {
+                const aiA = origProductObj.composition.activeIngredients || [];
+                const aiB = altProduct.composition.activeIngredients || [];
+                
+                let sharedA = null;
+                let sharedB = null;
+                for (const a of aiA) {
+                    const b = aiB.find(x => x.name.toLowerCase() === a.name.toLowerCase() || 
+                                           a.name.toLowerCase().includes(x.name.toLowerCase()) || 
+                                           x.name.toLowerCase().includes(a.name.toLowerCase()));
+                    if (b) {
+                        sharedA = a;
+                        sharedB = b;
+                        break;
+                    }
+                }
+                
+                if (sharedA && sharedB && sharedA.percent > 0 && sharedB.percent > 0) {
+                    const ratio = sharedA.percent / sharedB.percent;
+                    const newValue = parseFloat((parsedOrig.value * ratio).toFixed(2));
+                    return `${newValue}${parsedOrig.unit}${parsedOrig.suffix}`;
+                }
+            }
+            
+            return parseAndScaleFallbackDosage(origDosageStr, altProduct);
+        }
+
+        function openAlternativeMenu(event, phaseId, actionIdx, blockType, origProduct) {
+            event.stopPropagation();
+            const s = phasesData[phaseId];
+            const actions = blockType === 'protection' ? s.protectionActions : s.nutritionActions;
+            
+            const origAct = actions[actionIdx];
+            const origDosage = origAct.dosage;
+            
+            activeSwapContext = { phaseId, actionIdx, blockType, origProduct, origDosage };
+            
+            document.getElementById('swap-orig-name').innerText = origProduct;
+            document.getElementById('swap-orig-dosage').innerText = origDosage;
+            
+            const key = `${phaseId}-${blockType}-${origProduct}`;
+            const existingSwap = phaseSwaps[key];
+            
+            const listContainer = document.getElementById('swap-alternatives-list');
+            listContainer.innerHTML = '';
+            
+            const alts = getAlternativesForProduct(origProduct, blockType);
+            
+            if (alts.length === 0) {
+                listContainer.innerHTML = `
+                    <div class="text-center text-stone-300 py-8">
+                        <span class="text-4xl block mb-2 opacity-30">🤷‍♂️</span>
+                        <p class="font-black text-[10px] uppercase tracking-widest opacity-40">Аналогічних препаратів не знайдено</p>
+                        <p class="text-[9px] opacity-70 mt-1">Додайте аналоги в базу з такою ж сферою дії.</p>
+                    </div>
+                `;
+                document.getElementById('btn-reset-swap').classList.add('hidden');
+            } else {
+                document.getElementById('btn-reset-swap').classList.toggle('hidden', !existingSwap);
+                selectedAlternativeId = existingSwap ? existingSwap.swappedId : null;
+                
+                alts.forEach(alt => {
+                    const isSelected = existingSwap && existingSwap.swappedId === alt.id;
+                    const calculatedDosage = calculateSwappedDosage(origProduct, origDosage, alt);
+                    
+                    const radioId = `alt-${alt.id}`;
+                    listContainer.innerHTML += `
+                        <label class="flex items-start gap-3 p-3 rounded-xl border border-stone-200 hover:border-emerald-500 hover:bg-emerald-50/10 transition-all cursor-pointer select-none">
+                            <input type="radio" name="alternative-product" id="${radioId}" value="${alt.id}" ${isSelected ? 'checked' : ''} onchange="selectedAlternativeId = '${alt.id}'" class="mt-0.5 text-emerald-600 focus:ring-emerald-500 w-4 h-4">
+                            <div class="text-xs">
+                                <div class="font-black text-emerald-950">${alt.name}</div>
+                                <div class="text-[10px] text-stone-500 mt-0.5">${alt.applicationScope}</div>
+                                <div class="mt-1 flex items-center gap-1.5 flex-wrap">
+                                    <span class="text-[9px] bg-stone-150 text-stone-600 px-1.5 py-0.5 rounded font-semibold">Нова доза: <b>${calculatedDosage}</b></span>
+                                    ${alt.composition.npk ? `<span class="text-[9px] bg-stone-150 text-stone-600 px-1.5 py-0.5 rounded font-semibold">NPK: <b>${alt.composition.npk.n}-${alt.composition.npk.p}-${alt.composition.npk.k}</b></span>` : ''}
+                                </div>
+                            </div>
+                        </label>
+                    `;
+                });
+            }
+            
+            document.getElementById('modal-swap-product').classList.remove('hidden');
+        }
+
+        function closeSwapModal() {
+            document.getElementById('modal-swap-product').classList.add('hidden');
+            activeSwapContext = null;
+            selectedAlternativeId = null;
+        }
+
+        function confirmProductSwap() {
+            if (!activeSwapContext) return;
+            if (!selectedAlternativeId) {
+                showToast('Виберіть альтернативний препарат зі списку.', 'warning');
                 return;
             }
-            isSyncingWeather = true;
-
-            const latInput = document.getElementById('weather-lat');
-            const lonInput = document.getElementById('weather-lon');
-            const lat = parseFloat(latInput.value) || 49.23;
-            const lon = parseFloat(lonInput.value) || 28.46;
             
-            localStorage.setItem('weather-lat', lat);
-            localStorage.setItem('weather-lon', lon);
-
-            const btn = document.getElementById('btn-sync-sat');
-            const spinner = document.getElementById('sync-sat-spinner');
+            const { phaseId, actionIdx, blockType, origProduct, origDosage } = activeSwapContext;
+            const alt = getProductDB().find(p => p.id === selectedAlternativeId);
+            if (!alt) return;
             
-            if (btn) btn.disabled = true;
-            if (spinner) spinner.classList.remove('hidden');
+            const calculatedDosage = calculateSwappedDosage(origProduct, origDosage, alt);
+            const key = `${phaseId}-${blockType}-${origProduct}`;
             
-            // Check cache (unless forceRefresh is true)
-            if (!forceRefresh) {
-                const cacheTimestamp = localStorage.getItem('viticulture-weather-sat-sync-timestamp');
-                const savedLat = localStorage.getItem('weather-lat-saved');
-                const savedLon = localStorage.getItem('weather-lon-saved');
-                const satHistoryStr = localStorage.getItem('satHistory');
-                const forecastDailyTempsStr = localStorage.getItem('forecastDailyTemps');
-                
-                if (cacheTimestamp && satHistoryStr && forecastDailyTempsStr && savedLat && savedLon) {
-                    const ageMs = Date.now() - parseInt(cacheTimestamp);
-                    if (ageMs < 1.5 * 60 * 60 * 1000 && parseFloat(savedLat) === lat && parseFloat(savedLon) === lon) {
-                        satHistory = JSON.parse(satHistoryStr);
-                        forecastDailyTemps = JSON.parse(forecastDailyTempsStr);
-                        recalculateSAT();
-                        updateFrostWarning();
-                        const minsAgo = Math.round(ageMs / 60000);
-                        showToast(`Кешовані дані САТ (${minsAgo} хв тому з Open-Meteo). ${satHistory.length} днів.`, 'info');
-                        
-                        isSyncingWeather = false;
-                        if (btn) btn.disabled = false;
-                        if (spinner) spinner.classList.add('hidden');
-                        return;
-                    }
-                }
-            }
+            phaseSwaps[key] = {
+                swappedId: alt.id,
+                product: alt.name,
+                dosage: calculatedDosage
+            };
             
-            try {
-                const todayObj = new Date();
-                let year = todayObj.getFullYear();
-                
-                let isCurrentYear = true;
-                if (todayObj.getMonth() < 3) {
-                    year = year - 1;
-                    isCurrentYear = false;
-                }
-                
-                const startDate = `${year}-04-01`;
-                let endArchiveDate;
-                
-                if (isCurrentYear) {
-                    const threeDaysAgoObj = new Date(todayObj.getTime() - 3 * 24 * 60 * 60 * 1000);
-                    endArchiveDate = threeDaysAgoObj.toISOString().split('T')[0];
-                } else {
-                    endArchiveDate = `${year}-10-31`;
-                }
-                
-                let archiveJson = null;
-                if (endArchiveDate >= startDate) {
-                    try {
-                        const archiveUrl = `https://archive-api.open-meteo.com/v1/archive?latitude=${lat}&longitude=${lon}&start_date=${startDate}&end_date=${endArchiveDate}&daily=temperature_2m_mean&timezone=auto`;
-                        const archiveRes = await fetch(archiveUrl);
-                        if (archiveRes.ok) {
-                            archiveJson = await archiveRes.json();
-                        } else {
-                            console.warn('Failed to fetch from Archive API status code:', archiveRes.status);
-                        }
-                    } catch (archiveErr) {
-                        console.error('Archive API fetch failed:', archiveErr);
-                    }
-                }
-                
-                let forecastJson = null;
-                if (isCurrentYear) {
-                    try {
-                        let pastDays = 7;
-                        if (!archiveJson) {
-                            const startDateObj = new Date(year, 3, 1); // April 1st
-                            const timeDiff = todayObj.getTime() - startDateObj.getTime();
-                            const daysDiff = Math.ceil(timeDiff / (1000 * 60 * 60 * 24));
-                            pastDays = Math.min(92, Math.max(7, daysDiff + 1));
-                        }
-                        const forecastUrl = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&daily=temperature_2m_mean,temperature_2m_min&past_days=${pastDays}&forecast_days=14&timezone=auto`;
-                        const forecastRes = await fetch(forecastUrl);
-                        if (forecastRes.ok) {
-                            forecastJson = await forecastRes.json();
-                        } else {
-                            console.warn('Failed to fetch from Forecast API status code:', forecastRes.status);
-                        }
-                    } catch (forecastErr) {
-                        console.error('Forecast API fetch failed:', forecastErr);
-                    }
-                }
-                
-                const mergedData = new Map();
-                const mergedMinData = new Map();
-                
-                if (archiveJson && archiveJson.daily && archiveJson.daily.time) {
-                    for (let i = 0; i < archiveJson.daily.time.length; i++) {
-                        const date = archiveJson.daily.time[i];
-                        const temp = archiveJson.daily.temperature_2m_mean[i];
-                        if (temp !== null && temp !== undefined) {
-                            mergedData.set(date, temp);
-                        }
-                    }
-                }
-                
-                if (forecastJson && forecastJson.daily && forecastJson.daily.time) {
-                    for (let i = 0; i < forecastJson.daily.time.length; i++) {
-                        const date = forecastJson.daily.time[i];
-                        const temp = forecastJson.daily.temperature_2m_mean[i];
-                        if (temp !== null && temp !== undefined) {
-                            mergedData.set(date, temp);
-                        }
-                        if (forecastJson.daily.temperature_2m_min) {
-                            const minTemp = forecastJson.daily.temperature_2m_min[i];
-                            if (minTemp !== null && minTemp !== undefined) {
-                                mergedMinData.set(date, minTemp);
-                            }
-                        }
-                    }
-                }
-                
-                const todayStr = todayObj.toISOString().split('T')[0];
-                const sortedDates = Array.from(mergedData.keys()).sort();
-                
-                const newSatHistory = [];
-                const newForecastDailyTemps = [];
-                
-                sortedDates.forEach(date => {
-                    const temp = mergedData.get(date);
-                    if (date <= todayStr) {
-                        if (temp >= 10) {
-                            const contribution = parseFloat(temp.toFixed(1));
-                            const dateObj = new Date(date);
-                            const formattedDate = dateObj.toLocaleDateString('uk-UA', { day: '2-digit', month: '2-digit' });
-                            newSatHistory.push({
-                                rawDate: date,
-                                date: formattedDate,
-                                temp: temp,
-                                contribution: contribution
-                            });
-                        }
-                    } else {
-                        const minTemp = mergedMinData.get(date);
-                        newForecastDailyTemps.push({
-                            rawDate: date,
-                            temp: temp,
-                            minTemp: minTemp !== undefined ? minTemp : temp
-                        });
+            localStorage.setItem('viticulture-phase-swaps', JSON.stringify(phaseSwaps));
+            showToast(`Препарат «${origProduct}» успішно замінено на «${alt.name}» із розрахунком дозування: ${calculatedDosage}`, 'success');
+            
+            closeSwapModal();
+            selectStep(phaseId);
+            
+            setTimeout(() => {
+                const elements = document.querySelectorAll('.phase-action-item');
+                elements.forEach(el => {
+                    const dataProd = el.getAttribute('data-product');
+                    if (dataProd && dataProd.toLowerCase().includes(alt.name.toLowerCase())) {
+                        el.classList.add('ring-2', 'ring-amber-500', 'bg-amber-50/50', 'border-amber-400', 'scale-[1.01]', 'shadow-md');
+                        setTimeout(() => {
+                            el.classList.remove('ring-2', 'ring-amber-500', 'bg-amber-50/50', 'border-amber-400', 'scale-[1.01]', 'shadow-md');
+                        }, 3000);
                     }
                 });
+            }, 100);
+        }
+
+        function resetProductSwap() {
+            if (!activeSwapContext) return;
+            const { phaseId, blockType, origProduct } = activeSwapContext;
+            const key = `${phaseId}-${blockType}-${origProduct}`;
+            
+            if (phaseSwaps[key]) {
+                delete phaseSwaps[key];
+                localStorage.setItem('viticulture-phase-swaps', JSON.stringify(phaseSwaps));
+                showToast(`Заміну для препарату «${origProduct}» скинуто до початкових налаштувань.`, 'info');
+            }
+            
+            closeSwapModal();
+            selectStep(phaseId);
+        }
+
+        function highlightThreatTreatment(threatKeyword) {
+            if (!threatKeyword) return;
+            const items = document.querySelectorAll('.phase-action-item');
+            let foundCount = 0;
+            
+            items.forEach(el => {
+                const prodName = el.getAttribute('data-product') || '';
+                const origProdName = el.getAttribute('data-orig-product') || '';
                 
-                if (newSatHistory.length === 0 && newForecastDailyTemps.length === 0) {
-                    throw new Error('Отримано порожні дані погоди.');
+                const pObj = getProductDB().find(p => p.name.toLowerCase() === prodName.toLowerCase() || p.name.toLowerCase() === origProdName.toLowerCase());
+                const targets = pObj ? getProductTargets(pObj) : [];
+                
+                const isMatch = targets.some(t => t.toLowerCase().includes(threatKeyword.toLowerCase()) || threatKeyword.toLowerCase().includes(t.toLowerCase())) ||
+                                prodName.toLowerCase().includes(threatKeyword.toLowerCase()) ||
+                                origProdName.toLowerCase().includes(threatKeyword.toLowerCase());
+                                
+                if (isMatch) {
+                    foundCount++;
+                    el.classList.add('ring-2', 'ring-emerald-500', 'bg-emerald-50/40', 'border-emerald-400', 'scale-[1.01]', 'shadow-md');
+                    el.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+                    
+                    setTimeout(() => {
+                        el.classList.remove('ring-2', 'ring-emerald-500', 'bg-emerald-50/40', 'border-emerald-400', 'scale-[1.01]', 'shadow-md');
+                    }, 5000);
                 }
-                
-                satHistory = newSatHistory;
-                forecastDailyTemps = newForecastDailyTemps;
-                
-                localStorage.setItem('satHistory', JSON.stringify(satHistory));
-                localStorage.setItem('forecastDailyTemps', JSON.stringify(forecastDailyTemps));
-                localStorage.setItem('weather-lat-saved', lat);
-                localStorage.setItem('weather-lon-saved', lon);
-                localStorage.setItem('viticulture-weather-sat-sync-timestamp', Date.now().toString());
-                
-                recalculateSAT();
-                updateFrostWarning();
-                showToast(`Синхронізацію САТ завершено! Отримано ${satHistory.length} днів спостережень.`, 'success');
-                
-            } catch (err) {
-                console.error(err);
-                showToast(`Не вдалося синхронізувати дані САТ: ${err.message}`, 'error');
-            } finally {
-                isSyncingWeather = false;
-                if (btn) btn.disabled = false;
-                if (spinner) spinner.classList.add('hidden');
+            });
+            
+            if (foundCount > 0) {
+                showToast(`Знайдено ${foundCount} засобів профілактики/лікування. Вони виділені рамкою!`, 'success');
+            } else {
+                showToast(`Для загрози "${threatKeyword}" немає явних засобів у поточному списку фази. Скористайтеся базою препаратів для підбору.`, 'info');
             }
         }
 
-        async function syncCurrentWeather(forceRefresh = false) {
-            const lat = parseFloat(document.getElementById('weather-lat').value) || 49.23;
-            const lon = parseFloat(document.getElementById('weather-lon').value) || 28.46;
+        function splitMix(str) {
+            if (!str) return [];
+            if (str.includes('+')) return str.split('+').map(s => s.trim());
+            if (str.includes('/')) return str.split('/').map(s => s.trim());
+            return [str.trim()];
+        }
+
+
+        function selectStep(id) {
+            currentActivePhase = Number(id);
+            renderPhaseNav();
+            const s = phasesData[id];
             
-            const btn = document.getElementById('btn-sync-current-weather');
-            const btnMgmt = document.getElementById('btn-sync-current-weather-mgmt');
-            const spinner = document.getElementById('sync-current-spinner');
-            const spinnerMgmt = document.getElementById('sync-current-spinner-mgmt');
+            // Generate checklist state if not exists or lengths changed
+            if (!phaseChecklists[id] || phaseChecklists[id].length !== s.protectionActions.length) {
+                phaseChecklists[id] = Array(s.protectionActions.length).fill(false);
+            }
+            if (!phaseNutritionChecklists[id] || phaseNutritionChecklists[id].length !== s.nutritionActions.length) {
+                phaseNutritionChecklists[id] = Array(s.nutritionActions.length).fill(false);
+            }
             
-            // Check cache
-            const cacheStr = localStorage.getItem('viticulture-weather-current-cache');
-            if (!forceRefresh && cacheStr) {
-                try {
-                    const cache = JSON.parse(cacheStr);
-                    const ageMs = Date.now() - cache.timestamp;
-                    if (ageMs < 1.5 * 60 * 60 * 1000 && cache.lat === lat && cache.lon === lon) {
-                        document.getElementById('disease-temp').value = cache.temp;
-                        document.getElementById('disease-rain').value = cache.rain;
-                        document.getElementById('disease-humidity').value = cache.humidity;
-                        
-                        calculateDiseaseRisk();
-                        
-                        const minsAgo = Math.round(ageMs / 60000);
-                        showToast(`Використано кеш погоди (отримано ${minsAgo} хв тому з Open-Meteo): ${cache.temp}°C, вологість ${cache.humidity}%, опади ${cache.rain} мм`, 'info');
-                        return;
-                    }
-                } catch(e) { console.error(e); }
+            const checkedCount = phaseChecklists[id].filter(Boolean).length;
+            const percent = s.protectionActions.length ? Math.round((checkedCount / s.protectionActions.length) * 100) : 0;
+
+            const nutritionCheckedCount = phaseNutritionChecklists[id].filter(Boolean).length;
+            const nutritionPercent = s.nutritionActions.length ? Math.round((nutritionCheckedCount / s.nutritionActions.length) * 100) : 0;
+
+            // Forecast calculations
+            const prediction = getPhasePrediction(id);
+            let predictionHTML = '';
+            if (prediction.reached) {
+                predictionHTML = `
+                    <span class="inline-flex items-center gap-1 bg-emerald-100 text-emerald-800 text-[10px] font-black px-2.5 py-1 rounded-lg border border-emerald-200 mt-1">
+                        ✅ ${prediction.text}
+                    </span>
+                `;
+            } else {
+                predictionHTML = `
+                    <span class="inline-flex items-center gap-1 bg-amber-100 text-amber-800 text-[10px] font-black px-2.5 py-1 rounded-lg border border-amber-200 mt-1">
+                        ⏳ ${prediction.text}
+                    </span>
+                `;
             }
 
-            if (btn) btn.disabled = true;
-            if (btnMgmt) btnMgmt.disabled = true;
-            if (spinner) spinner.classList.remove('hidden');
-            if (spinnerMgmt) spinnerMgmt.classList.remove('hidden');
+            const protTipsHTML = s.protectionTips.map(tip => `<li class="flex items-start gap-2 text-stone-600 text-xs"><span class="text-emerald-500">💡</span><span>${tip}</span></li>`).join('');
+            const nutrTipsHTML = s.nutritionTips.map(tip => `<li class="flex items-start gap-2 text-stone-600 text-xs"><span class="text-emerald-500">💡</span><span>${tip}</span></li>`).join('');
+
+            // --- Potential Threats HTML ---
+            const threat = phaseThreats[id] || {
+                disorders: { name: "Невідомо", desc: "Дані про порушення відсутні.", keyword: "" },
+                pathogens: { name: "Невідомо", desc: "Дані про хвороби відсутні.", keyword: "" },
+                pests: { name: "Невідомо", desc: "Дані про шкідників відсутні.", keyword: "" }
+            };
             
-            try {
-                const url = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,relative_humidity_2m&daily=precipitation_sum&timezone=auto`;
-                const res = await fetch(url);
-                if (!res.ok) throw new Error('Помилка сервера погоди');
-                const data = await res.json();
-                
-                if (data.current) {
-                    const temp = Math.round(data.current.temperature_2m);
-                    const humidity = Math.round(data.current.relative_humidity_2m);
-                    let rain = 0;
-                    if (data.daily && data.daily.precipitation_sum && data.daily.precipitation_sum.length > 0) {
-                        rain = Math.round(data.daily.precipitation_sum[0]);
-                    }
-                    
-                    document.getElementById('disease-temp').value = temp;
-                    document.getElementById('disease-rain').value = rain;
-                    document.getElementById('disease-humidity').value = humidity;
-                    
-                    calculateDiseaseRisk();
-                    
-                    // Save to cache
-                    const newCache = {
-                        timestamp: Date.now(),
-                        lat,
-                        lon,
-                        temp,
-                        humidity,
-                        rain
-                    };
-                    localStorage.setItem('viticulture-weather-current-cache', JSON.stringify(newCache));
-                    
-                    showToast(`Дані погоди оновлено успішно! Температура: ${temp}°C, вологість: ${humidity}%, опади за сьогодні: ${rain} мм`, 'success');
-                } else {
-                    throw new Error('Невірний формат відповіді API');
-                }
-            } catch (err) {
-                console.error(err);
-                showToast(`Не вдалося завантажити поточну погоду: ${err.message}`, 'error');
-            } finally {
-                if (btn) btn.disabled = false;
-                if (btnMgmt) btnMgmt.disabled = false;
-                if (spinner) spinner.classList.add('hidden');
-                if (spinnerMgmt) spinnerMgmt.classList.add('hidden');
-            }
+            const threatHTML = `
+                <!-- Potential Threats & Risks Widget -->
+                <div class="mb-6 bg-stone-50 border border-stone-200/60 p-5 rounded-[28px] shadow-sm">
+                    <span class="text-[10px] font-black uppercase text-amber-700 block mb-3 tracking-widest flex items-center gap-1.5 select-none">
+                        <span>⚠️</span> Потенційні загрози та ризики фази
+                    </span>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <!-- Physiological Disorders -->
+                        <div class="bg-white p-4 rounded-2xl border border-stone-100 shadow-sm flex flex-col justify-between gap-3">
+                            <div>
+                                <span class="block opacity-50 font-black text-[9px] uppercase tracking-wider text-stone-400 mb-1 select-none">🧪 Фізіологічні розлади & дефіцити</span>
+                                <h4 class="font-extrabold text-stone-850 text-xs">${threat.disorders.name}</h4>
+                                <p class="text-[10px] text-stone-500 mt-1 leading-relaxed">${threat.disorders.desc}</p>
+                            </div>
+                            <button onclick="highlightThreatTreatment('${threat.disorders.keyword}')" class="w-full mt-1 bg-stone-50 hover:bg-emerald-50 hover:text-emerald-700 text-stone-500 py-2 rounded-xl text-[10px] font-black uppercase tracking-wider border border-stone-200/50 hover:border-emerald-300 transition-all flex items-center justify-center gap-1 cursor-pointer">
+                                🩺 Протокол захисту
+                            </button>
+                        </div>
+                        
+                        <!-- Pathogens -->
+                        <div class="bg-white p-4 rounded-2xl border border-stone-100 shadow-sm flex flex-col justify-between gap-3">
+                            <div>
+                                <span class="block opacity-50 font-black text-[9px] uppercase tracking-wider text-stone-400 mb-1 select-none">🍄 Патогенні ризики (хвороби)</span>
+                                <h4 class="font-extrabold text-stone-850 text-xs">${threat.pathogens.name}</h4>
+                                <p class="text-[10px] text-stone-500 mt-1 leading-relaxed">${threat.pathogens.desc}</p>
+                            </div>
+                            <button onclick="highlightThreatTreatment('${threat.pathogens.keyword}')" class="w-full mt-1 bg-stone-50 hover:bg-emerald-50 hover:text-emerald-700 text-stone-500 py-2 rounded-xl text-[10px] font-black uppercase tracking-wider border border-stone-200/50 hover:border-emerald-300 transition-all flex items-center justify-center gap-1 cursor-pointer">
+                                🩺 Протокол захисту
+                            </button>
+                        </div>
+                        
+                        <!-- Pests -->
+                        <div class="bg-white p-4 rounded-2xl border border-stone-100 shadow-sm flex flex-col justify-between gap-3">
+                            <div>
+                                <span class="block opacity-50 font-black text-[9px] uppercase tracking-wider text-stone-400 mb-1 select-none">🕷️ Шкідники (комахи/кліщі)</span>
+                                <h4 class="font-extrabold text-stone-850 text-xs">${threat.pests.name}</h4>
+                                <p class="text-[10px] text-stone-500 mt-1 leading-relaxed">${threat.pests.desc}</p>
+                            </div>
+                            <button onclick="highlightThreatTreatment('${threat.pests.keyword}')" class="w-full mt-1 bg-stone-50 hover:bg-emerald-50 hover:text-emerald-700 text-stone-500 py-2 rounded-xl text-[10px] font-black uppercase tracking-wider border border-stone-200/50 hover:border-emerald-300 transition-all flex items-center justify-center gap-1 cursor-pointer">
+                                🩺 Протокол захисту
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            document.getElementById('phase-content').innerHTML = `
+                <div class="fade-in h-full flex flex-col justify-between">
+                    <div>
+                        <div class="flex justify-between items-start mb-6 border-b border-emerald-100 pb-6">
+                            <div>
+                                <h2 class="text-3xl font-black text-emerald-950">${s.title}</h2>
+                                <div class="flex flex-col gap-1 mt-1">
+                                    <p class="text-emerald-600 font-bold uppercase tracking-widest text-xs">📅 Орієнтовний термін: ${s.time}</p>
+                                    <div>${predictionHTML}</div>
+                                </div>
+                            </div>
+                            <span class="text-6xl opacity-20">${s.icon}</span>
+                        </div>
+                        
+                        ${threatHTML}
+                        
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <!-- Left: Protection and Action Steps -->
+                            <div class="space-y-6">
+                                <div class="bg-emerald-900 text-white p-5 rounded-3xl shadow-lg border-b-4 border-emerald-700">
+                                    <span class="text-[9px] font-black uppercase text-emerald-300 tracking-wider">🛡️ Захисний Баковий Коктейль (дозування на 10л)</span>
+                                    <p class="text-sm font-bold mt-1">${s.mix}</p>
+                                </div>
+
+                                <!-- Collapsible Recommendations -->
+                                <div class="bg-emerald-50/50 p-4 rounded-2xl border border-emerald-100/50">
+                                    <details class="group">
+                                        <summary class="flex justify-between items-center cursor-pointer select-none text-xs font-black uppercase text-emerald-800 tracking-wider">
+                                            <span>💡 Рекомендації та замітки</span>
+                                            <span class="transition-transform group-open:rotate-180">▼</span>
+                                        </summary>
+                                        <ul class="mt-3 space-y-2 pl-1">
+                                            ${protTipsHTML || '<li class="text-stone-400 text-xs italic">Специфічні рекомендації відсутні</li>'}
+                                        </ul>
+                                    </details>
+                                </div>
+                                
+                                <div>
+                                    <div class="flex justify-between items-center mb-3">
+                                        <span class="text-xs font-black uppercase text-stone-500 tracking-wider">📋 Operational tasks (Protection)</span>
+                                        <span class="text-xs font-black text-emerald-600">${percent}% виконано</span>
+                                    </div>
+                                    <ul class="space-y-2.5">
+                                        ${s.protectionActions.map((act, idx) => {
+                                            const isChecked = phaseChecklists[id][idx] ? 'checked' : '';
+                                            const key = `${id}-${idx}`;
+                                            const dateVal = phaseChecklistDates[key] || '';
+                                            
+                                            // Dynamic Product & Dosage Replacement
+                                            const parts = splitMix(act.product);
+                                            const dosages = splitMix(act.dosage);
+                                            
+                                            let productHTML = '';
+                                            let dosageHTML = '';
+                                            let displayProductText = '';
+                                            
+                                            parts.forEach((p, pIdx) => {
+                                                const swapKey = `${id}-protection-${p}`;
+                                                const swap = phaseSwaps[swapKey];
+                                                const activeProduct = swap ? swap.product : p;
+                                                const activeDosage = swap ? swap.dosage : (dosages[pIdx] || '—');
+                                                
+                                                displayProductText += (pIdx > 0 ? ' + ' : '') + activeProduct;
+                                                const dosageClass = swap ? 'text-amber-600 font-black' : 'font-bold';
+                                                
+                                                productHTML += (pIdx > 0 ? ' <span class="opacity-50">+</span> ' : '') + `
+                                                    <button onclick="openAlternativeMenu(event, ${id}, ${idx}, 'protection', '${p}')" class="underline text-emerald-700 hover:text-emerald-950 font-black cursor-pointer text-left" title="Натисніть для заміни препарату">
+                                                        ${activeProduct} 🔄
+                                                    </button>
+                                                `;
+                                                
+                                                dosageHTML += (pIdx > 0 ? ' + ' : '') + `
+                                                    <span class="${dosageClass}">${activeDosage}</span>
+                                                `;
+                                            });
+
+                                            return `
+                                                <li class="flex flex-col bg-stone-50 p-3.5 rounded-2xl border border-stone-200/60 hover:bg-emerald-50/20 transition-all select-none phase-action-item" data-product="${displayProductText}" data-orig-product="${act.product}">
+                                                    <div class="flex items-start gap-3 cursor-pointer" onclick="togglePhaseStep(${id}, ${idx})">
+                                                        <input type="checkbox" ${isChecked} class="w-4 h-4 mt-0.5 rounded border-stone-300 text-emerald-600 focus:ring-emerald-500 pointer-events-none">
+                                                        <div class="text-xs text-stone-700 font-medium ${isChecked ? 'line-through opacity-50' : ''}">
+                                                            <div class="font-bold text-emerald-950">${act.work}</div>
+                                                            <div class="text-[10px] text-stone-500 mt-1 flex flex-wrap gap-1">
+                                                                <span class="bg-stone-250/70 px-1.5 py-0.5 rounded">Препарат: ${productHTML}</span>
+                                                                <span class="bg-stone-250/70 px-1.5 py-0.5 rounded">Доза: <b>${dosageHTML}</b></span>
+                                                                <span class="bg-stone-250/70 px-1.5 py-0.5 rounded">Метод: <b>${act.method}</b></span>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                    ${isChecked ? `
+                                                    <div class="flex items-center gap-2 pl-7 mt-2" onclick="event.stopPropagation()">
+                                                        <span class="text-[9px] font-black uppercase text-emerald-700 bg-emerald-100/70 px-2 py-0.5 rounded-md">Дата виконання:</span>
+                                                        <input type="date" value="${dateVal}" onchange="updatePhaseStepDate(${id}, ${idx}, false, this.value); event.stopPropagation();" class="bg-transparent border-0 p-0 text-emerald-800 text-[11px] font-black outline-none cursor-pointer focus:underline w-28">
+                                                    </div>
+                                                    ` : ''}
+                                                </li>
+                                            `;
+                                        }).join('')}
+                                    </ul>
+                                </div>
+                            </div>
+                            
+                            <!-- Right: Nutrition, pH, and notes -->
+                            <div class="bg-emerald-50/50 p-6 rounded-[30px] border border-emerald-100/80 flex flex-col justify-between">
+                                <div class="space-y-4">
+                                    <div>
+                                        <span class="text-[10px] font-black uppercase text-emerald-700 block mb-2 tracking-widest">💧 Кореневе & Позакореневе Живлення</span>
+                                        <p class="text-xs text-stone-700 leading-relaxed font-semibold bg-white p-4 rounded-2xl border border-emerald-100 shadow-sm">${s.nutrition}</p>
+                                    </div>
+
+                                    <!-- Collapsible Recommendations -->
+                                    <div class="bg-white/80 p-4 rounded-2xl border border-emerald-100/40">
+                                        <details class="group">
+                                            <summary class="flex justify-between items-center cursor-pointer select-none text-xs font-black uppercase text-emerald-850 tracking-wider">
+                                                <span>💡 Технологічні замітки</span>
+                                                <span class="transition-transform group-open:rotate-180">▼</span>
+                                            </summary>
+                                            <ul class="mt-3 space-y-2 pl-1">
+                                                ${nutrTipsHTML || '<li class="text-stone-400 text-xs italic">Специфічні замітки відсутні</li>'}
+                                            </ul>
+                                        </details>
+                                    </div>
+                                    
+                                    <div>
+                                        <div class="flex justify-between items-center mb-3">
+                                            <span class="text-xs font-black uppercase text-stone-500 tracking-wider">📋 Operational tasks (Nutrition)</span>
+                                            <span class="text-xs font-black text-emerald-600">${nutritionPercent}% виконано</span>
+                                        </div>
+                                        <ul class="space-y-2.5">
+                                            ${s.nutritionActions.map((act, idx) => {
+                                                const isChecked = phaseNutritionChecklists[id][idx] ? 'checked' : '';
+                                                const key = `${id}-${idx}`;
+                                                const dateVal = phaseNutritionChecklistDates[key] || '';
+                                                
+                                                // Dynamic Product & Dosage Replacement
+                                                const parts = splitMix(act.product);
+                                                const dosages = splitMix(act.dosage);
+                                                
+                                                let productHTML = '';
+                                                let dosageHTML = '';
+                                                let displayProductText = '';
+                                                
+                                                parts.forEach((p, pIdx) => {
+                                                    const swapKey = `${id}-nutrition-${p}`;
+                                                    const swap = phaseSwaps[swapKey];
+                                                    const activeProduct = swap ? swap.product : p;
+                                                    const activeDosage = swap ? swap.dosage : (dosages[pIdx] || '—');
+                                                    
+                                                    displayProductText += (pIdx > 0 ? ' + ' : '') + activeProduct;
+                                                    const dosageClass = swap ? 'text-amber-600 font-black' : 'font-bold';
+                                                    
+                                                    productHTML += (pIdx > 0 ? ' <span class="opacity-50">+</span> ' : '') + `
+                                                        <button onclick="openAlternativeMenu(event, ${id}, ${idx}, 'nutrition', '${p}')" class="underline text-emerald-700 hover:text-emerald-950 font-black cursor-pointer text-left" title="Натисніть для заміни препарату">
+                                                            ${activeProduct} 🔄
+                                                        </button>
+                                                    `;
+                                                    
+                                                    dosageHTML += (pIdx > 0 ? ' + ' : '') + `
+                                                        <span class="${dosageClass}">${activeDosage}</span>
+                                                    `;
+                                                });
+
+                                                return `
+                                                    <li class="flex flex-col bg-white p-3.5 rounded-2xl border border-stone-200/60 hover:bg-emerald-50/20 transition-all select-none phase-action-item" data-product="${displayProductText}" data-orig-product="${act.product}">
+                                                        <div class="flex items-start gap-3 cursor-pointer" onclick="toggleNutritionPhaseStep(${id}, ${idx})">
+                                                            <input type="checkbox" ${isChecked} class="w-4 h-4 mt-0.5 rounded border-stone-300 text-emerald-600 focus:ring-emerald-500 pointer-events-none">
+                                                            <div class="text-xs text-stone-700 font-medium ${isChecked ? 'line-through opacity-50' : ''}">
+                                                                <div class="font-bold text-emerald-950">${act.work}</div>
+                                                                <div class="text-[10px] text-stone-500 mt-1 flex flex-wrap gap-1">
+                                                                    <span class="bg-stone-100 px-1.5 py-0.5 rounded">Препарат: ${productHTML}</span>
+                                                                    <span class="bg-stone-100 px-1.5 py-0.5 rounded">Доза: <b>${dosageHTML}</b></span>
+                                                                    <span class="bg-stone-100 px-1.5 py-0.5 rounded">Метод: <b>${act.method}</b></span>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                        ${isChecked ? `
+                                                        <div class="flex items-center gap-2 pl-7 mt-2" onclick="event.stopPropagation()">
+                                                            <span class="text-[9px] font-black uppercase text-emerald-700 bg-emerald-100/70 px-2 py-0.5 rounded-md">Дата виконання:</span>
+                                                            <input type="date" value="${dateVal}" onchange="updatePhaseStepDate(${id}, ${idx}, true, this.value); event.stopPropagation();" class="bg-transparent border-0 p-0 text-emerald-800 text-[11px] font-black outline-none cursor-pointer focus:underline w-28">
+                                                        </div>
+                                                        ` : ''}
+                                                    </li>
+                                                `;
+                                            }).join('')}
+                                        </ul>
+                                    </div>
+                                </div>
+                                <div class="mt-6 bg-white/60 p-4 rounded-2xl border border-emerald-100 text-[10px] text-emerald-800 font-medium italic">
+                                    💡 Рекомендація: Завжди заміряйте рН робочого розчину перед обприскуванням. Оптимальний рівень для бакових сумішей: 5.5 - 6.0.
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
         }
+
 
         function togglePhaseStep(phaseId, stepIdx) {
             if (!phaseChecklists[phaseId]) {
@@ -5860,45 +6094,45 @@
         // === PRODUCT DATABASE SYSTEM (Module 5) ===
         const defaultProductDB = [
             // Fertilizers (Dry / Liquid)
-            { id: "p1", name: "Карбамід (Сечовина)", category: "n_fertilizer", type: "fertilizer", composition: { activeIngredients: [], npk: { n: 46, p: 0, k: 0 }, micronutrients: {} }, dosage: { perLiter: "1.5-2.0 г/л", perHectare: "15-20 кг/га", perBush: "15-30 г" }, applicationScope: "Азотне живлення, прискорення росту пагонів", compatibility: { compatible: ["Аміачна селітра", "Плантафол"], incompatible: ["Кальцієва селітра"], notes: "Не змішувати з кальцієвими добривами." }, techSpecs: { waitPeriod: "—", maxTreatments: 4, tempRange: "10-25°C", phOptimal: "6.0-7.0" } },
-            { id: "p2", name: "Аміачна селітра", category: "n_fertilizer", type: "fertilizer", composition: { activeIngredients: [], npk: { n: 34, p: 0, k: 0 }, micronutrients: {} }, dosage: { perLiter: "2.0-3.0 г/л", perHectare: "20-30 кг/га", perBush: "20-30 г" }, applicationScope: "Ранньовесняний старт, азотне підживлення", compatibility: { compatible: ["Сульфат амонію"], incompatible: ["Суперфосфат"], notes: "Не змішувати з суперфосфатом заздалегідь." }, techSpecs: { waitPeriod: "—", maxTreatments: 3, tempRange: "5-20°C", phOptimal: "5.5-6.5" } },
-            { id: "p3", name: "Кальцієва селітра", category: "n_fertilizer", type: "fertilizer", composition: { activeIngredients: [], npk: { n: 15, p: 0, k: 0 }, micronutrients: { "Ca": 27 } }, dosage: { perLiter: "2.0 г/л", perHectare: "20 кг/га", perBush: "20 г" }, applicationScope: "Профілактика вершинної гнилі, зміцнення шкірки ягід", compatibility: { compatible: ["Брексил Ca"], incompatible: ["Сульфат калію", "Монофосфат калію"], notes: "Утворює осад при змішуванні з сульфатами і фосфатами." }, techSpecs: { waitPeriod: "—", maxTreatments: 3, tempRange: "10-25°C", phOptimal: "6.0-6.5" } },
-            { id: "p4", name: "Монофосфат калію", category: "pk_fertilizer", type: "fertilizer", composition: { activeIngredients: [], npk: { n: 0, p: 52, k: 34 }, micronutrients: {} }, dosage: { perLiter: "2.0-4.0 г/л", perHectare: "20-40 кг/га", perBush: "30 г" }, applicationScope: "Визрівання лози, накопичення цукрів у ягодах", compatibility: { compatible: ["Сульфат калію", "Плантафол 5-15-45"], incompatible: ["Кальцієва селітра", "Брексил Ca"], notes: "Не змішувати з кальцієвими препаратами." }, techSpecs: { waitPeriod: "—", maxTreatments: 5, tempRange: "10-25°C", phOptimal: "5.5-6.0" } },
-            { id: "p5", name: "Сульфат калію", category: "pk_fertilizer", type: "fertilizer", composition: { activeIngredients: [], npk: { n: 0, p: 0, k: 50 }, micronutrients: {} }, dosage: { perLiter: "2.0-3.0 г/л", perHectare: "20-30 кг/га", perBush: "30 г" }, applicationScope: "Калійне живлення, посухостійкість, якість ягід", compatibility: { compatible: ["Монофосфат калію"], incompatible: ["Кальцієва селітра"], notes: "Утворює гіпс при змішуванні з кальцієм." }, techSpecs: { waitPeriod: "—", maxTreatments: 4, tempRange: "10-25°C", phOptimal: "5.8-6.5" } },
-            { id: "p6", name: "YaraMila Complex", category: "complex_fertilizer", type: "fertilizer", composition: { activeIngredients: [], npk: { n: 12, p: 11, k: 18 }, micronutrients: { "Mg": 2.7, "S": 20 } }, dosage: { perLiter: "—", perHectare: "150-300 кг/га", perBush: "50-80 г" }, applicationScope: "Основне ґрунтове внесення навесні", compatibility: { compatible: [], incompatible: [], notes: "Вноситься безпосередньо в ґрунт." }, techSpecs: { waitPeriod: "—", maxTreatments: 1, tempRange: "—", phOptimal: "6.0-6.8" } },
-            { id: "p7", name: "Нітроамофоска (16-16-16)", category: "complex_fertilizer", type: "fertilizer", composition: { activeIngredients: [], npk: { n: 16, p: 16, k: 16 }, micronutrients: {} }, dosage: { perLiter: "—", perHectare: "200-300 кг/га", perBush: "40-50 г" }, applicationScope: "Весняне комплексне підживлення виноградника", compatibility: { compatible: [], incompatible: [], notes: "Сухе внесення під перекопування." }, techSpecs: { waitPeriod: "—", maxTreatments: 2, tempRange: "—", phOptimal: "6.0-7.0" } },
-            { id: "p8", name: "Плантафол 20-20-20", category: "complex_fertilizer", type: "fertilizer", composition: { activeIngredients: [], npk: { n: 20, p: 20, k: 20 }, micronutrients: {} }, dosage: { perLiter: "2.0-2.5 г/л", perHectare: "2.0-2.5 кг/га", perBush: "—" }, applicationScope: "Позакореневе збалансоване живлення", compatibility: { compatible: ["Хорус", "Скор", "Актара"], incompatible: ["Лужні препарати"], notes: "Ідеальний партнер для бакових сумішей." }, techSpecs: { waitPeriod: "—", maxTreatments: 3, tempRange: "10-25°C", phOptimal: "6.0-6.5" } },
-            { id: "p9", name: "Плантафол 10-54-10", category: "complex_fertilizer", type: "fertilizer", composition: { activeIngredients: [], npk: { n: 10, p: 54, k: 10 }, micronutrients: {} }, dosage: { perLiter: "2.0-2.5 г/л", perHectare: "2.0-2.5 кг/га", perBush: "—" }, applicationScope: "Стимуляція бутонізації та цвітіння", compatibility: { compatible: ["Хорус", "Борна кислота"], incompatible: ["Кальцієва селітра"], notes: "Підкислює розчин." }, techSpecs: { waitPeriod: "—", maxTreatments: 2, tempRange: "10-25°C", phOptimal: "5.5-6.0" } },
-            { id: "p10", name: "Плантафол 5-15-45", category: "complex_fertilizer", type: "fertilizer", composition: { activeIngredients: [], npk: { n: 5, p: 15, k: 45 }, micronutrients: {} }, dosage: { perLiter: "2.5-3.0 г/л", perHectare: "2.5-3.0 кг/га", perBush: "—" }, applicationScope: "Визрівання ягід, накопичення цукру та калію", compatibility: { compatible: ["Монофосфат калію"], incompatible: ["Кальцієва селітра"], notes: "Вносити у серпні перед збором." }, techSpecs: { waitPeriod: "—", maxTreatments: 3, tempRange: "10-25°C", phOptimal: "6.0-6.2" } },
-            { id: "p11", name: "Калімагнезія", category: "pk_fertilizer", type: "fertilizer", composition: { activeIngredients: [], npk: { n: 0, p: 0, k: 28 }, micronutrients: { "Mg": 10 } }, dosage: { perLiter: "—", perHectare: "150-250 кг/га", perBush: "40 г" }, applicationScope: "Внесення під кущ проти магнієвого хлорозу лози", compatibility: { compatible: [], incompatible: [], notes: "Повільно розчиняється у ґрунті." }, techSpecs: { waitPeriod: "—", maxTreatments: 1, tempRange: "—", phOptimal: "6.2-7.0" } },
-            { id: "p12", name: "Сульфат амонію", category: "n_fertilizer", type: "fertilizer", composition: { activeIngredients: [], npk: { n: 21, p: 0, k: 0 }, micronutrients: { "S": 24 } }, dosage: { perLiter: "2.0-3.0 г/л", perHectare: "20-30 кг/га", perBush: "25 г" }, applicationScope: "Азотно-сірчане живлення, підкислення ґрунту", compatibility: { compatible: ["Суперфосфат"], incompatible: ["Лужні добрива"], notes: "Не змішувати з вапном або золою." }, techSpecs: { waitPeriod: "—", maxTreatments: 3, tempRange: "10-25°C", phOptimal: "5.5-6.5" } },
-            { id: "p13", name: "Натрієва селітра", category: "n_fertilizer", type: "fertilizer", composition: { activeIngredients: [], npk: { n: 16, p: 0, k: 0 }, micronutrients: { "Na": 26 } }, dosage: { perLiter: "1.5-2.0 г/л", perHectare: "15-20 кг/га", perBush: "20 г" }, applicationScope: "Азотне підживлення на кислих ґрунтах", compatibility: { compatible: [], incompatible: [], notes: "Лужне фізіологічно добриво." }, techSpecs: { waitPeriod: "—", maxTreatments: 2, tempRange: "10-25°C", phOptimal: "6.5-7.5" } },
-            { id: "p14", name: "Суперфосфат подвійний", category: "pk_fertilizer", type: "fertilizer", composition: { activeIngredients: [], npk: { n: 0, p: 46, k: 0 }, micronutrients: { "S": 6 } }, dosage: { perLiter: "—", perHectare: "100-200 кг/га", perBush: "30 г" }, applicationScope: "Основне фосфорне живлення для росту коренів", compatibility: { compatible: ["Сульфат калію"], incompatible: ["Аміачна селітра", "Карбамід"], notes: "Уникати передчасного змішування з азотними селітрами." }, techSpecs: { waitPeriod: "—", maxTreatments: 2, tempRange: "—", phOptimal: "6.0-6.8" } },
-            { id: "p15", name: "Суперфосфат простий", category: "pk_fertilizer", type: "fertilizer", composition: { activeIngredients: [], npk: { n: 0, p: 20, k: 0 }, micronutrients: { "Ca": 8, "S": 10 } }, dosage: { perLiter: "—", perHectare: "200-300 кг/га", perBush: "40 г" }, applicationScope: "Джерело фосфору, кальцію та сірки", compatibility: { compatible: ["Сульфат калію"], incompatible: ["Вапно"], notes: "При вапнуванні вносити окремо." }, techSpecs: { waitPeriod: "—", maxTreatments: 2, tempRange: "—", phOptimal: "6.0-6.8" } },
-            { id: "p16", name: "Хлористий калій", category: "pk_fertilizer", type: "fertilizer", composition: { activeIngredients: [], npk: { n: 0, p: 0, k: 60 }, micronutrients: {} }, dosage: { perLiter: "—", perHectare: "100-150 кг/га", perBush: "25 г" }, applicationScope: "Калійне живлення (бажано вносити з осені)", compatibility: { compatible: [], incompatible: [], notes: "Виноград чутливий до хлору, застосовувати обережно." }, techSpecs: { waitPeriod: "—", maxTreatments: 1, tempRange: "—", phOptimal: "6.0-7.0" } },
-            { id: "p17", name: "MAP Амофос", category: "pk_fertilizer", type: "fertilizer", composition: { activeIngredients: [], npk: { n: 12, p: 52, k: 0 }, micronutrients: {} }, dosage: { perLiter: "1.5-2.0 г/л", perHectare: "15-20 кг/га", perBush: "25 г" }, applicationScope: "Концентроване фосфорно-азотне добриво", compatibility: { compatible: ["Сульфат калію"], incompatible: ["Кальцієва селітра"], notes: "Не поєднувати з кальцієм у розчині." }, techSpecs: { waitPeriod: "—", maxTreatments: 3, tempRange: "10-25°C", phOptimal: "5.5-6.5" } },
-            { id: "p18", name: "Діамофос", category: "pk_fertilizer", type: "fertilizer", composition: { activeIngredients: [], npk: { n: 21, p: 53, k: 0 }, micronutrients: {} }, dosage: { perLiter: "1.0-2.0 г/л", perHectare: "10-15 кг/га", perBush: "20 г" }, applicationScope: "Висококонцентроване азотно-фосфорне підживлення", compatibility: { compatible: [], incompatible: ["Кальцієва селітра"], notes: "Утворює осад з кальцієвими добривами." }, techSpecs: { waitPeriod: "—", maxTreatments: 2, tempRange: "10-25°C", phOptimal: "6.0-6.8" } },
-            { id: "p19", name: "Мастер 18-18-18+3", category: "complex_fertilizer", type: "fertilizer", composition: { activeIngredients: [], npk: { n: 18, p: 18, k: 18 }, micronutrients: { "Mg": 3 } }, dosage: { perLiter: "2.0-2.5 г/л", perHectare: "2.0-2.5 кг/га", perBush: "25 г" }, applicationScope: "Комплексне збалансоване добриво з магнієм", compatibility: { compatible: ["Актара", "Скор"], incompatible: ["Лужні препарати"], notes: "Повністю водорозчинне безхлорне добриво." }, techSpecs: { waitPeriod: "—", maxTreatments: 4, tempRange: "10-25°C", phOptimal: "6.0-6.5" } },
+            { id: "p1", targets: ["азотне живлення"],name: "Карбамід (Сечовина)", category: "n_fertilizer", type: "fertilizer", composition: { activeIngredients: [], npk: { n: 46, p: 0, k: 0 }, micronutrients: {} }, dosage: { perLiter: "1.5-2.0 г/л", perHectare: "15-20 кг/га", perBush: "15-30 г" }, applicationScope: "Азотне живлення, прискорення росту пагонів", compatibility: { compatible: ["Аміачна селітра", "Плантафол"], incompatible: ["Кальцієва селітра"], notes: "Не змішувати з кальцієвими добривами." }, techSpecs: { waitPeriod: "—", maxTreatments: 4, tempRange: "10-25°C", phOptimal: "6.0-7.0" } },
+            { id: "p2", targets: ["азотне живлення"],name: "Аміачна селітра", category: "n_fertilizer", type: "fertilizer", composition: { activeIngredients: [], npk: { n: 34, p: 0, k: 0 }, micronutrients: {} }, dosage: { perLiter: "2.0-3.0 г/л", perHectare: "20-30 кг/га", perBush: "20-30 г" }, applicationScope: "Ранньовесняний старт, азотне підживлення", compatibility: { compatible: ["Сульфат амонію"], incompatible: ["Суперфосфат"], notes: "Не змішувати з суперфосфатом заздалегідь." }, techSpecs: { waitPeriod: "—", maxTreatments: 3, tempRange: "5-20°C", phOptimal: "5.5-6.5" } },
+            { id: "p3", targets: ["азотне живлення", "вершинна гниль", "кальцій"],name: "Кальцієва селітра", category: "n_fertilizer", type: "fertilizer", composition: { activeIngredients: [], npk: { n: 15, p: 0, k: 0 }, micronutrients: { "Ca": 27 } }, dosage: { perLiter: "2.0 г/л", perHectare: "20 кг/га", perBush: "20 г" }, applicationScope: "Профілактика вершинної гнилі, зміцнення шкірки ягід", compatibility: { compatible: ["Брексил Ca"], incompatible: ["Сульфат калію", "Монофосфат калію"], notes: "Утворює осад при змішуванні з сульфатами і фосфатами." }, techSpecs: { waitPeriod: "—", maxTreatments: 3, tempRange: "10-25°C", phOptimal: "6.0-6.5" } },
+            { id: "p4", targets: ["калійне живлення", "фосфорне живлення"],name: "Монофосфат калію", category: "pk_fertilizer", type: "fertilizer", composition: { activeIngredients: [], npk: { n: 0, p: 52, k: 34 }, micronutrients: {} }, dosage: { perLiter: "2.0-4.0 г/л", perHectare: "20-40 кг/га", perBush: "30 г" }, applicationScope: "Визрівання лози, накопичення цукрів у ягодах", compatibility: { compatible: ["Сульфат калію", "Плантафол 5-15-45"], incompatible: ["Кальцієва селітра", "Брексил Ca"], notes: "Не змішувати з кальцієвими препаратами." }, techSpecs: { waitPeriod: "—", maxTreatments: 5, tempRange: "10-25°C", phOptimal: "5.5-6.0" } },
+            { id: "p5", targets: ["калійне живлення"],name: "Сульфат калію", category: "pk_fertilizer", type: "fertilizer", composition: { activeIngredients: [], npk: { n: 0, p: 0, k: 50 }, micronutrients: {} }, dosage: { perLiter: "2.0-3.0 г/л", perHectare: "20-30 кг/га", perBush: "30 г" }, applicationScope: "Калійне живлення, посухостійкість, якість ягід", compatibility: { compatible: ["Монофосфат калію"], incompatible: ["Кальцієва селітра"], notes: "Утворює гіпс при змішуванні з кальцієм." }, techSpecs: { waitPeriod: "—", maxTreatments: 4, tempRange: "10-25°C", phOptimal: "5.8-6.5" } },
+            { id: "p6", targets: ["азотне живлення", "калійне живлення", "фосфорне живлення"],name: "YaraMila Complex", category: "complex_fertilizer", type: "fertilizer", composition: { activeIngredients: [], npk: { n: 12, p: 11, k: 18 }, micronutrients: { "Mg": 2.7, "S": 20 } }, dosage: { perLiter: "—", perHectare: "150-300 кг/га", perBush: "50-80 г" }, applicationScope: "Основне ґрунтове внесення навесні", compatibility: { compatible: [], incompatible: [], notes: "Вноситься безпосередньо в ґрунт." }, techSpecs: { waitPeriod: "—", maxTreatments: 1, tempRange: "—", phOptimal: "6.0-6.8" } },
+            { id: "p7", targets: ["азотне живлення", "калійне живлення", "фосфорне живлення"],name: "Нітроамофоска (16-16-16)", category: "complex_fertilizer", type: "fertilizer", composition: { activeIngredients: [], npk: { n: 16, p: 16, k: 16 }, micronutrients: {} }, dosage: { perLiter: "—", perHectare: "200-300 кг/га", perBush: "40-50 г" }, applicationScope: "Весняне комплексне підживлення виноградника", compatibility: { compatible: [], incompatible: [], notes: "Сухе внесення під перекопування." }, techSpecs: { waitPeriod: "—", maxTreatments: 2, tempRange: "—", phOptimal: "6.0-7.0" } },
+            { id: "p8", targets: ["азотне живлення", "калійне живлення", "фосфорне живлення"],name: "Плантафол 20-20-20", category: "complex_fertilizer", type: "fertilizer", composition: { activeIngredients: [], npk: { n: 20, p: 20, k: 20 }, micronutrients: {} }, dosage: { perLiter: "2.0-2.5 г/л", perHectare: "2.0-2.5 кг/га", perBush: "—" }, applicationScope: "Позакореневе збалансоване живлення", compatibility: { compatible: ["Хорус", "Скор", "Актара"], incompatible: ["Лужні препарати"], notes: "Ідеальний партнер для бакових сумішей." }, techSpecs: { waitPeriod: "—", maxTreatments: 3, tempRange: "10-25°C", phOptimal: "6.0-6.5" } },
+            { id: "p9", targets: ["фосфорне живлення"],name: "Плантафол 10-54-10", category: "complex_fertilizer", type: "fertilizer", composition: { activeIngredients: [], npk: { n: 10, p: 54, k: 10 }, micronutrients: {} }, dosage: { perLiter: "2.0-2.5 г/л", perHectare: "2.0-2.5 кг/га", perBush: "—" }, applicationScope: "Стимуляція бутонізації та цвітіння", compatibility: { compatible: ["Хорус", "Борна кислота"], incompatible: ["Кальцієва селітра"], notes: "Підкислює розчин." }, techSpecs: { waitPeriod: "—", maxTreatments: 2, tempRange: "10-25°C", phOptimal: "5.5-6.0" } },
+            { id: "p10", targets: ["калійне живлення"],name: "Плантафол 5-15-45", category: "complex_fertilizer", type: "fertilizer", composition: { activeIngredients: [], npk: { n: 5, p: 15, k: 45 }, micronutrients: {} }, dosage: { perLiter: "2.5-3.0 г/л", perHectare: "2.5-3.0 кг/га", perBush: "—" }, applicationScope: "Визрівання ягід, накопичення цукру та калію", compatibility: { compatible: ["Монофосфат калію"], incompatible: ["Кальцієва селітра"], notes: "Вносити у серпні перед збором." }, techSpecs: { waitPeriod: "—", maxTreatments: 3, tempRange: "10-25°C", phOptimal: "6.0-6.2" } },
+            { id: "p11", targets: ["калійне живлення", "хлороз"],name: "Калімагнезія", category: "pk_fertilizer", type: "fertilizer", composition: { activeIngredients: [], npk: { n: 0, p: 0, k: 28 }, micronutrients: { "Mg": 10 } }, dosage: { perLiter: "—", perHectare: "150-250 кг/га", perBush: "40 г" }, applicationScope: "Внесення під кущ проти магнієвого хлорозу лози", compatibility: { compatible: [], incompatible: [], notes: "Повільно розчиняється у ґрунті." }, techSpecs: { waitPeriod: "—", maxTreatments: 1, tempRange: "—", phOptimal: "6.2-7.0" } },
+            { id: "p12", targets: ["азотне живлення"],name: "Сульфат амонію", category: "n_fertilizer", type: "fertilizer", composition: { activeIngredients: [], npk: { n: 21, p: 0, k: 0 }, micronutrients: { "S": 24 } }, dosage: { perLiter: "2.0-3.0 г/л", perHectare: "20-30 кг/га", perBush: "25 г" }, applicationScope: "Азотно-сірчане живлення, підкислення ґрунту", compatibility: { compatible: ["Суперфосфат"], incompatible: ["Лужні добрива"], notes: "Не змішувати з вапном або золою." }, techSpecs: { waitPeriod: "—", maxTreatments: 3, tempRange: "10-25°C", phOptimal: "5.5-6.5" } },
+            { id: "p13", targets: ["азотне живлення"],name: "Натрієва селітра", category: "n_fertilizer", type: "fertilizer", composition: { activeIngredients: [], npk: { n: 16, p: 0, k: 0 }, micronutrients: { "Na": 26 } }, dosage: { perLiter: "1.5-2.0 г/л", perHectare: "15-20 кг/га", perBush: "20 г" }, applicationScope: "Азотне підживлення на кислих ґрунтах", compatibility: { compatible: [], incompatible: [], notes: "Лужне фізіологічно добриво." }, techSpecs: { waitPeriod: "—", maxTreatments: 2, tempRange: "10-25°C", phOptimal: "6.5-7.5" } },
+            { id: "p14", targets: ["фосфорне живлення", "ріст коренів"],name: "Суперфосфат подвійний", category: "pk_fertilizer", type: "fertilizer", composition: { activeIngredients: [], npk: { n: 0, p: 46, k: 0 }, micronutrients: { "S": 6 } }, dosage: { perLiter: "—", perHectare: "100-200 кг/га", perBush: "30 г" }, applicationScope: "Основне фосфорне живлення для росту коренів", compatibility: { compatible: ["Сульфат калію"], incompatible: ["Аміачна селітра", "Карбамід"], notes: "Уникати передчасного змішування з азотними селітрами." }, techSpecs: { waitPeriod: "—", maxTreatments: 2, tempRange: "—", phOptimal: "6.0-6.8" } },
+            { id: "p15", targets: ["фосфорне живлення"],name: "Суперфосфат простий", category: "pk_fertilizer", type: "fertilizer", composition: { activeIngredients: [], npk: { n: 0, p: 20, k: 0 }, micronutrients: { "Ca": 8, "S": 10 } }, dosage: { perLiter: "—", perHectare: "200-300 кг/га", perBush: "40 г" }, applicationScope: "Джерело фосфору, кальцію та сірки", compatibility: { compatible: ["Сульфат калію"], incompatible: ["Вапно"], notes: "При вапнуванні вносити окремо." }, techSpecs: { waitPeriod: "—", maxTreatments: 2, tempRange: "—", phOptimal: "6.0-6.8" } },
+            { id: "p16", targets: ["калійне живлення"],name: "Хлористий калій", category: "pk_fertilizer", type: "fertilizer", composition: { activeIngredients: [], npk: { n: 0, p: 0, k: 60 }, micronutrients: {} }, dosage: { perLiter: "—", perHectare: "100-150 кг/га", perBush: "25 г" }, applicationScope: "Калійне живлення (бажано вносити з осені)", compatibility: { compatible: [], incompatible: [], notes: "Виноград чутливий до хлору, застосовувати обережно." }, techSpecs: { waitPeriod: "—", maxTreatments: 1, tempRange: "—", phOptimal: "6.0-7.0" } },
+            { id: "p17", targets: ["азотне живлення", "фосфорне живлення"],name: "MAP Амофос", category: "pk_fertilizer", type: "fertilizer", composition: { activeIngredients: [], npk: { n: 12, p: 52, k: 0 }, micronutrients: {} }, dosage: { perLiter: "1.5-2.0 г/л", perHectare: "15-20 кг/га", perBush: "25 г" }, applicationScope: "Концентроване фосфорно-азотне добриво", compatibility: { compatible: ["Сульфат калію"], incompatible: ["Кальцієва селітра"], notes: "Не поєднувати з кальцієм у розчині." }, techSpecs: { waitPeriod: "—", maxTreatments: 3, tempRange: "10-25°C", phOptimal: "5.5-6.5" } },
+            { id: "p18", targets: ["азотне живлення", "фосфорне живлення"],name: "Діамофос", category: "pk_fertilizer", type: "fertilizer", composition: { activeIngredients: [], npk: { n: 21, p: 53, k: 0 }, micronutrients: {} }, dosage: { perLiter: "1.0-2.0 г/л", perHectare: "10-15 кг/га", perBush: "20 г" }, applicationScope: "Висококонцентроване азотно-фосфорне підживлення", compatibility: { compatible: [], incompatible: ["Кальцієва селітра"], notes: "Утворює осад з кальцієвими добривами." }, techSpecs: { waitPeriod: "—", maxTreatments: 2, tempRange: "10-25°C", phOptimal: "6.0-6.8" } },
+            { id: "p19", targets: ["азотне живлення", "калійне живлення", "фосфорне живлення"],name: "Мастер 18-18-18+3", category: "complex_fertilizer", type: "fertilizer", composition: { activeIngredients: [], npk: { n: 18, p: 18, k: 18 }, micronutrients: { "Mg": 3 } }, dosage: { perLiter: "2.0-2.5 г/л", perHectare: "2.0-2.5 кг/га", perBush: "25 г" }, applicationScope: "Комплексне збалансоване добриво з магнієм", compatibility: { compatible: ["Актара", "Скор"], incompatible: ["Лужні препарати"], notes: "Повністю водорозчинне безхлорне добриво." }, techSpecs: { waitPeriod: "—", maxTreatments: 4, tempRange: "10-25°C", phOptimal: "6.0-6.5" } },
             
             // Fungicides
-            { id: "p20", name: "Хорус 75 WG", category: "fungicide", type: "ppp", composition: { activeIngredients: [{ name: "Ципродиніл", percent: 75 }], npk: null, micronutrients: {} }, dosage: { perLiter: "0.3 г/л", perHectare: "0.3 кг/га", perBush: "—" }, applicationScope: "Оїдіум, сіра гниль, чорна плямистість (на старті)", compatibility: { compatible: ["Скор", "Актара", "Плантафол"], incompatible: [], notes: "Ефективний при низьких температурах (+3..+15°C)." }, techSpecs: { waitPeriod: "14 днів", maxTreatments: 3, tempRange: "3-20°C", phOptimal: "5.5-6.5" } },
-            { id: "p21", name: "Скор 250 EC", category: "fungicide", type: "ppp", composition: { activeIngredients: [{ name: "Дифеноконазол", percent: 25 }], npk: null, micronutrients: {} }, dosage: { perLiter: "0.2 мл/л", perHectare: "0.2 л/га", perBush: "—" }, applicationScope: "Оїдіум, чорна гниль, фомопсис", compatibility: { compatible: ["Хорус", "Кораген", "Актара"], incompatible: [], notes: "Високосистемна дія при температурах вище +15°C." }, techSpecs: { waitPeriod: "30 днів", maxTreatments: 3, tempRange: "15-28°C", phOptimal: "6.0-6.5" } },
-            { id: "p22", name: "Фалькон 460 EC", category: "fungicide", type: "ppp", composition: { activeIngredients: [{ name: "Тебуконазол", percent: 16.7 }, { name: "Спіроксамін", percent: 25 }, { name: "Тріадименол", percent: 4.3 }], npk: null, micronutrients: {} }, dosage: { perLiter: "0.5 мл/л", perHectare: "0.4 л/га", perBush: "—" }, applicationScope: "Потужний захист від оїдіуму та лікування", compatibility: { compatible: ["Акробат", "Кораген"], incompatible: ["Лужні"], notes: "Трикомпонентний системний фунгіцид." }, techSpecs: { waitPeriod: "30 днів", maxTreatments: 4, tempRange: "12-25°C", phOptimal: "5.5-6.0" } },
-            { id: "p23", name: "Танос 50 WG", category: "fungicide", type: "ppp", composition: { activeIngredients: [{ name: "Фамоксадон", percent: 25 }, { name: "Цимоксаніл", percent: 25 }], npk: null, micronutrients: {} }, dosage: { perLiter: "0.6 г/л", perHectare: "0.6 кг/га", perBush: "—" }, applicationScope: "Захист від мілдью, стійкість до змивання дощем", compatibility: { compatible: ["Луна Експірієнс", "Вертімек"], incompatible: [], notes: "Швидке проникнення в лист за 10 хв." }, techSpecs: { waitPeriod: "30 днів", maxTreatments: 3, tempRange: "12-25°C", phOptimal: "6.0-6.5" } },
-            { id: "p24", name: "Ридоміл Голд", category: "fungicide", type: "ppp", composition: { activeIngredients: [{ name: "Манкоцеб", percent: 64 }, { name: "Мефеноксам", percent: 4 }], npk: null, micronutrients: {} }, dosage: { perLiter: "2.5 г/л", perHectare: "2.5 кг/га", perBush: "—" }, applicationScope: "Захист від мілдью, системно-контактна дія", compatibility: { compatible: ["Топаз", "Актара"], incompatible: ["Бордоська рідина"], notes: "Не змішувати з лужними розчинами." }, techSpecs: { waitPeriod: "40 днів", maxTreatments: 3, tempRange: "10-25°C", phOptimal: "6.0-6.5" } },
-            { id: "p25", name: "Свіч 62.5 WG", category: "fungicide", type: "ppp", composition: { activeIngredients: [{ name: "Ципродиніл", percent: 37.5 }, { name: "Флудіоксоніл", percent: 25 }], npk: null, micronutrients: {} }, dosage: { perLiter: "1.0 г/л", perHectare: "1.0 кг/га", perBush: "—" }, applicationScope: "Найкращий захист від сірої гнилі, білої гнилі, оїдіуму", compatibility: { compatible: ["Проклейм", "Топаз"], incompatible: [], notes: "Застосовувати у фазі змикання ягід та перед збором." }, techSpecs: { waitPeriod: "7-14 днів", maxTreatments: 2, tempRange: "10-25°C", phOptimal: "5.5-6.5" } },
-            { id: "p26", name: "Тіовіт Джет", category: "fungicide", type: "ppp", composition: { activeIngredients: [{ name: "Сірка", percent: 80 }], npk: null, micronutrients: {} }, dosage: { perLiter: "4.0-8.0 г/л", perHectare: "5.0-8.0 кг/га", perBush: "—" }, applicationScope: "Контактний захист від оїдіуму та кліщів", compatibility: { compatible: ["Скала"], incompatible: ["Масляні препарати"], notes: "Інтервал після масляних обробок — не менше 14 днів." }, techSpecs: { waitPeriod: "30 днів", maxTreatments: 4, tempRange: "18-28°C", phOptimal: "6.5-7.5" } },
+            { id: "p20", targets: ["оїдіум", "сіра гниль"],name: "Хорус 75 WG", category: "fungicide", type: "ppp", composition: { activeIngredients: [{ name: "Ципродиніл", percent: 75 }], npk: null, micronutrients: {} }, dosage: { perLiter: "0.3 г/л", perHectare: "0.3 кг/га", perBush: "—" }, applicationScope: "Оїдіум, сіра гниль, чорна плямистість (на старті)", compatibility: { compatible: ["Скор", "Актара", "Плантафол"], incompatible: [], notes: "Ефективний при низьких температурах (+3..+15°C)." }, techSpecs: { waitPeriod: "14 днів", maxTreatments: 3, tempRange: "3-20°C", phOptimal: "5.5-6.5" } },
+            { id: "p21", targets: ["оїдіум"],name: "Скор 250 EC", category: "fungicide", type: "ppp", composition: { activeIngredients: [{ name: "Дифеноконазол", percent: 25 }], npk: null, micronutrients: {} }, dosage: { perLiter: "0.2 мл/л", perHectare: "0.2 л/га", perBush: "—" }, applicationScope: "Оїдіум, чорна гниль, фомопсис", compatibility: { compatible: ["Хорус", "Кораген", "Актара"], incompatible: [], notes: "Високосистемна дія при температурах вище +15°C." }, techSpecs: { waitPeriod: "30 днів", maxTreatments: 3, tempRange: "15-28°C", phOptimal: "6.0-6.5" } },
+            { id: "p22", targets: ["оїдіум"],name: "Фалькон 460 EC", category: "fungicide", type: "ppp", composition: { activeIngredients: [{ name: "Тебуконазол", percent: 16.7 }, { name: "Спіроксамін", percent: 25 }, { name: "Тріадименол", percent: 4.3 }], npk: null, micronutrients: {} }, dosage: { perLiter: "0.5 мл/л", perHectare: "0.4 л/га", perBush: "—" }, applicationScope: "Потужний захист від оїдіуму та лікування", compatibility: { compatible: ["Акробат", "Кораген"], incompatible: ["Лужні"], notes: "Трикомпонентний системний фунгіцид." }, techSpecs: { waitPeriod: "30 днів", maxTreatments: 4, tempRange: "12-25°C", phOptimal: "5.5-6.0" } },
+            { id: "p23", targets: ["мілдью"],name: "Танос 50 WG", category: "fungicide", type: "ppp", composition: { activeIngredients: [{ name: "Фамоксадон", percent: 25 }, { name: "Цимоксаніл", percent: 25 }], npk: null, micronutrients: {} }, dosage: { perLiter: "0.6 г/л", perHectare: "0.6 кг/га", perBush: "—" }, applicationScope: "Захист від мілдью, стійкість до змивання дощем", compatibility: { compatible: ["Луна Експірієнс", "Вертімек"], incompatible: [], notes: "Швидке проникнення в лист за 10 хв." }, techSpecs: { waitPeriod: "30 днів", maxTreatments: 3, tempRange: "12-25°C", phOptimal: "6.0-6.5" } },
+            { id: "p24", targets: ["мілдью"],name: "Ридоміл Голд", category: "fungicide", type: "ppp", composition: { activeIngredients: [{ name: "Манкоцеб", percent: 64 }, { name: "Мефеноксам", percent: 4 }], npk: null, micronutrients: {} }, dosage: { perLiter: "2.5 г/л", perHectare: "2.5 кг/га", perBush: "—" }, applicationScope: "Захист від мілдью, системно-контактна дія", compatibility: { compatible: ["Топаз", "Актара"], incompatible: ["Бордоська рідина"], notes: "Не змішувати з лужними розчинами." }, techSpecs: { waitPeriod: "40 днів", maxTreatments: 3, tempRange: "10-25°C", phOptimal: "6.0-6.5" } },
+            { id: "p25", targets: ["оїдіум", "сіра гниль"],name: "Свіч 62.5 WG", category: "fungicide", type: "ppp", composition: { activeIngredients: [{ name: "Ципродиніл", percent: 37.5 }, { name: "Флудіоксоніл", percent: 25 }], npk: null, micronutrients: {} }, dosage: { perLiter: "1.0 г/л", perHectare: "1.0 кг/га", perBush: "—" }, applicationScope: "Найкращий захист від сірої гнилі, білої гнилі, оїдіуму", compatibility: { compatible: ["Проклейм", "Топаз"], incompatible: [], notes: "Застосовувати у фазі змикання ягід та перед збором." }, techSpecs: { waitPeriod: "7-14 днів", maxTreatments: 2, tempRange: "10-25°C", phOptimal: "5.5-6.5" } },
+            { id: "p26", targets: ["оїдіум", "кліщі"],name: "Тіовіт Джет", category: "fungicide", type: "ppp", composition: { activeIngredients: [{ name: "Сірка", percent: 80 }], npk: null, micronutrients: {} }, dosage: { perLiter: "4.0-8.0 г/л", perHectare: "5.0-8.0 кг/га", perBush: "—" }, applicationScope: "Контактний захист від оїдіуму та кліщів", compatibility: { compatible: ["Скала"], incompatible: ["Масляні препарати"], notes: "Інтервал після масляних обробок — не менше 14 днів." }, techSpecs: { waitPeriod: "30 днів", maxTreatments: 4, tempRange: "18-28°C", phOptimal: "6.5-7.5" } },
 
             // Insecticides / Acaricides
-            { id: "p30", name: "Актара 25 WG", category: "insecticide", type: "ppp", composition: { activeIngredients: [{ name: "Тіаметоксам", percent: 25 }], npk: null, micronutrients: {} }, dosage: { perLiter: "0.15 г/л", perHectare: "0.15 кг/га", perBush: "—" }, applicationScope: "Системний захист від цикадок, попелиць, довгоносиків", compatibility: { compatible: ["Хорус", "Скор", "Плантафол"], incompatible: [], notes: "Добре працює через корінь (полив)." }, techSpecs: { waitPeriod: "20 днів", maxTreatments: 2, tempRange: "10-25°C", phOptimal: "6.0-7.0" } },
-            { id: "p31", name: "Кораген 20 SC", category: "insecticide", type: "ppp", composition: { activeIngredients: [{ name: "Хлорантраніліпрол", percent: 20 }], npk: null, micronutrients: {} }, dosage: { perLiter: "0.15-0.2 мл/л", perHectare: "0.15-0.2 л/га", perBush: "—" }, applicationScope: "Гусінь листовійки, гронова листовійка, совки", compatibility: { compatible: ["Фалькон", "Скор"], incompatible: [], notes: "Безпечний для бджіл." }, techSpecs: { waitPeriod: "20 днів", maxTreatments: 2, tempRange: "10-30°C", phOptimal: "5.5-7.0" } },
-            { id: "p32", name: "Проклейм 5 SG", category: "insecticide", type: "ppp", composition: { activeIngredients: [{ name: "Емамектин бензоат", percent: 5 }], npk: null, micronutrients: {} }, dosage: { perLiter: "0.4 г/л", perHectare: "0.4 кг/га", perBush: "—" }, applicationScope: "Листовійка у фазі формування ягоди та змикання", compatibility: { compatible: ["Свіч", "Топаз"], incompatible: ["Лужні"], notes: "Швидко проникає в рослину, контактно-шлунковий." }, techSpecs: { waitPeriod: "14 днів", maxTreatments: 2, tempRange: "15-28°C", phOptimal: "6.0-6.5" } },
-            { id: "p33", name: "Вертімек 018 EC", category: "acaricide", type: "ppp", composition: { activeIngredients: [{ name: "Абамектин", percent: 1.8 }], npk: null, micronutrients: {} }, dosage: { perLiter: "1.0 мл/л", perHectare: "1.0 л/га", perBush: "—" }, applicationScope: "Боротьба з кліщами (зудень, павутинний, бруньковий)", compatibility: { compatible: ["Скор", "Танос"], incompatible: [], notes: "Трансламінарна дія, швидкий захист." }, techSpecs: { waitPeriod: "28 днів", maxTreatments: 2, tempRange: "15-25°C", phOptimal: "5.5-6.5" } },
+            { id: "p30", targets: ["листовійка"],name: "Актара 25 WG", category: "insecticide", type: "ppp", composition: { activeIngredients: [{ name: "Тіаметоксам", percent: 25 }], npk: null, micronutrients: {} }, dosage: { perLiter: "0.15 г/л", perHectare: "0.15 кг/га", perBush: "—" }, applicationScope: "Системний захист від цикадок, попелиць, довгоносиків", compatibility: { compatible: ["Хорус", "Скор", "Плантафол"], incompatible: [], notes: "Добре працює через корінь (полив)." }, techSpecs: { waitPeriod: "20 днів", maxTreatments: 2, tempRange: "10-25°C", phOptimal: "6.0-7.0" } },
+            { id: "p31", targets: ["листовійка"],name: "Кораген 20 SC", category: "insecticide", type: "ppp", composition: { activeIngredients: [{ name: "Хлорантраніліпрол", percent: 20 }], npk: null, micronutrients: {} }, dosage: { perLiter: "0.15-0.2 мл/л", perHectare: "0.15-0.2 л/га", perBush: "—" }, applicationScope: "Гусінь листовійки, гронова листовійка, совки", compatibility: { compatible: ["Фалькон", "Скор"], incompatible: [], notes: "Безпечний для бджіл." }, techSpecs: { waitPeriod: "20 днів", maxTreatments: 2, tempRange: "10-30°C", phOptimal: "5.5-7.0" } },
+            { id: "p32", targets: ["листовійка"],name: "Проклейм 5 SG", category: "insecticide", type: "ppp", composition: { activeIngredients: [{ name: "Емамектин бензоат", percent: 5 }], npk: null, micronutrients: {} }, dosage: { perLiter: "0.4 г/л", perHectare: "0.4 кг/га", perBush: "—" }, applicationScope: "Листовійка у фазі формування ягоди та змикання", compatibility: { compatible: ["Свіч", "Топаз"], incompatible: ["Лужні"], notes: "Швидко проникає в рослину, контактно-шлунковий." }, techSpecs: { waitPeriod: "14 днів", maxTreatments: 2, tempRange: "15-28°C", phOptimal: "6.0-6.5" } },
+            { id: "p33", targets: ["кліщі"],name: "Вертімек 018 EC", category: "acaricide", type: "ppp", composition: { activeIngredients: [{ name: "Абамектин", percent: 1.8 }], npk: null, micronutrients: {} }, dosage: { perLiter: "1.0 мл/л", perHectare: "1.0 л/га", perBush: "—" }, applicationScope: "Боротьба з кліщами (зудень, павутинний, бруньковий)", compatibility: { compatible: ["Скор", "Танос"], incompatible: [], notes: "Трансламінарна дія, швидкий захист." }, techSpecs: { waitPeriod: "28 днів", maxTreatments: 2, tempRange: "15-25°C", phOptimal: "5.5-6.5" } },
 
             // Biostimulants
-            { id: "p40", name: "Мегафол", category: "biostimulant", type: "supplement", composition: { activeIngredients: [{ name: "Амінокислоти", percent: 28 }], npk: null, micronutrients: {} }, dosage: { perLiter: "2.0-3.0 мл/л", perHectare: "2.0-3.0 л/га", perBush: "—" }, applicationScope: "Антистресант при заморозках, граді, посусі", compatibility: { compatible: ["Плантафол", "Актара"], incompatible: ["Масла", "Мідь"], notes: "Не поєднувати з мідьвмісними препаратами." }, techSpecs: { waitPeriod: "—", maxTreatments: 5, tempRange: "—", phOptimal: "6.0-6.5" } },
-            { id: "p41", name: "Агріфлекс", category: "biostimulant", type: "supplement", composition: { activeIngredients: [{ name: "Гумінові кислоти", percent: 80 }], npk: null, micronutrients: {} }, dosage: { perLiter: "1.0-2.0 г/л", perHectare: "1.0-2.0 кг/га", perBush: "5 г" }, applicationScope: "Стимуляція кореневої системи, антистресовий ефект", compatibility: { compatible: [], incompatible: ["Кальцій"], notes: "Покращує структуру ґрунту." }, techSpecs: { waitPeriod: "—", maxTreatments: 4, tempRange: "—", phOptimal: "6.5-7.5" } },
-            { id: "p42", name: "Бенефіт PZ", category: "biostimulant", type: "supplement", composition: { activeIngredients: [{ name: "Рослинні нуклеотиди", percent: 100 }], npk: null, micronutrients: {} }, dosage: { perLiter: "2.5-3.0 мл/л", perHectare: "2.5-3.0 л/га", perBush: "—" }, applicationScope: "Збільшення розміру ягоди шляхом поділу клітин", compatibility: { compatible: ["Максикроп"], incompatible: [], notes: "Вносити у фазі горошини 2-3 рази." }, techSpecs: { waitPeriod: "—", maxTreatments: 3, tempRange: "15-25°C", phOptimal: "6.0-6.5" } }
+            { id: "p40", targets: ["заморозки", "посуха", "опік"],name: "Мегафол", category: "biostimulant", type: "supplement", composition: { activeIngredients: [{ name: "Амінокислоти", percent: 28 }], npk: null, micronutrients: {} }, dosage: { perLiter: "2.0-3.0 мл/л", perHectare: "2.0-3.0 л/га", perBush: "—" }, applicationScope: "Антистресант при заморозках, граді, посусі", compatibility: { compatible: ["Плантафол", "Актара"], incompatible: ["Масла", "Мідь"], notes: "Не поєднувати з мідьвмісними препаратами." }, techSpecs: { waitPeriod: "—", maxTreatments: 5, tempRange: "—", phOptimal: "6.0-6.5" } },
+            { id: "p41", targets: ["ріст коренів", "заморозки", "посуха"],name: "Агріфлекс", category: "biostimulant", type: "supplement", composition: { activeIngredients: [{ name: "Гумінові кислоти", percent: 80 }], npk: null, micronutrients: {} }, dosage: { perLiter: "1.0-2.0 г/л", perHectare: "1.0-2.0 кг/га", perBush: "5 г" }, applicationScope: "Стимуляція кореневої системи, антистресовий ефект", compatibility: { compatible: [], incompatible: ["Кальцій"], notes: "Покращує структуру ґрунту." }, techSpecs: { waitPeriod: "—", maxTreatments: 4, tempRange: "—", phOptimal: "6.5-7.5" } },
+            { id: "p42", targets: ["калійне живлення"],name: "Бенефіт PZ", category: "biostimulant", type: "supplement", composition: { activeIngredients: [{ name: "Рослинні нуклеотиди", percent: 100 }], npk: null, micronutrients: {} }, dosage: { perLiter: "2.5-3.0 мл/л", perHectare: "2.5-3.0 л/га", perBush: "—" }, applicationScope: "Збільшення розміру ягоди шляхом поділу клітин", compatibility: { compatible: ["Максикроп"], incompatible: [], notes: "Вносити у фазі горошини 2-3 рази." }, techSpecs: { waitPeriod: "—", maxTreatments: 3, tempRange: "15-25°C", phOptimal: "6.0-6.5" } }
         ];
 
         let productDB = [];
@@ -6406,6 +6640,23 @@
             let npk = null;
             let activeIngredients = [];
             
+            const targets = [];
+            const scopeLower = scope.toLowerCase();
+            if (scopeLower.includes('оїдіум') || scopeLower.includes('оідіум')) targets.push('оїдіум');
+            if (scopeLower.includes('мілдью')) targets.push('мілдью');
+            if (scopeLower.includes('сір') || scopeLower.includes('гниль') || scopeLower.includes('ботритис')) targets.push('сіра гниль');
+            if (scopeLower.includes('кліщ')) targets.push('кліщі');
+            if (scopeLower.includes('листовійк')) targets.push('листовійка');
+            if (scopeLower.includes('азот') || scopeLower.includes('селітра') || scopeLower.includes('карбамід')) targets.push('азотне живлення');
+            if (scopeLower.includes('калій') || scopeLower.includes('монофосфат')) targets.push('калійне живлення');
+            if (scopeLower.includes('фосфор') || scopeLower.includes('суперфосфат')) targets.push('фосфорне живлення');
+            if (scopeLower.includes('корен')) targets.push('ріст коренів');
+            if (scopeLower.includes('вершинн')) targets.push('вершинна гниль');
+            if (scopeLower.includes('опік')) targets.push('опік');
+            if (scopeLower.includes('замороз')) targets.push('заморозки');
+            if (scopeLower.includes('посух')) targets.push('посуха');
+            if (scopeLower.includes('хлороз')) targets.push('хлороз');
+            
             if (type === 'fertilizer') {
                 const n = parseInt(document.getElementById('add-prod-n').value) || 0;
                 const p = parseInt(document.getElementById('add-prod-p').value) || 0;
@@ -6436,6 +6687,7 @@
                     npk: npk,
                     micronutrients: {}
                 },
+                targets: targets,
                 dosage: {
                     perLiter: doseL,
                     perHectare: doseHa,
@@ -6681,6 +6933,14 @@
             // Setup default dates to today
             document.getElementById('sat-date').valueAsDate = new Date();
             document.getElementById('todo-due-date').valueAsDate = new Date();
+            
+            // Load Phase swaps
+            try {
+                const savedSwaps = localStorage.getItem('viticulture-phase-swaps');
+                if (savedSwaps) {
+                    phaseSwaps = JSON.parse(savedSwaps);
+                }
+            } catch(e) { console.error("Error loading phase swaps", e); }
             
             // Render components
             selectStep(getRecommendedPhaseId(totalSAT));
