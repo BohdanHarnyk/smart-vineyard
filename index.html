@@ -659,186 +659,6 @@
                     </div>
                 </div>
             </div>
-
-
-            <!-- Modal: Add Custom Product -->
-            <div id="modal-add-product" class="fixed inset-0 bg-stone-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
-                <div class="bg-white w-full max-w-md rounded-[32px] p-6 shadow-2xl border border-stone-200/50 space-y-4 max-h-[90vh] overflow-y-auto custom-scrollbar">
-                    <div class="flex justify-between items-center border-b border-stone-100 pb-3">
-                        <h3 id="product-modal-title" class="text-lg font-black text-emerald-900">➕ Новий препарат</h3>
-                        <button type="button" onclick="closeAddProductModal()" class="text-stone-400 hover:text-stone-600 text-lg">✕</button>
-                    </div>
-                    
-                    <form id="form-add-product" onsubmit="saveCustomProduct(event)" class="space-y-4">
-                        <input type="hidden" id="add-prod-id">
-                        
-                        <div class="space-y-1">
-                            <div class="flex justify-between items-center flex-wrap gap-1">
-                                <div class="flex items-center gap-2">
-                                    <label class="text-[10px] font-black uppercase text-stone-400">Назва препарату <span class="text-rose-500">*</span></label>
-                                    <button type="button" id="btn-prod-ai-fill" onclick="fetchProductInfoAI()" class="text-[9px] px-2 py-0.5 rounded-md bg-gradient-to-r from-purple-600 to-indigo-600 text-white font-extrabold hover:opacity-90 active:scale-95 transition-all flex items-center gap-1">
-                                        <span>✨ Завантажити з AI</span>
-                                    </button>
-                                </div>
-                                <span class="text-[8px] font-bold text-emerald-600 uppercase tracking-wider hidden" id="add-prod-autocomplete-badge">Знайдено в довіднику (автозаповнення)</span>
-                            </div>
-                            <input type="text" id="add-prod-name" required placeholder="Напр. Скор 250 EC" oninput="handleAddProductNameInput()" class="w-full p-3.5 rounded-xl bg-stone-50 border border-stone-200 font-bold text-xs outline-none focus:border-emerald-500 text-stone-850">
-                        </div>
-
-                        <div class="grid grid-cols-2 gap-3">
-                            <div class="space-y-1">
-                                <label class="text-[10px] font-black uppercase text-stone-400">Тип препарату <span class="text-rose-500">*</span></label>
-                                <select id="add-prod-type" onchange="handleProductTypeChange()" class="w-full p-3.5 rounded-xl bg-stone-50 border border-stone-200 font-bold text-xs outline-none focus:border-emerald-500 text-stone-850">
-                                    <option value="ppp">ЗЗР (Пестициди)</option>
-                                    <option value="fertilizer">Добриво</option>
-                                    <option value="supplement">Стимулятор / Інше</option>
-                                </select>
-                            </div>
-                            <div class="space-y-1">
-                                <label class="text-[10px] font-black uppercase text-stone-400">Категорія <span class="text-rose-500">*</span></label>
-                                <select id="add-prod-category" onchange="handleProductCategoryChange()" class="w-full p-3.5 rounded-xl bg-stone-50 border border-stone-200 font-bold text-xs outline-none focus:border-emerald-500 text-stone-850">
-                                    <option value="fungicide">🛡️ Фунгіциди</option>
-                                    <option value="insecticide">🐛 Інсектициди</option>
-                                    <option value="acaricide">🕷️ Акарициди</option>
-                                    <option value="n_fertilizer">🟢 Азотні добрива</option>
-                                    <option value="pk_fertilizer">🟡 Фосфорно-Калійні добрива</option>
-                                    <option value="complex_fertilizer">🔵 Комплексні добрива</option>
-                                    <option value="biostimulant">🌱 Біостимулятори</option>
-                                    <option value="micronutrient">⚡ Мікроелементи</option>
-                                    <option value="other">📦 Інше</option>
-                                </select>
-                            </div>
-                        </div>
-
-                        <!-- NPK inputs -->
-                        <div id="npk-fields" class="hidden grid grid-cols-3 gap-2 bg-emerald-50/50 p-3 rounded-2xl border border-emerald-100">
-                            <div class="space-y-1">
-                                <label class="text-[9px] font-black uppercase text-emerald-800 text-center block">N %</label>
-                                <input type="number" id="add-prod-n" min="0" max="100" class="w-full p-2 rounded-lg bg-white border border-stone-200 font-bold text-xs text-center outline-none focus:border-emerald-500 text-stone-800">
-                            </div>
-                            <div class="space-y-1">
-                                <label class="text-[9px] font-black uppercase text-emerald-800 text-center block">P %</label>
-                                <input type="number" id="add-prod-p" min="0" max="100" class="w-full p-2 rounded-lg bg-white border border-stone-200 font-bold text-xs text-center outline-none focus:border-emerald-500 text-stone-800">
-                            </div>
-                            <div class="space-y-1">
-                                <label class="text-[9px] font-black uppercase text-emerald-800 text-center block">K %</label>
-                                <input type="number" id="add-prod-k" min="0" max="100" class="w-full p-2 rounded-lg bg-white border border-stone-200 font-bold text-xs text-center outline-none focus:border-emerald-500 text-stone-800">
-                            </div>
-                        </div>
-
-                        <div class="space-y-1">
-                            <label class="text-[10px] font-black uppercase text-stone-400">Діюча речовина / Склад</label>
-                            <input type="text" id="add-prod-composition" placeholder="Напр. Дифеноконазол 250 г/л" class="w-full p-3.5 rounded-xl bg-stone-50 border border-stone-200 font-bold text-xs outline-none focus:border-emerald-500 text-stone-850">
-                        </div>
-
-                        <div class="grid grid-cols-2 gap-3">
-                            <div class="space-y-1">
-                                <label class="text-[10px] font-black uppercase text-stone-400">Доза (на 10л води)</label>
-                                <input type="text" id="add-prod-dose-l" placeholder="Напр. 2 мл / 10л" class="w-full p-3.5 rounded-xl bg-stone-50 border border-stone-200 font-bold text-xs outline-none focus:border-emerald-500 text-stone-850">
-                            </div>
-                            <div class="space-y-1">
-                                <label class="text-[10px] font-black uppercase text-stone-400">Доза (на 1 га)</label>
-                                <input type="text" id="add-prod-dose-ha" placeholder="Напр. 0.2 л/га" class="w-full p-3.5 rounded-xl bg-stone-50 border border-stone-200 font-bold text-xs outline-none focus:border-emerald-500 text-stone-850">
-                            </div>
-                        </div>
-
-                        <div class="space-y-1">
-                            <label class="text-[10px] font-black uppercase text-stone-400">Призначення / Спектр дії</label>
-                            <input type="text" id="add-prod-scope" placeholder="Напр. Оїдіум, чорна плямистість" class="w-full p-3.5 rounded-xl bg-stone-50 border border-stone-200 font-bold text-xs outline-none focus:border-emerald-500 text-stone-850">
-                        </div>
-
-                        <div class="space-y-1">
-                            <label class="text-[10px] font-black uppercase text-stone-400">Сумісність та примітки</label>
-                            <textarea id="add-prod-compatibility" placeholder="Сумісний з більшістю фунгіцидів. Не змішувати з лужними." rows="2" class="w-full p-3.5 rounded-xl bg-stone-50 border border-stone-200 font-medium text-xs outline-none focus:border-emerald-500 resize-none text-stone-850"></textarea>
-                        </div>
-
-                        <div class="grid grid-cols-2 gap-3">
-                            <div class="space-y-1">
-                                <label class="text-[10px] font-black uppercase text-stone-400">Термін очікування</label>
-                                <input type="text" id="add-prod-wait" placeholder="Напр. 30 днів" class="w-full p-3.5 rounded-xl bg-stone-50 border border-stone-200 font-bold text-xs outline-none focus:border-emerald-500 text-stone-850">
-                            </div>
-                            <div class="space-y-1">
-                                <label class="text-[10px] font-black uppercase text-stone-400">Оптимальний рН розчину</label>
-                                <input type="text" id="add-prod-ph" placeholder="Напр. 5.5 - 6.5" class="w-full p-3.5 rounded-xl bg-stone-50 border border-stone-200 font-bold text-xs outline-none focus:border-emerald-500 text-stone-850">
-                            </div>
-                        </div>
-
-                        <div class="flex gap-3 pt-2">
-                            <button type="button" onclick="closeAddProductModal()" class="flex-1 py-3 rounded-xl border border-stone-200 text-stone-600 font-black text-xs uppercase tracking-wider hover:bg-stone-50 transition-all">Скасувати</button>
-                            <button type="submit" class="flex-1 py-3 bg-emerald-600 hover:bg-emerald-700 text-white font-black text-xs uppercase tracking-wider rounded-xl shadow-md transition-all">Зберегти</button>
-                        </div>
-                    </form>
-                </div>
-            </div>
-
-            <!-- Modal: Add Custom Variety -->
-            <div id="modal-add-variety" class="fixed inset-0 bg-stone-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
-                <div class="bg-white w-full max-w-md rounded-[32px] p-6 shadow-2xl border border-stone-200/50 space-y-4 max-h-[90vh] overflow-y-auto custom-scrollbar">
-                    <div class="flex justify-between items-center border-b border-stone-100 pb-3">
-                        <h3 class="text-lg font-black text-emerald-900">➕ Новий сорт винограду</h3>
-                        <button onclick="closeAddVarietyModal()" class="text-stone-400 hover:text-stone-600 text-lg">✕</button>
-                    </div>
-                    
-                    <form id="form-add-variety" onsubmit="saveCustomVariety(event)" class="space-y-4">
-                        <div class="space-y-1">
-                            <div class="flex justify-between items-center">
-                                <div class="flex items-center gap-2">
-                                    <label class="text-[10px] font-black uppercase text-stone-400">Назва сорту <span class="text-rose-500">*</span></label>
-                                    <button type="button" onclick="fetchVarietyInfoAI()" class="text-[9px] px-2 py-0.5 rounded-md bg-gradient-to-r from-purple-600 to-indigo-600 text-white font-extrabold hover:opacity-90 active:scale-95 transition-all flex items-center gap-1">
-                                        <span>✨ Завантажити з AI</span>
-                                    </button>
-                                </div>
-                                <span class="text-[8px] font-bold text-emerald-600 uppercase tracking-wider hidden" id="add-var-autocomplete-badge">Знайдено в каталозі (автозаповнення)</span>
-                            </div>
-                            <input type="text" id="add-var-name" required placeholder="Напр. Велес" oninput="handleAddVarNameInput()" class="w-full p-3.5 rounded-xl bg-stone-50 border border-stone-200 font-bold text-xs outline-none focus:border-emerald-500 text-stone-850">
-                        </div>
-                        <div class="grid grid-cols-2 gap-3">
-                            <div class="space-y-1">
-                                <label class="text-[10px] font-black uppercase text-stone-400">Колір ягоди <span class="text-rose-500">*</span></label>
-                                <select id="add-var-color" class="w-full p-3.5 rounded-xl bg-stone-50 border border-stone-200 font-bold text-xs outline-none focus:border-emerald-500 text-stone-850">
-                                    <option value="W">White (Білий)</option>
-                                    <option value="R">Rose (Рожевий)</option>
-                                    <option value="B">Black (Чорний)</option>
-                                </select>
-                            </div>
-                            <div class="space-y-1">
-                                <label class="text-[10px] font-black uppercase text-stone-400">Термін дозрівання <span class="text-rose-500">*</span></label>
-                                <input type="text" id="add-var-rip" placeholder="Напр. 100 дн. або 115-125 дн." class="w-full p-3.5 rounded-xl bg-stone-50 border border-stone-200 font-bold text-xs outline-none focus:border-emerald-500 text-stone-850">
-                            </div>
-                        </div>
-                        <div class="grid grid-cols-2 gap-3">
-                            <div class="space-y-1">
-                                <label class="text-[10px] font-black uppercase text-stone-400">Вага грона</label>
-                                <input type="text" id="add-var-bunch" placeholder="Напр. 600-1000 г" class="w-full p-3.5 rounded-xl bg-stone-50 border border-stone-200 font-bold text-xs outline-none focus:border-emerald-500 text-stone-850">
-                            </div>
-                            <div class="space-y-1">
-                                <label class="text-[10px] font-black uppercase text-stone-400">Тип (кісточки)</label>
-                                <select id="add-var-seed" class="w-full p-3.5 rounded-xl bg-stone-50 border border-stone-200 font-bold text-xs outline-none focus:border-emerald-500 text-stone-850">
-                                    <option value="З кіст.">З кісточками (Столовий)</option>
-                                    <option value="Безкіст.">Безкісточковий (Кишмиш)</option>
-                                </select>
-                            </div>
-                        </div>
-                        <div class="space-y-1">
-                            <label class="text-[10px] font-black uppercase text-stone-400">Смаковий профіль</label>
-                            <input type="text" id="add-var-taste" placeholder="Напр. Мускат, Гармонійний" class="w-full p-3.5 rounded-xl bg-stone-50 border border-stone-200 font-bold text-xs outline-none focus:border-emerald-500 text-stone-850">
-                        </div>
-                        <div class="space-y-1">
-                            <label class="text-[10px] font-black uppercase text-stone-400">Рекомендації по догляду</label>
-                            <textarea id="add-var-care" placeholder="Напр. Потребує нормування врожаєм..." rows="2" class="w-full p-3.5 rounded-xl bg-stone-50 border border-stone-200 font-medium text-xs outline-none focus:border-emerald-500 resize-none text-stone-850"></textarea>
-                        </div>
-                        <div class="space-y-1">
-                            <label class="text-[10px] font-black uppercase text-stone-400">Кількість кущів на винограднику</label>
-                            <input type="number" id="add-var-qty" min="0" value="0" class="w-full p-3.5 rounded-xl bg-stone-50 border border-stone-200 font-bold text-xs outline-none focus:border-emerald-500 text-stone-850">
-                        </div>
-                        
-                        <div class="flex gap-3 pt-2">
-                            <button type="button" onclick="closeAddVarietyModal()" class="flex-1 py-3 rounded-xl border border-stone-200 text-stone-600 font-black text-xs uppercase tracking-wider hover:bg-stone-50 transition-all">Скасувати</button>
-                            <button type="submit" class="flex-1 py-3 bg-emerald-600 hover:bg-emerald-700 text-white font-black text-xs uppercase tracking-wider rounded-xl shadow-md transition-all">Зберегти</button>
-                        </div>
-                    </form>
-                </div>
-            </div>
         </section>
 
         <!-- TAB: CALCULATORS -->
@@ -1733,6 +1553,188 @@
                 </div>
             </div>
         </section>
+
+
+
+            <!-- Modal: Add Custom Product -->
+            <div id="modal-add-product" class="fixed inset-0 bg-stone-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+                <div class="bg-white w-full max-w-md rounded-[32px] p-6 shadow-2xl border border-stone-200/50 space-y-4 max-h-[90vh] overflow-y-auto custom-scrollbar">
+                    <div class="flex justify-between items-center border-b border-stone-100 pb-3">
+                        <h3 id="product-modal-title" class="text-lg font-black text-emerald-900">➕ Новий препарат</h3>
+                        <button type="button" onclick="closeAddProductModal()" class="text-stone-400 hover:text-stone-600 text-lg">✕</button>
+                    </div>
+                    
+                    <form id="form-add-product" onsubmit="saveCustomProduct(event)" class="space-y-4">
+                        <input type="hidden" id="add-prod-id">
+                        
+                        <div class="space-y-1">
+                            <div class="flex justify-between items-center flex-wrap gap-1">
+                                <div class="flex items-center gap-2">
+                                    <label class="text-[10px] font-black uppercase text-stone-400">Назва препарату <span class="text-rose-500">*</span></label>
+                                    <button type="button" id="btn-prod-ai-fill" onclick="fetchProductInfoAI()" class="text-[9px] px-2 py-0.5 rounded-md bg-gradient-to-r from-purple-600 to-indigo-600 text-white font-extrabold hover:opacity-90 active:scale-95 transition-all flex items-center gap-1">
+                                        <span>✨ Завантажити з AI</span>
+                                    </button>
+                                </div>
+                                <span class="text-[8px] font-bold text-emerald-600 uppercase tracking-wider hidden" id="add-prod-autocomplete-badge">Знайдено в довіднику (автозаповнення)</span>
+                            </div>
+                            <input type="text" id="add-prod-name" required placeholder="Напр. Скор 250 EC" oninput="handleAddProductNameInput()" class="w-full p-3.5 rounded-xl bg-stone-50 border border-stone-200 font-bold text-xs outline-none focus:border-emerald-500 text-stone-850">
+                        </div>
+
+                        <div class="grid grid-cols-2 gap-3">
+                            <div class="space-y-1">
+                                <label class="text-[10px] font-black uppercase text-stone-400">Тип препарату <span class="text-rose-500">*</span></label>
+                                <select id="add-prod-type" onchange="handleProductTypeChange()" class="w-full p-3.5 rounded-xl bg-stone-50 border border-stone-200 font-bold text-xs outline-none focus:border-emerald-500 text-stone-850">
+                                    <option value="ppp">ЗЗР (Пестициди)</option>
+                                    <option value="fertilizer">Добриво</option>
+                                    <option value="supplement">Стимулятор / Інше</option>
+                                </select>
+                            </div>
+                            <div class="space-y-1">
+                                <label class="text-[10px] font-black uppercase text-stone-400">Категорія <span class="text-rose-500">*</span></label>
+                                <select id="add-prod-category" onchange="handleProductCategoryChange()" class="w-full p-3.5 rounded-xl bg-stone-50 border border-stone-200 font-bold text-xs outline-none focus:border-emerald-500 text-stone-850">
+                                    <option value="fungicide">🛡️ Фунгіциди</option>
+                                    <option value="insecticide">🐛 Інсектициди</option>
+                                    <option value="acaricide">🕷️ Акарициди</option>
+                                    <option value="n_fertilizer">🟢 Азотні добрива</option>
+                                    <option value="pk_fertilizer">🟡 Фосфорно-Калійні добрива</option>
+                                    <option value="complex_fertilizer">🔵 Комплексні добрива</option>
+                                    <option value="biostimulant">🌱 Біостимулятори</option>
+                                    <option value="micronutrient">⚡ Мікроелементи</option>
+                                    <option value="other">📦 Інше</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <!-- NPK inputs -->
+                        <div id="npk-fields" class="hidden grid grid-cols-3 gap-2 bg-emerald-50/50 p-3 rounded-2xl border border-emerald-100">
+                            <div class="space-y-1">
+                                <label class="text-[9px] font-black uppercase text-emerald-800 text-center block">N %</label>
+                                <input type="number" id="add-prod-n" min="0" max="100" class="w-full p-2 rounded-lg bg-white border border-stone-200 font-bold text-xs text-center outline-none focus:border-emerald-500 text-stone-800">
+                            </div>
+                            <div class="space-y-1">
+                                <label class="text-[9px] font-black uppercase text-emerald-800 text-center block">P %</label>
+                                <input type="number" id="add-prod-p" min="0" max="100" class="w-full p-2 rounded-lg bg-white border border-stone-200 font-bold text-xs text-center outline-none focus:border-emerald-500 text-stone-800">
+                            </div>
+                            <div class="space-y-1">
+                                <label class="text-[9px] font-black uppercase text-emerald-800 text-center block">K %</label>
+                                <input type="number" id="add-prod-k" min="0" max="100" class="w-full p-2 rounded-lg bg-white border border-stone-200 font-bold text-xs text-center outline-none focus:border-emerald-500 text-stone-800">
+                            </div>
+                        </div>
+
+                        <div class="space-y-1">
+                            <label class="text-[10px] font-black uppercase text-stone-400">Діюча речовина / Склад</label>
+                            <input type="text" id="add-prod-composition" placeholder="Напр. Дифеноконазол 250 г/л" class="w-full p-3.5 rounded-xl bg-stone-50 border border-stone-200 font-bold text-xs outline-none focus:border-emerald-500 text-stone-850">
+                        </div>
+
+                        <div class="grid grid-cols-2 gap-3">
+                            <div class="space-y-1">
+                                <label class="text-[10px] font-black uppercase text-stone-400">Доза (на 10л води)</label>
+                                <input type="text" id="add-prod-dose-l" placeholder="Напр. 2 мл / 10л" class="w-full p-3.5 rounded-xl bg-stone-50 border border-stone-200 font-bold text-xs outline-none focus:border-emerald-500 text-stone-850">
+                            </div>
+                            <div class="space-y-1">
+                                <label class="text-[10px] font-black uppercase text-stone-400">Доза (на 1 га)</label>
+                                <input type="text" id="add-prod-dose-ha" placeholder="Напр. 0.2 л/га" class="w-full p-3.5 rounded-xl bg-stone-50 border border-stone-200 font-bold text-xs outline-none focus:border-emerald-500 text-stone-850">
+                            </div>
+                        </div>
+
+                        <div class="space-y-1">
+                            <label class="text-[10px] font-black uppercase text-stone-400">Призначення / Спектр дії</label>
+                            <input type="text" id="add-prod-scope" placeholder="Напр. Оїдіум, чорна плямистість" class="w-full p-3.5 rounded-xl bg-stone-50 border border-stone-200 font-bold text-xs outline-none focus:border-emerald-500 text-stone-850">
+                        </div>
+
+                        <div class="space-y-1">
+                            <label class="text-[10px] font-black uppercase text-stone-400">Сумісність та примітки</label>
+                            <textarea id="add-prod-compatibility" placeholder="Сумісний з більшістю фунгіцидів. Не змішувати з лужними." rows="2" class="w-full p-3.5 rounded-xl bg-stone-50 border border-stone-200 font-medium text-xs outline-none focus:border-emerald-500 resize-none text-stone-850"></textarea>
+                        </div>
+
+                        <div class="grid grid-cols-2 gap-3">
+                            <div class="space-y-1">
+                                <label class="text-[10px] font-black uppercase text-stone-400">Термін очікування</label>
+                                <input type="text" id="add-prod-wait" placeholder="Напр. 30 днів" class="w-full p-3.5 rounded-xl bg-stone-50 border border-stone-200 font-bold text-xs outline-none focus:border-emerald-500 text-stone-850">
+                            </div>
+                            <div class="space-y-1">
+                                <label class="text-[10px] font-black uppercase text-stone-400">Оптимальний рН розчину</label>
+                                <input type="text" id="add-prod-ph" placeholder="Напр. 5.5 - 6.5" class="w-full p-3.5 rounded-xl bg-stone-50 border border-stone-200 font-bold text-xs outline-none focus:border-emerald-500 text-stone-850">
+                            </div>
+                        </div>
+
+                        <div class="flex gap-3 pt-2">
+                            <button type="button" onclick="closeAddProductModal()" class="flex-1 py-3 rounded-xl border border-stone-200 text-stone-600 font-black text-xs uppercase tracking-wider hover:bg-stone-50 transition-all">Скасувати</button>
+                            <button type="submit" class="flex-1 py-3 bg-emerald-600 hover:bg-emerald-700 text-white font-black text-xs uppercase tracking-wider rounded-xl shadow-md transition-all">Зберегти</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Modal: Add Custom Variety -->
+            <div id="modal-add-variety" class="fixed inset-0 bg-stone-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+                <div class="bg-white w-full max-w-md rounded-[32px] p-6 shadow-2xl border border-stone-200/50 space-y-4 max-h-[90vh] overflow-y-auto custom-scrollbar">
+                    <div class="flex justify-between items-center border-b border-stone-100 pb-3">
+                        <h3 class="text-lg font-black text-emerald-900">➕ Новий сорт винограду</h3>
+                        <button onclick="closeAddVarietyModal()" class="text-stone-400 hover:text-stone-600 text-lg">✕</button>
+                    </div>
+                    
+                    <form id="form-add-variety" onsubmit="saveCustomVariety(event)" class="space-y-4">
+                        <div class="space-y-1">
+                            <div class="flex justify-between items-center">
+                                <div class="flex items-center gap-2">
+                                    <label class="text-[10px] font-black uppercase text-stone-400">Назва сорту <span class="text-rose-500">*</span></label>
+                                    <button type="button" onclick="fetchVarietyInfoAI()" class="text-[9px] px-2 py-0.5 rounded-md bg-gradient-to-r from-purple-600 to-indigo-600 text-white font-extrabold hover:opacity-90 active:scale-95 transition-all flex items-center gap-1">
+                                        <span>✨ Завантажити з AI</span>
+                                    </button>
+                                </div>
+                                <span class="text-[8px] font-bold text-emerald-600 uppercase tracking-wider hidden" id="add-var-autocomplete-badge">Знайдено в каталозі (автозаповнення)</span>
+                            </div>
+                            <input type="text" id="add-var-name" required placeholder="Напр. Велес" oninput="handleAddVarNameInput()" class="w-full p-3.5 rounded-xl bg-stone-50 border border-stone-200 font-bold text-xs outline-none focus:border-emerald-500 text-stone-850">
+                        </div>
+                        <div class="grid grid-cols-2 gap-3">
+                            <div class="space-y-1">
+                                <label class="text-[10px] font-black uppercase text-stone-400">Колір ягоди <span class="text-rose-500">*</span></label>
+                                <select id="add-var-color" class="w-full p-3.5 rounded-xl bg-stone-50 border border-stone-200 font-bold text-xs outline-none focus:border-emerald-500 text-stone-850">
+                                    <option value="W">White (Білий)</option>
+                                    <option value="R">Rose (Рожевий)</option>
+                                    <option value="B">Black (Чорний)</option>
+                                </select>
+                            </div>
+                            <div class="space-y-1">
+                                <label class="text-[10px] font-black uppercase text-stone-400">Термін дозрівання <span class="text-rose-500">*</span></label>
+                                <input type="text" id="add-var-rip" placeholder="Напр. 100 дн. або 115-125 дн." class="w-full p-3.5 rounded-xl bg-stone-50 border border-stone-200 font-bold text-xs outline-none focus:border-emerald-500 text-stone-850">
+                            </div>
+                        </div>
+                        <div class="grid grid-cols-2 gap-3">
+                            <div class="space-y-1">
+                                <label class="text-[10px] font-black uppercase text-stone-400">Вага грона</label>
+                                <input type="text" id="add-var-bunch" placeholder="Напр. 600-1000 г" class="w-full p-3.5 rounded-xl bg-stone-50 border border-stone-200 font-bold text-xs outline-none focus:border-emerald-500 text-stone-850">
+                            </div>
+                            <div class="space-y-1">
+                                <label class="text-[10px] font-black uppercase text-stone-400">Тип (кісточки)</label>
+                                <select id="add-var-seed" class="w-full p-3.5 rounded-xl bg-stone-50 border border-stone-200 font-bold text-xs outline-none focus:border-emerald-500 text-stone-850">
+                                    <option value="З кіст.">З кісточками (Столовий)</option>
+                                    <option value="Безкіст.">Безкісточковий (Кишмиш)</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="space-y-1">
+                            <label class="text-[10px] font-black uppercase text-stone-400">Смаковий профіль</label>
+                            <input type="text" id="add-var-taste" placeholder="Напр. Мускат, Гармонійний" class="w-full p-3.5 rounded-xl bg-stone-50 border border-stone-200 font-bold text-xs outline-none focus:border-emerald-500 text-stone-850">
+                        </div>
+                        <div class="space-y-1">
+                            <label class="text-[10px] font-black uppercase text-stone-400">Рекомендації по догляду</label>
+                            <textarea id="add-var-care" placeholder="Напр. Потребує нормування врожаєм..." rows="2" class="w-full p-3.5 rounded-xl bg-stone-50 border border-stone-200 font-medium text-xs outline-none focus:border-emerald-500 resize-none text-stone-850"></textarea>
+                        </div>
+                        <div class="space-y-1">
+                            <label class="text-[10px] font-black uppercase text-stone-400">Кількість кущів на винограднику</label>
+                            <input type="number" id="add-var-qty" min="0" value="0" class="w-full p-3.5 rounded-xl bg-stone-50 border border-stone-200 font-bold text-xs outline-none focus:border-emerald-500 text-stone-850">
+                        </div>
+                        
+                        <div class="flex gap-3 pt-2">
+                            <button type="button" onclick="closeAddVarietyModal()" class="flex-1 py-3 rounded-xl border border-stone-200 text-stone-600 font-black text-xs uppercase tracking-wider hover:bg-stone-50 transition-all">Скасувати</button>
+                            <button type="submit" class="flex-1 py-3 bg-emerald-600 hover:bg-emerald-700 text-white font-black text-xs uppercase tracking-wider rounded-xl shadow-md transition-all">Зберегти</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
 
     </main>
 
