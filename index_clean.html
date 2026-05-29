@@ -207,20 +207,95 @@
                 <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
                     <!-- Left Column: Add Task and Active Tasks -->
                     <div class="lg:col-span-6 space-y-6">
-                        <div class="bg-stone-50 p-6 rounded-3xl border border-stone-200/60">
-                            <h4 class="text-xs font-black uppercase tracking-wider text-emerald-800 mb-3">Додати нову операцію</h4>
-                            <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                                <div class="sm:col-span-2">
-                                    <label class="text-[9px] font-black uppercase text-stone-400 block mb-1">Опис роботи / Пам'ятка</label>
-                                    <input type="text" id="todo-text" placeholder="напр. Обробити Луною від оїдіуму..." class="w-full p-3 rounded-xl bg-white border border-stone-200 focus:border-emerald-500 outline-none font-semibold text-sm text-stone-800">
-                                </div>
-                                <div class="sm:col-span-1">
-                                    <label class="text-[9px] font-black uppercase text-stone-400 block mb-1">Термін</label>
-                                    <input type="date" id="todo-due-date" class="w-full p-3 rounded-xl bg-white border border-stone-200 outline-none font-bold text-sm text-stone-800">
+                        <div class="bg-stone-50 p-6 rounded-3xl border border-stone-200/60 space-y-4">
+                            <h4 class="text-xs font-black uppercase tracking-wider text-emerald-800 mb-2">Додати нову операцію</h4>
+                            
+                            <!-- Record Type Pills -->
+                            <div class="space-y-1">
+                                <label class="text-[9px] font-black uppercase text-stone-400 block mb-1">Тип запису</label>
+                                <div class="flex gap-2">
+                                    <button type="button" id="btn-todo-type-work" onclick="setTodoType('work')" class="flex-1 py-2 px-1 rounded-xl font-black text-[10px] uppercase border transition-all bg-emerald-600 text-white border-emerald-600 select-none">✍️ Робота</button>
+                                    <button type="button" id="btn-todo-type-treatment" onclick="setTodoType('treatment')" class="flex-1 py-2 px-1 rounded-xl font-black text-[10px] uppercase border transition-all bg-white text-stone-600 border-stone-200 hover:bg-stone-50 select-none">🧪 Препарат</button>
+                                    <button type="button" id="btn-todo-type-issue" onclick="setTodoType('issue')" class="flex-1 py-2 px-1 rounded-xl font-black text-[10px] uppercase border transition-all bg-white text-stone-600 border-stone-200 hover:bg-stone-50 select-none">⚠️ Загроза</button>
                                 </div>
                             </div>
-                            <button onclick="addTodoItem()" class="w-full mt-4 bg-emerald-600 hover:bg-emerald-700 text-white py-3 rounded-xl font-black transition-all text-sm uppercase tracking-wider">
-                                Додати завдання ➕
+
+                            <!-- Text Input with Voice Capture -->
+                            <div>
+                                <label class="text-[9px] font-black uppercase text-stone-400 block mb-1">Опис / Нотатки</label>
+                                <div class="relative flex items-center">
+                                    <input type="text" id="todo-text" placeholder="Опишіть операцію або надиктуйте..." oninput="handleTodoTextInput()" class="w-full p-3 pr-20 rounded-xl bg-white border border-stone-200 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 outline-none font-semibold text-xs text-stone-850">
+                                    <div class="absolute right-2 flex items-center gap-1">
+                                        <button type="button" id="btn-todo-voice" onclick="toggleTodoVoice()" class="w-8 h-8 rounded-lg bg-stone-100 hover:bg-stone-250 text-stone-600 flex items-center justify-center transition-all cursor-pointer select-none" title="Голосовий ввід (натисніть і говоріть)">
+                                            <span id="voice-icon-symbol">🎙️</span>
+                                        </button>
+                                        <button type="button" id="btn-todo-ai-parse" onclick="parseTodoTextAI()" class="w-8 h-8 rounded-lg bg-gradient-to-r from-purple-600 to-indigo-600 text-white flex items-center justify-center transition-all cursor-pointer hidden select-none" title="ШІ-парсинг тексту">
+                                            <span>✨</span>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Dynamic Field: Treatment -->
+                            <div id="todo-fields-treatment" class="hidden space-y-3 pt-1 border-t border-dashed border-stone-200">
+                                <div class="grid grid-cols-2 gap-2">
+                                    <div>
+                                        <label class="text-[9px] font-black uppercase text-stone-400 block mb-1">Препарат</label>
+                                        <select id="todo-treatment-product" class="w-full p-2.5 rounded-xl bg-white border border-stone-200 font-bold text-xs text-stone-850 outline-none focus:border-emerald-500">
+                                            <!-- Dynamically populated from productDB -->
+                                        </select>
+                                    </div>
+                                    <div>
+                                        <label class="text-[9px] font-black uppercase text-stone-400 block mb-1">Дозування (г чи мл)</label>
+                                        <input type="text" id="todo-treatment-dose" placeholder="напр. 2 г/л або 15 мл" class="w-full p-2.5 rounded-xl bg-white border border-stone-200 font-bold text-xs text-stone-850 outline-none focus:border-emerald-500">
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Dynamic Field: Issue -->
+                            <div id="todo-fields-issue" class="hidden space-y-3 pt-1 border-t border-dashed border-stone-200">
+                                <div class="grid grid-cols-2 gap-2">
+                                    <div>
+                                        <label class="text-[9px] font-black uppercase text-stone-400 block mb-1">Проблема / Стан</label>
+                                        <select id="todo-issue-type" class="w-full p-2.5 rounded-xl bg-white border border-stone-200 font-bold text-xs text-stone-850 outline-none focus:border-emerald-500">
+                                            <option value="Мілдью">🍄 Мілдью</option>
+                                            <option value="Оїдіум">🍄 Оїдіум</option>
+                                            <option value="Сіра гниль">🍄 Сіра гниль</option>
+                                            <option value="Антракноз">🍄 Антракноз</option>
+                                            <option value="Бруньковий кліщ">🕷️ Бруньковий кліщ</option>
+                                            <option value="Павутинний кліщ">🕷️ Павутинний кліщ</option>
+                                            <option value="Гронова листовійка">🕷️ Листовійка</option>
+                                            <option value="Хлороз">🧪 Залізничний хлороз</option>
+                                            <option value="Заморозки">❄️ Пошкодження морозом</option>
+                                            <option value="Дефіцит живлення">🧪 Дефіцит живлення</option>
+                                            <option value="Інше">❓ Інша проблема</option>
+                                        </select>
+                                    </div>
+                                    <div>
+                                        <label class="text-[9px] font-black uppercase text-stone-400 block mb-1">Ступінь ураження</label>
+                                        <select id="todo-issue-severity" class="w-full p-2.5 rounded-xl bg-white border border-stone-200 font-bold text-xs text-stone-850 outline-none focus:border-emerald-500">
+                                            <option value="🟢 Низька">🟢 Низька</option>
+                                            <option value="🟡 Середня" selected>🟡 Середня</option>
+                                            <option value="🔴 Висока">🔴 Висока</option>
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Date Selection -->
+                            <div>
+                                <label class="text-[9px] font-black uppercase text-stone-400 block mb-1">Дата</label>
+                                <input type="date" id="todo-due-date" class="w-full p-3 rounded-xl bg-white border border-stone-200 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 outline-none font-bold text-xs text-stone-850">
+                            </div>
+
+                            <!-- Completed Direct Checkbox -->
+                            <div class="flex items-center gap-2 pt-1">
+                                <input type="checkbox" id="todo-is-completed-direct" class="w-4 h-4 text-emerald-600 border-stone-300 rounded focus:ring-emerald-500 cursor-pointer select-none">
+                                <label for="todo-is-completed-direct" class="text-[10px] font-bold text-stone-600 cursor-pointer select-none">Вже проведено (одразу в Журнал)</label>
+                            </div>
+
+                            <button onclick="addTodoItem()" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white py-3 rounded-xl font-black transition-all text-sm uppercase tracking-wider shadow-sm hover:shadow-md">
+                                Зберегти запис
                             </button>
                         </div>
 
@@ -239,6 +314,7 @@
                                 <h4 class="text-xs font-black uppercase tracking-wider text-emerald-900">Журнал виконаних робіт</h4>
                                 <button onclick="clearCompletedTodos()" class="text-[10px] font-bold text-rose-500 hover:underline">Очистити журнал</button>
                             </div>
+                            <div id="deagro-smart-recommendations-box" class="hidden"></div>
                             <div id="todo-completed-list" class="space-y-2.5 max-h-[360px] overflow-y-auto pr-2 custom-scrollbar">
                                 <!-- Completed tasks will be rendered here -->
                             </div>
@@ -6150,30 +6226,324 @@
 
         // --- TO-DO LIST & JOURNAL OF OPERATIONS LOGIC ---
         let todoList = [];
+        let currentTodoType = 'work';
+
+        function setTodoType(type) {
+            currentTodoType = type;
+            const types = ['work', 'treatment', 'issue'];
+            types.forEach(t => {
+                const btn = document.getElementById('btn-todo-type-' + t);
+                if (btn) {
+                    if (t === type) {
+                        btn.className = "flex-1 py-2 px-1 rounded-xl font-black text-[10px] uppercase border transition-all bg-emerald-600 text-white border-emerald-600 select-none";
+                    } else {
+                        btn.className = "flex-1 py-2 px-1 rounded-xl font-black text-[10px] uppercase border transition-all bg-white text-stone-600 border-stone-200 hover:bg-stone-50 select-none";
+                    }
+                }
+            });
+
+            const treatDiv = document.getElementById('todo-fields-treatment');
+            const issueDiv = document.getElementById('todo-fields-issue');
+
+            if (type === 'treatment') {
+                if (treatDiv) treatDiv.classList.remove('hidden');
+                if (issueDiv) issueDiv.classList.add('hidden');
+                populateTreatmentProducts();
+            } else if (type === 'issue') {
+                if (treatDiv) treatDiv.classList.add('hidden');
+                if (issueDiv) issueDiv.classList.remove('hidden');
+            } else {
+                if (treatDiv) treatDiv.classList.add('hidden');
+                if (issueDiv) issueDiv.classList.add('hidden');
+            }
+        }
+
+        function populateTreatmentProducts() {
+            const select = document.getElementById('todo-treatment-product');
+            if (!select) return;
+            select.innerHTML = '';
+            
+            const list = getProductDB() || [];
+            list.forEach(p => {
+                const opt = document.createElement('option');
+                opt.value = p.name;
+                opt.innerText = `${p.name} (${getProductTypeLabel(p.type)})`;
+                select.appendChild(opt);
+            });
+        }
+
+        function getProductTypeLabel(type) {
+            if (type === 'fertilizer') return 'Добриво';
+            if (type === 'ppp') return 'ЗЗР';
+            if (type === 'supplement') return 'Стимулятор';
+            return 'Інше';
+        }
+
+        function handleTodoTextInput() {
+            const input = document.getElementById('todo-text');
+            const parseBtn = document.getElementById('btn-todo-ai-parse');
+            if (!parseBtn || !input) return;
+            const hasGeminiKey = localStorage.getItem('viticulture-gemini-key');
+            if (hasGeminiKey && input.value.trim().length > 5) {
+                parseBtn.classList.remove('hidden');
+            } else {
+                parseBtn.classList.add('hidden');
+            }
+        }
+
+        let voiceRecognition = null;
+        let isRecordingVoice = false;
+
+        function toggleTodoVoice() {
+            window.SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+            if (!window.SpeechRecognition) {
+                showToast("Голосове розпізнавання не підтримується у вашому браузері. Скористайтеся Google Chrome або Safari.", "error");
+                return;
+            }
+
+            if (!voiceRecognition) {
+                voiceRecognition = new window.SpeechRecognition();
+                voiceRecognition.continuous = false;
+                voiceRecognition.interimResults = false;
+                voiceRecognition.lang = 'uk-UA';
+
+                voiceRecognition.onstart = () => {
+                    isRecordingVoice = true;
+                    const btn = document.getElementById('btn-todo-voice');
+                    const icon = document.getElementById('voice-icon-symbol');
+                    if (btn) btn.classList.add('bg-rose-100', 'text-rose-600', 'ring-2', 'ring-rose-400', 'animate-pulse');
+                    if (icon) icon.innerText = '🛑';
+                    showToast("Слухаю... Говоріть українською мовою.", "info");
+                };
+
+                voiceRecognition.onresult = (event) => {
+                    const transcript = event.results[0][0].transcript;
+                    const input = document.getElementById('todo-text');
+                    if (input) {
+                        input.value = (input.value ? input.value + ' ' : '') + transcript;
+                        handleTodoTextInput();
+                    }
+                    showToast("Голос розпізнано успішно!", "success");
+                };
+
+                voiceRecognition.onerror = (event) => {
+                    console.error("Speech recognition error", event.error);
+                    showToast(`Помилка голосу: ${event.error}`, "error");
+                    stopVoiceRecording();
+                };
+
+                voiceRecognition.onend = () => {
+                    stopVoiceRecording();
+                };
+            }
+
+            if (isRecordingVoice) {
+                voiceRecognition.stop();
+            } else {
+                voiceRecognition.start();
+            }
+        }
+
+        function stopVoiceRecording() {
+            isRecordingVoice = false;
+            const btn = document.getElementById('btn-todo-voice');
+            const icon = document.getElementById('voice-icon-symbol');
+            if (btn) {
+                btn.classList.remove('bg-rose-100', 'text-rose-600', 'ring-2', 'ring-rose-400', 'animate-pulse');
+            }
+            if (icon) {
+                icon.innerText = '🎙️';
+            }
+        }
+
+        async function parseTodoTextAI() {
+            const key = localStorage.getItem('viticulture-gemini-key');
+            if (!key) {
+                showToast("Для використання ШІ-парсингу введіть ключ API Gemini у Налаштуваннях.", "warning");
+                return;
+            }
+
+            const textInput = document.getElementById('todo-text');
+            const textVal = textInput ? textInput.value.trim() : '';
+            if (!textVal) return;
+
+            const parseBtn = document.getElementById('btn-todo-ai-parse');
+            const origHTML = parseBtn.innerHTML;
+            parseBtn.disabled = true;
+            parseBtn.innerHTML = '⏳';
+
+            try {
+                const productsList = getProductDB().map(p => p.name).join(', ');
+                
+                const systemPrompt = `You are a helper that extracts structured data from ukrainian notes about vineyard operations.
+Identify:
+1. Type of log: "work" (for general jobs like pruning, binding, weed removal), "treatment" (spraying or applying products/fertilizers like Horus, Ridomil, Plantafol), "issue" (finding diseases/pests/chlorosis/frosts/pests).
+2. Product name if type is "treatment", strictly matching or very similar to one of these: ${productsList}. If not found in the list, just write its name.
+3. Dosage if type is "treatment" (e.g. "3 г/л", "10 мл" etc. or null).
+4. Issue type if type is "issue", strictly matching one of these: "Мілдью", "Оїдіум", "Сіра гниль", "Антракноз", "Бруньковий кліщ", "Павутинний кліщ", "Гронова листовійка", "Хлороз", "Заморозки", "Дефіцит живлення".
+5. Severity if type is "issue" (either "🟢 Низька", "🟡 Середня", "🔴 Висока").
+
+Return ONLY a valid raw JSON object matching this structure, with no markdown wrappers, no backticks, no comments:
+{
+  "type": "work" | "treatment" | "issue",
+  "productName": "string or null",
+  "productDose": "string or null",
+  "issueType": "string or null",
+  "issueSeverity": "string or null",
+  "cleanedText": "Ukrainian string describing the task clearly, translated to short formal style"
+}`;
+
+                const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${key}`;
+                const payload = {
+                    contents: [{
+                        parts: [{
+                            text: `${systemPrompt}\n\nInput text to parse: "${textVal}"`
+                        }]
+                    }]
+                };
+
+                const res = await fetch(url, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+
+                if (!res.ok) throw new Error('Gemini API request failed');
+                const resData = await res.json();
+                
+                const aiText = resData.candidates?.[0]?.content?.parts?.[0]?.text || '';
+                const jsonText = aiText.replace(/```json/g, '').replace(/```/g, '').trim();
+                const parsed = JSON.parse(jsonText);
+
+                if (parsed.type) {
+                    setTodoType(parsed.type);
+                    if (parsed.cleanedText && textInput) {
+                        textInput.value = parsed.cleanedText;
+                    }
+                    if (parsed.type === 'treatment' && parsed.productName) {
+                        const select = document.getElementById('todo-treatment-product');
+                        if (select) {
+                            for (let opt of select.options) {
+                                if (opt.value.toLowerCase().includes(parsed.productName.toLowerCase()) || 
+                                    parsed.productName.toLowerCase().includes(opt.value.toLowerCase())) {
+                                    opt.selected = true;
+                                    break;
+                                }
+                            }
+                        }
+                        const doseInput = document.getElementById('todo-treatment-dose');
+                        if (parsed.productDose && doseInput) {
+                            doseInput.value = parsed.productDose;
+                        }
+                    }
+                    if (parsed.type === 'issue' && parsed.issueType) {
+                        const select = document.getElementById('todo-issue-type');
+                        if (select) {
+                            for (let opt of select.options) {
+                                if (opt.value.toLowerCase().includes(parsed.issueType.toLowerCase())) {
+                                    opt.selected = true;
+                                    break;
+                                }
+                            }
+                        }
+                        const sevSelect = document.getElementById('todo-issue-severity');
+                        if (parsed.issueSeverity && sevSelect) {
+                            sevSelect.value = parsed.issueSeverity;
+                        }
+                    }
+                    showToast("ШІ успішно структурував надиктовану замітку!", "success");
+                }
+            } catch (err) {
+                console.error("AI parsing error", err);
+                showToast("Не вдалося розпарсити за допомогою ШІ. Спробуйте ввести вручну.", "info");
+            } finally {
+                if (parseBtn) {
+                    parseBtn.disabled = false;
+                    parseBtn.innerHTML = origHTML;
+                }
+            }
+        }
 
         function addTodoItem() {
             const textInput = document.getElementById('todo-text');
             const dateInput = document.getElementById('todo-due-date');
+            const directCheck = document.getElementById('todo-is-completed-direct');
             
-            const text = textInput.value.trim();
-            const dueDate = dateInput.value;
+            const text = textInput ? textInput.value.trim() : '';
+            const dueDate = dateInput ? dateInput.value : '';
+            const isCompletedDirect = directCheck ? directCheck.checked : false;
             
             if (!text) {
-                alert('Будь ласка, введіть опис роботи.');
+                alert('Будь ласка, введіть опис роботи або скористайтеся надиктованим текстом.');
                 return;
             }
-            
-            todoList.push({
+
+            const item = {
                 id: Date.now() + Math.random(),
                 text: text,
                 dueDate: dueDate || null,
                 completed: false,
-                completedDate: null
-            });
+                completedDate: null,
+                type: currentTodoType,
+                weather: null
+            };
+
+            if (currentTodoType === 'treatment') {
+                const prodSelect = document.getElementById('todo-treatment-product');
+                const doseInput = document.getElementById('todo-treatment-dose');
+                item.productName = prodSelect ? prodSelect.value : '';
+                item.productDose = doseInput ? doseInput.value.trim() : '';
+            } else if (currentTodoType === 'issue') {
+                const issueSelect = document.getElementById('todo-issue-type');
+                const sevSelect = document.getElementById('todo-issue-severity');
+                item.issueType = issueSelect ? issueSelect.value : '';
+                item.issueSeverity = sevSelect ? sevSelect.value : '';
+            }
+
+            if (isCompletedDirect) {
+                item.completed = true;
+                item.completedDate = dueDate || new Date().toISOString().split('T')[0];
+                
+                let weatherData = null;
+                const cacheStr = localStorage.getItem('viticulture-weather-current-cache');
+                if (cacheStr) {
+                    try {
+                        const cache = JSON.parse(cacheStr);
+                        weatherData = {
+                            temp: cache.temp,
+                            humidity: cache.humidity,
+                            rain: cache.rain
+                        };
+                    } catch(e) {}
+                }
+                if (!weatherData) {
+                    const tempEl = document.getElementById('disease-temp');
+                    if (tempEl) {
+                        weatherData = {
+                            temp: parseInt(tempEl.value) || 20,
+                            humidity: parseInt(document.getElementById('disease-humidity')?.value) || 60,
+                            rain: parseFloat(document.getElementById('disease-rain')?.value) || 0
+                        };
+                    }
+                }
+                item.weather = weatherData;
+            }
             
-            textInput.value = '';
+            todoList.push(item);
+            
+            if (textInput) textInput.value = '';
+            if (directCheck) directCheck.checked = false;
+            
+            const doseInput = document.getElementById('todo-treatment-dose');
+            if (doseInput) doseInput.value = '';
+
             localStorage.setItem('vineyardTodo', JSON.stringify(todoList));
+            
+            const parseBtn = document.getElementById('btn-todo-ai-parse');
+            if (parseBtn) parseBtn.classList.add('hidden');
+
             renderTodos();
+            showToast("Запис успішно додано!", "success");
         }
 
         function toggleTodoItem(id) {
@@ -6186,8 +6556,33 @@
                     const mm = String(today.getMonth() + 1).padStart(2, '0');
                     const dd = String(today.getDate()).padStart(2, '0');
                     item.completedDate = `${yyyy}-${mm}-${dd}`;
+                    
+                    let weatherData = null;
+                    const cacheStr = localStorage.getItem('viticulture-weather-current-cache');
+                    if (cacheStr) {
+                        try {
+                            const cache = JSON.parse(cacheStr);
+                            weatherData = {
+                                temp: cache.temp,
+                                humidity: cache.humidity,
+                                rain: cache.rain
+                            };
+                        } catch(e) {}
+                    }
+                    if (!weatherData) {
+                        const tempEl = document.getElementById('disease-temp');
+                        if (tempEl) {
+                            weatherData = {
+                                temp: parseInt(tempEl.value) || 20,
+                                humidity: parseInt(document.getElementById('disease-humidity')?.value) || 60,
+                                rain: parseFloat(document.getElementById('disease-rain')?.value) || 0
+                            };
+                        }
+                    }
+                    item.weather = weatherData;
                 } else {
                     item.completedDate = null;
+                    item.weather = null;
                 }
                 localStorage.setItem('vineyardTodo', JSON.stringify(todoList));
                 renderTodos();
@@ -6225,70 +6620,158 @@
             const activeTasks = todoList.filter(t => !t.completed);
             const completedTasks = todoList.filter(t => t.completed);
             
-            // Sort active tasks: due date first, tasks without date last
             activeTasks.sort((a, b) => {
                 if (!a.dueDate) return 1;
                 if (!b.dueDate) return -1;
                 return new Date(a.dueDate) - new Date(b.dueDate);
             });
             
-            // Sort completed tasks by completed date descending
             completedTasks.sort((a, b) => new Date(b.completedDate) - new Date(a.completedDate));
             
             // Render active list
             if (activeTasks.length === 0) {
-                activeList.innerHTML = `<p class="text-xs text-stone-400 italic text-center py-6 bg-stone-50 rounded-2xl border border-dashed border-stone-200">Немає запланованих робіт</p>`;
+                if (activeList) activeList.innerHTML = `<p class="text-xs text-stone-400 italic text-center py-6 bg-stone-50 rounded-2xl border border-dashed border-stone-200">Немає запланованих робіт</p>`;
             } else {
-                activeList.innerHTML = activeTasks.map(t => {
+                if (activeList) activeList.innerHTML = activeTasks.map(t => {
                     let dateBadge = '';
                     if (t.dueDate) {
                         const dateObj = new Date(t.dueDate);
                         const formatted = dateObj.toLocaleDateString('uk-UA', { day: '2-digit', month: '2-digit', year: 'numeric' });
                         dateBadge = `<span class="bg-amber-100 text-amber-800 text-[10px] px-2 py-0.5 rounded-md font-bold">До: ${formatted}</span>`;
                     }
+                    
+                    let typeBadge = `<span class="bg-stone-100 text-stone-600 text-[9px] font-black uppercase px-2 py-0.5 rounded-md">✍️ Робота</span>`;
+                    if (t.type === 'treatment') {
+                        typeBadge = `<span class="bg-purple-100 text-purple-800 text-[9px] font-black uppercase px-2 py-0.5 rounded-md">🧪 ${t.productName} (${t.productDose || 'Без дози'})</span>`;
+                    } else if (t.type === 'issue') {
+                        typeBadge = `<span class="bg-rose-100 text-rose-800 text-[9px] font-black uppercase px-2 py-0.5 rounded-md">⚠️ ${t.issueType} (${t.issueSeverity})</span>`;
+                    }
+                    
                     return `
                         <div class="flex items-start justify-between bg-white p-4 rounded-2xl border border-stone-200/60 shadow-sm hover:border-emerald-300 transition-all select-none">
                             <div class="flex items-start gap-3 flex-grow mr-2 cursor-pointer" onclick="toggleTodoItem(${t.id})">
                                 <input type="checkbox" class="w-4.5 h-4.5 mt-0.5 rounded border-stone-300 text-emerald-600 focus:ring-emerald-500 pointer-events-none">
                                 <div>
                                     <p class="text-xs text-stone-800 font-semibold leading-normal">${t.text}</p>
-                                    <div class="mt-1">${dateBadge}</div>
+                                    <div class="mt-2 flex flex-wrap items-center gap-1.5">${typeBadge} ${dateBadge}</div>
                                 </div>
                             </div>
-                            <button onclick="deleteTodoItem(${t.id})" class="text-stone-300 hover:text-rose-500 font-black transition-all">✕</button>
+                            <button onclick="deleteTodoItem(${t.id}); event.stopPropagation();" class="text-stone-300 hover:text-rose-500 font-black transition-all">✕</button>
                         </div>
                     `;
                 }).join('');
             }
             
-            // Render completed list
+            // Render completed list (Journal)
             if (completedTasks.length === 0) {
-                completedList.innerHTML = `<p class="text-xs text-stone-400 italic text-center py-10">Журнал пустий. Виконуйте завдання, щоб зафіксувати дату!</p>`;
+                if (completedList) completedList.innerHTML = `<p class="text-xs text-stone-400 italic text-center py-10">Журнал пустий. Виконуйте завдання, щоб зафіксувати дату!</p>`;
             } else {
-                completedList.innerHTML = completedTasks.map(t => {
+                if (completedList) completedList.innerHTML = completedTasks.map(t => {
+                    let weatherBadge = '';
+                    if (t.weather) {
+                        weatherBadge = `<span class="bg-blue-50/50 text-blue-800 text-[9px] px-2 py-0.5 rounded-md font-bold flex items-center gap-1 border border-blue-100">🌦️ ${t.weather.temp}°C • 💧 ${t.weather.humidity}% • ☔ ${t.weather.rain}мм</span>`;
+                    }
+                    
+                    let typeBadge = `<span class="bg-stone-100 text-stone-600 text-[9px] font-black uppercase px-2 py-0.5 rounded-md border border-stone-200">✍️ Робота</span>`;
+                    if (t.type === 'treatment') {
+                        typeBadge = `<span class="bg-purple-100 text-purple-800 text-[9px] font-black uppercase px-2 py-0.5 rounded-md border border-purple-200">🧪 ${t.productName} (${t.productDose || 'Без дози'})</span>`;
+                    } else if (t.type === 'issue') {
+                        const sevColor = t.issueSeverity.includes('Висока') ? 'bg-rose-100 text-rose-800 border-rose-200' : (t.issueSeverity.includes('Середня') ? 'bg-amber-100 text-amber-800 border-amber-200' : 'bg-emerald-100 text-emerald-800 border-emerald-200');
+                        typeBadge = `<span class="${sevColor} text-[9px] font-black uppercase px-2 py-0.5 rounded-md border">⚠️ ${t.issueType} (${t.issueSeverity})</span>`;
+                    }
+                    
                     return `
-                        <div class="flex justify-between items-center bg-white p-4 rounded-2xl border border-emerald-100/50 shadow-sm hover:border-emerald-300 transition-all">
-                            <div class="flex-grow">
-                                <p class="text-xs text-stone-500 line-through font-bold decoration-emerald-500/30">${t.text}</p>
-                                <div class="flex items-center gap-2 mt-1.5">
-                                    <span class="text-[9px] font-black uppercase text-emerald-700 bg-emerald-100/70 px-2 py-0.5 rounded-md">Виконано:</span>
-                                    <input type="date" value="${t.completedDate}" onchange="updateTodoCompletedDate(${t.id}, this.value)" class="bg-transparent border-0 p-0 text-emerald-800 text-[11px] font-black outline-none cursor-pointer focus:underline w-28">
+                        <div class="flex items-start justify-between bg-white p-4 rounded-2xl border border-emerald-100/50 shadow-sm hover:border-emerald-300 transition-all select-none">
+                            <div class="flex items-start gap-3 flex-grow mr-2 cursor-pointer" onclick="toggleTodoItem(${t.id})">
+                                <input type="checkbox" checked class="w-4.5 h-4.5 mt-0.5 rounded border-stone-300 text-emerald-600 focus:ring-emerald-500 pointer-events-none">
+                                <div class="flex-grow">
+                                    <p class="text-xs text-stone-500 line-through font-bold decoration-emerald-500/30">${t.text}</p>
+                                    <div class="flex flex-wrap items-center gap-1.5 mt-2">${typeBadge} ${weatherBadge}</div>
+                                    <div class="flex items-center gap-2 mt-2" onclick="event.stopPropagation()">
+                                        <span class="text-[9px] font-black uppercase text-emerald-700 bg-emerald-100/70 px-2 py-0.5 rounded-md">Дата:</span>
+                                        <input type="date" value="${t.completedDate}" onchange="updateTodoCompletedDate(${t.id}, this.value); event.stopPropagation();" class="bg-transparent border-0 p-0 text-emerald-800 text-[11px] font-black outline-none cursor-pointer focus:underline w-28">
+                                    </div>
                                 </div>
                             </div>
-                            <button onclick="deleteTodoItem(${t.id})" class="text-stone-300 hover:text-rose-500 font-black transition-all ml-2">✕</button>
+                            <button onclick="deleteTodoItem(${t.id}); event.stopPropagation();" class="text-stone-300 hover:text-rose-500 font-black transition-all ml-2">✕</button>
                         </div>
                     `;
                 }).join('');
             }
             
-            stats.innerText = `Виконано: ${completedTasks.length} з ${todoList.length}`;
+            if (stats) stats.innerText = `Виконано: ${completedTasks.length} з ${todoList.length}`;
+            updateSmartRecommendations();
+        }
+
+        function updateSmartRecommendations() {
+            const completed = todoList.filter(t => t.completed);
+            const treatments = completed.filter(t => t.type === 'treatment');
+            const issues = completed.filter(t => t.type === 'issue');
+            
+            let recs = [];
+            
+            // Check NPK ratio
+            let totalN = 0;
+            treatments.forEach(t => {
+                const prod = getProductDB().find(p => p.name === t.productName);
+                if (prod && prod.composition && prod.composition.npk) {
+                    totalN += prod.composition.npk.n || 0;
+                }
+            });
+            if (totalN > 100) {
+                recs.push("⚠️ Внесено велику кількість азоту за сезон. Щоб уникнути жирування пагонів, змістіть баланс підживлення на калій та фосфор (монофосфат калію).");
+            }
+            
+            // Check recent rain and mildew prevention
+            const diseaseRain = document.getElementById('disease-rain')?.value || 0;
+            const rainAmount = parseFloat(diseaseRain) || 0;
+            if (rainAmount > 5) {
+                const lastMildewTreatment = treatments.find(t => {
+                    const prod = getProductDB().find(p => p.name === t.productName);
+                    return prod && prod.targets && prod.targets.some(tar => tar.toLowerCase().includes('мілдью'));
+                });
+                
+                if (!lastMildewTreatment) {
+                    recs.push("🌧️ Зафіксовано опади понад 5 мм за останні дні, а профілактичних обробок проти мілдью не виявлено! Рекомендується захисна обробка (Ридоміл Голд чи Танос).");
+                } else {
+                    const daysAgo = Math.round((Date.now() - new Date(lastMildewTreatment.completedDate).getTime()) / (1000 * 60 * 60 * 24));
+                    if (daysAgo > 10) {
+                        recs.push(`🌧️ Пройшли дощі. З моменту останньої обробки проти мілдью препаратом «${lastMildewTreatment.productName}» минуло ${daysAgo} днів. Захисний бар'єр послаблено.`);
+                    }
+                }
+            }
+            
+            // Check active issues
+            issues.forEach(issue => {
+                if (issue.issueSeverity.includes('Висока') || issue.issueSeverity.includes('Середня')) {
+                    recs.push(`🩹 Активна загроза: <strong>${issue.issueType}</strong> (${issue.issueSeverity}). Запустіть відповідний протокол лікування!`);
+                }
+            });
+            
+            const recsBox = document.getElementById('deagro-smart-recommendations-box');
+            if (recsBox) {
+                if (recs.length > 0) {
+                    recsBox.innerHTML = `
+                        <div class="p-3 bg-amber-50/50 border border-amber-200/60 rounded-xl space-y-2 mb-3">
+                            <span class="block text-[8px] font-black uppercase text-amber-700 tracking-widest">🧠 Адаптивні рекомендації deAgro:</span>
+                            <ul class="space-y-1 text-[10px] text-stone-600 font-medium list-disc pl-3 leading-relaxed">
+                                ${recs.map(r => `<li>${r}</li>`).join('')}
+                            </ul>
+                        </div>
+                    `;
+                    recsBox.classList.remove('hidden');
+                } else {
+                    recsBox.innerHTML = '';
+                    recsBox.classList.add('hidden');
+                }
+            }
         }
 
         function exportDatabase() {
             const data = {};
             for (let i = 0; i < localStorage.length; i++) {
                 const key = localStorage.key(i);
-                if (key && (key.startsWith('viticulture-') || key === 'satHistory' || key === 'forecastDailyTemps' || key === 'phaseChecklists' || key === 'phaseChecklistDates' || key === 'todoList' || key === 'weather-lat' || key === 'weather-lon' || key === 'weather-lat-saved' || key === 'weather-lon-saved')) {
+                if (key && (key.startsWith('viticulture-') || key === 'satHistory' || key === 'forecastDailyTemps' || key === 'phaseChecklists' || key === 'phaseChecklistDates' || key === 'vineyardTodo' || key === 'weather-lat' || key === 'weather-lon' || key === 'weather-lat-saved' || key === 'weather-lon-saved')) {
                     data[key] = localStorage.getItem(key);
                 }
             }
@@ -6312,7 +6795,7 @@
                     const data = JSON.parse(e.target.result);
                     
                     const keys = Object.keys(data);
-                    const valid = keys.some(key => key.startsWith('viticulture-') || key === 'satHistory' || key === 'todoList');
+                    const valid = keys.some(key => key.startsWith('viticulture-') || key === 'satHistory' || key === 'vineyardTodo' || key === 'todoList');
                     if (!valid && keys.length > 0) {
                         alert('Помилка: файл не містить валідних даних GrapeGrew.');
                         return;
