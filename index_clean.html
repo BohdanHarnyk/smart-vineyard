@@ -531,8 +531,88 @@
                 </div>
             </div>
 
+            <!-- deAgro Smart Analytics Dashboard -->
+            <div class="bg-white p-6 md:p-8 rounded-[32px] md:rounded-[40px] border border-emerald-100 custom-shadow mt-8">
+                <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 pb-6 border-b border-emerald-100 mb-6">
+                    <div class="flex items-center gap-3">
+                        <span class="text-3xl md:text-4xl">📊</span>
+                        <div>
+                            <h3 class="text-xl md:text-2xl font-black text-emerald-950">🧠 deAgro Адаптивна Аналітика</h3>
+                            <p class="text-[10px] md:text-xs text-stone-500 uppercase tracking-widest font-bold">Аналіз накопичених даних, агрохімічний спектр та ШІ-рекомендації</p>
+                        </div>
+                    </div>
+                    <button onclick="generateDeagroAIAnalysis()" class="bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white font-black text-xs uppercase tracking-wider py-3 px-5 rounded-2xl transition-all shadow-md flex items-center gap-2 select-none cursor-pointer">
+                        <span>🧠</span> Згенерувати адаптивну ШІ-стратегію
+                    </button>
+                </div>
+
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                    <!-- Column 1: Agronomic Balance & Spectrum -->
+                    <div class="bg-stone-50/60 p-5 rounded-3xl border border-stone-200/40 space-y-4">
+                        <span class="text-[9px] font-black uppercase text-emerald-800 tracking-wider block">🧪 Агротехнічний баланс & Спектр робіт</span>
+                        <div class="space-y-3">
+                            <div class="space-y-1">
+                                <div class="flex justify-between text-[10px] font-bold text-stone-600">
+                                    <span>Всього обробок (ЗЗР/добрива)</span>
+                                    <span id="stat-total-treatments" class="font-black text-stone-850">0</span>
+                                </div>
+                                <div class="w-full bg-stone-200/50 h-2 rounded-full overflow-hidden">
+                                    <div id="bar-total-treatments" class="bg-purple-500 h-full rounded-full transition-all duration-300" style="width: 0%"></div>
+                                </div>
+                            </div>
+                            <div class="space-y-1">
+                                <div class="flex justify-between text-[10px] font-bold text-stone-600">
+                                    <span>Виявлено та зафіксовано загроз</span>
+                                    <span id="stat-total-issues" class="font-black text-stone-850">0</span>
+                                </div>
+                                <div class="w-full bg-stone-200/50 h-2 rounded-full overflow-hidden">
+                                    <div id="bar-total-issues" class="bg-rose-500 h-full rounded-full transition-all duration-300" style="width: 0%"></div>
+                                </div>
+                            </div>
+                            <div class="space-y-1">
+                                <div class="flex justify-between text-[10px] font-bold text-stone-600">
+                                    <span>Зелені операції та загальні роботи</span>
+                                    <span id="stat-total-works" class="font-black text-stone-850">0</span>
+                                </div>
+                                <div class="w-full bg-stone-200/50 h-2 rounded-full overflow-hidden">
+                                    <div id="bar-total-works" class="bg-emerald-500 h-full rounded-full transition-all duration-300" style="width: 0%"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Column 2: Climate Chronicle & Treatment Conditions -->
+                    <div class="bg-stone-50/60 p-5 rounded-3xl border border-stone-200/40 space-y-4">
+                        <span class="text-[9px] font-black uppercase text-amber-800 tracking-wider block">🌦️ Кліматичний архів сезону</span>
+                        <div class="grid grid-cols-2 gap-3 text-center">
+                            <div class="bg-white p-3 rounded-2xl border border-stone-200/30">
+                                <span class="block text-[8px] font-black text-stone-400 uppercase">🌧️ Дні з опадами</span>
+                                <span id="stat-rainy-days" class="block text-xl font-black text-blue-600 mt-1">0</span>
+                            </div>
+                            <div class="bg-white p-3 rounded-2xl border border-stone-200/30">
+                                <span class="block text-[8px] font-black text-stone-400 uppercase">🌡️ Середня t° робіт</span>
+                                <span id="stat-avg-temp" class="block text-xl font-black text-amber-600 mt-1">0°C</span>
+                            </div>
+                        </div>
+                        <div class="text-[9.5px] text-stone-500 font-semibold leading-normal p-2.5 bg-amber-50/40 border border-amber-100 rounded-xl">
+                            ℹ️ Погодні дані автоматично фіксуються в момент завершення або прямого додавання операцій через Open-Meteo API.
+                        </div>
+                    </div>
+
+                    <!-- Column 3: deAgro AI Auditor Response Box -->
+                    <div class="bg-stone-50/60 p-5 rounded-3xl border border-stone-200/40 flex flex-col justify-between min-h-[160px]">
+                        <div class="space-y-2">
+                            <span class="text-[9px] font-black uppercase text-purple-800 tracking-wider block">🧠 deAgro Адаптивний ШІ-Асистент</span>
+                            <div id="deagro-ai-audit-output" class="text-[10.5px] text-stone-600 font-medium leading-relaxed max-h-[160px] overflow-y-auto pr-1 custom-scrollbar">
+                                ШІ-Аналітик готовий проаналізувати всю історію ваших обробок, кліматичний фон, виявлені проблеми та перелік вирощуваних сортів для складання повністю адаптивної стратегії захисту.
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
             <!-- Frost Protocol -->
-            <div class="bg-rose-600 text-white p-10 rounded-[40px] shadow-xl relative overflow-hidden">
+            <div class="bg-rose-600 text-white p-10 rounded-[40px] shadow-xl relative overflow-hidden mt-8">
                 <div class="absolute right-0 top-0 p-10 opacity-10 pointer-events-none text-9xl">❄️</div>
                 <div class="flex flex-col md:flex-row justify-between items-center gap-6 relative z-10">
                     <div class="max-w-2xl">
@@ -6701,6 +6781,157 @@ Return ONLY a valid raw JSON object matching this structure, with no markdown wr
             
             if (stats) stats.innerText = `Виконано: ${completedTasks.length} з ${todoList.length}`;
             updateSmartRecommendations();
+            updateDeagroAnalyticsUI();
+        }
+
+        function updateDeagroAnalyticsUI() {
+            const completed = todoList.filter(t => t.completed);
+            
+            const totalTreatments = completed.filter(t => t.type === 'treatment').length;
+            const totalIssues = completed.filter(t => t.type === 'issue').length;
+            const totalWorks = completed.filter(t => t.type === 'work').length;
+            
+            const totalLogsCount = completed.length || 1;
+            
+            const treatmentsVal = document.getElementById('stat-total-treatments');
+            if (treatmentsVal) treatmentsVal.innerText = totalTreatments;
+            const barTreatments = document.getElementById('bar-total-treatments');
+            if (barTreatments) barTreatments.style.width = `${(totalTreatments / totalLogsCount) * 100}%`;
+            
+            const issuesVal = document.getElementById('stat-total-issues');
+            if (issuesVal) issuesVal.innerText = totalIssues;
+            const barIssues = document.getElementById('bar-total-issues');
+            if (barIssues) barIssues.style.width = `${(totalIssues / totalLogsCount) * 100}%`;
+            
+            const worksVal = document.getElementById('stat-total-works');
+            if (worksVal) worksVal.innerText = totalWorks;
+            const barWorks = document.getElementById('bar-total-works');
+            if (barWorks) barWorks.style.width = `${(totalWorks / totalLogsCount) * 100}%`;
+            
+            let rainyDays = 0;
+            let totalTemp = 0;
+            let tempCount = 0;
+            
+            completed.forEach(t => {
+                if (t.weather) {
+                    if (t.weather.rain > 0) {
+                        rainyDays++;
+                    }
+                    if (t.weather.temp) {
+                        totalTemp += t.weather.temp;
+                        tempCount++;
+                    }
+                }
+            });
+            
+            const rainyEl = document.getElementById('stat-rainy-days');
+            if (rainyEl) rainyEl.innerText = rainyDays;
+            
+            const tempEl = document.getElementById('stat-avg-temp');
+            if (tempEl) {
+                if (tempCount > 0) {
+                    tempEl.innerText = `${Math.round(totalTemp / tempCount)}°C`;
+                } else {
+                    tempEl.innerText = '—';
+                }
+            }
+        }
+
+        async function generateDeagroAIAnalysis() {
+            const key = localStorage.getItem('viticulture-gemini-key');
+            if (!key) {
+                showToast("Введіть Gemini API Key у налаштуваннях для активації ШІ-Аналітика.", "warning");
+                return;
+            }
+            
+            const outputBox = document.getElementById('deagro-ai-audit-output');
+            if (!outputBox) return;
+            
+            const origContent = outputBox.innerHTML;
+            outputBox.innerHTML = `
+                <div class="flex items-center gap-2 text-stone-500 py-4 justify-center">
+                    <span class="animate-spin text-lg">⏳</span>
+                    <span>ШІ аналізує хронограф та погоду виноградника...</span>
+                </div>
+            `;
+            
+            try {
+                const completedLogs = todoList.filter(t => t.completed).map(t => {
+                    return {
+                        date: t.completedDate,
+                        type: t.type,
+                        text: t.text,
+                        productName: t.productName || null,
+                        productDose: t.productDose || null,
+                        issueType: t.issueType || null,
+                        issueSeverity: t.issueSeverity || null,
+                        weather: t.weather || null
+                    };
+                });
+                
+                let varietiesText = 'Не вказано';
+                try {
+                    const saved = localStorage.getItem('viticulture-grape-varieties');
+                    if (saved) {
+                        const parsed = JSON.parse(saved);
+                        varietiesText = parsed.map(v => `${v.name} (${v.type === 'W' ? 'білий' : 'червоний'}, термін: ${v.ripening || 'середній'})`).join(', ');
+                    }
+                } catch(e) {}
+                
+                const satVal = document.getElementById('sat-total')?.innerText || '0°C';
+                
+                const prompt = `Ви — провідний агроном-виноградар (ШІ-асистент deAgro).
+Проаналізуйте хронологію операцій на винограднику та погодні метрики за цей сезон вегетації.
+
+Вхідні дані виноградника:
+- Сорти винограду у колекції: ${varietiesText}
+- Поточна сума активних температур (САТ): ${satVal}
+- Історія виконаних робіт, обробок ЗЗР та загроз (з датами та зафіксованою погодою):
+${JSON.stringify(completedLogs, null, 2)}
+
+Будь ласка, згенеруйте стислий, але глибокий агрономічний звіт українською мовою. Організуйте його за такими пунктами (використовуйте смайли та чітке маркування):
+1. 📊 **Загальний стан**: Коротко оцініть інтенсивність обробок та дотримання термінів відносно накопиченого САТ.
+2. ⚠️ **Виявлені помилки та ризики**: Проаналізуйте збіг опадів, обробок та спалахів хвороб. Наприклад: якщо контактні препарати змило дощем, або якщо є велика затримка між обробками від оїдіуму/мілдью, або дисбаланс добрив.
+3. 🎯 **Адаптивний план**: Конкретні рекомендації щодо захисту чи підживлення на наступні тижні з огляду на вирощувані сорти (наприклад, технічні чи столові) та САТ.
+
+Пишіть дуже професійно, ємко, без зайвої «води». Форматуйте текст красивими HTML тегами (наприклад, strong, em, ul, li, br) для виведення в компактне віконце.`;
+
+                const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${key}`;
+                const payload = {
+                    contents: [{
+                        parts: [{
+                            text: prompt
+                        }]
+                    }]
+                };
+                
+                const res = await fetch(url, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                
+                if (!res.ok) throw new Error('Помилка запиту до Gemini API');
+                const data = await res.json();
+                
+                let rawText = data.candidates?.[0]?.content?.parts?.[0]?.text || '';
+                rawText = rawText.replace(/```html/g, '').replace(/```/g, '').trim();
+                
+                outputBox.innerHTML = `
+                    <div class="space-y-3">
+                        <span class="block text-[8px] font-black uppercase text-purple-700 tracking-widest">✨ Результат ШІ-аналізу deAgro:</span>
+                        <div class="text-[10px] text-stone-750 font-semibold space-y-2 leading-relaxed bg-purple-50/30 p-3 rounded-2xl border border-purple-100/50">
+                            ${rawText}
+                        </div>
+                    </div>
+                `;
+                
+                showToast("Адаптивний ШІ-аналіз сезону успішно сформовано!", "success");
+            } catch(err) {
+                console.error("deagro AI analysis failed", err);
+                showToast("Не вдалося сформувати ШІ-аналіз: " + err.message, "error");
+                outputBox.innerHTML = origContent;
+            }
         }
 
         function updateSmartRecommendations() {
