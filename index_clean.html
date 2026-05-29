@@ -2974,7 +2974,8 @@
 
 
         function selectStep(id) {
-            currentActivePhase = Number(id);
+            const phaseId = Number(id);
+            currentActivePhase = phaseId;
             renderPhaseNav();
             const s = phasesData[id];
             
