@@ -358,7 +358,7 @@
                                 </div>
                             </div>
                             <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                                <button id="btn-sync-sat" onclick="syncWeather(false)" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white py-3 rounded-xl font-black transition-all text-xs uppercase tracking-wider flex items-center justify-center gap-2 shadow-sm hover:shadow-md">
+                                <button id="btn-sync-sat" onclick="syncWeather(true)" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white py-3 rounded-xl font-black transition-all text-xs uppercase tracking-wider flex items-center justify-center gap-2 shadow-sm hover:shadow-md">
                                     <span id="sync-sat-spinner" class="hidden animate-spin">⏳</span>
                                     <span>🌡️ Оновити САТ з API</span>
                                 </button>
@@ -409,7 +409,7 @@
                                 </div>
                             </div>
                             <!-- Weather sync button -->
-                            <button id="btn-sync-current-weather" onclick="syncCurrentWeather()" class="bg-white/10 hover:bg-white/20 text-emerald-400 hover:text-emerald-300 px-3.5 py-2 rounded-xl text-[10px] font-black transition-all flex items-center justify-center gap-1 border border-white/10 whitespace-nowrap self-start sm:self-center">
+                            <button id="btn-sync-current-weather" onclick="syncCurrentWeather(true)" class="bg-white/10 hover:bg-white/20 text-emerald-400 hover:text-emerald-300 px-3.5 py-2 rounded-xl text-[10px] font-black transition-all flex items-center justify-center gap-1 border border-white/10 whitespace-nowrap self-start sm:self-center">
                                 <span id="sync-current-spinner" class="hidden animate-spin">⏳</span>
                                 <span>🌍 Погода API</span>
                             </button>
