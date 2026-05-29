@@ -2969,6 +2969,294 @@
             `;
         }
 
+        function toggleDataManagement() {
+            const body = document.getElementById('data-mgmt-body');
+            const chevron = document.getElementById('data-mgmt-chevron');
+            if (!body) return;
+            
+            const isCollapsed = body.classList.contains('max-h-0');
+            if (isCollapsed) {
+                body.classList.remove('max-h-0', 'opacity-0');
+                body.classList.add('max-h-[850px]', 'opacity-100');
+                if (chevron) chevron.classList.add('rotate-180');
+            } else {
+                body.classList.remove('max-h-[850px]', 'opacity-100');
+                body.classList.add('max-h-0', 'opacity-0');
+                if (chevron) chevron.classList.remove('rotate-180');
+            }
+        }
+
+        let isSyncingWeather = false;
+
+        async function syncWeather(forceRefresh = false) {
+            if (isSyncingWeather) {
+                showToast('Синхронізація вже триває...', 'warning');
+                return;
+            }
+            isSyncingWeather = true;
+
+            const latInput = document.getElementById('weather-lat');
+            const lonInput = document.getElementById('weather-lon');
+            const lat = parseFloat(latInput.value) || 49.23;
+            const lon = parseFloat(lonInput.value) || 28.46;
+            
+            localStorage.setItem('weather-lat', lat);
+            localStorage.setItem('weather-lon', lon);
+
+            const btn = document.getElementById('btn-sync-sat');
+            const spinner = document.getElementById('sync-sat-spinner');
+            
+            if (btn) btn.disabled = true;
+            if (spinner) spinner.classList.remove('hidden');
+            
+            // Check cache (unless forceRefresh is true)
+            if (!forceRefresh) {
+                const cacheTimestamp = localStorage.getItem('viticulture-weather-sat-sync-timestamp');
+                const savedLat = localStorage.getItem('weather-lat-saved');
+                const savedLon = localStorage.getItem('weather-lon-saved');
+                const satHistoryStr = localStorage.getItem('satHistory');
+                const forecastDailyTempsStr = localStorage.getItem('forecastDailyTemps');
+                
+                if (cacheTimestamp && satHistoryStr && forecastDailyTempsStr && savedLat && savedLon) {
+                    const ageMs = Date.now() - parseInt(cacheTimestamp);
+                    if (ageMs < 1.5 * 60 * 60 * 1000 && parseFloat(savedLat) === lat && parseFloat(savedLon) === lon) {
+                        satHistory = JSON.parse(satHistoryStr);
+                        forecastDailyTemps = JSON.parse(forecastDailyTempsStr);
+                        recalculateSAT();
+                        if (typeof updateFrostWarning === 'function') updateFrostWarning();
+                        const minsAgo = Math.round(ageMs / 60000);
+                        showToast(`Кешовані дані САТ (${minsAgo} хв тому з Open-Meteo). ${satHistory.length} днів.`, 'info');
+                        
+                        isSyncingWeather = false;
+                        if (btn) btn.disabled = false;
+                        if (spinner) spinner.classList.add('hidden');
+                        return;
+                    }
+                }
+            }
+            
+            try {
+                const todayObj = new Date();
+                let year = todayObj.getFullYear();
+                
+                let isCurrentYear = true;
+                if (todayObj.getMonth() < 3) {
+                    year = year - 1;
+                    isCurrentYear = false;
+                }
+                
+                const startDate = `${year}-04-01`;
+                let endArchiveDate;
+                
+                if (isCurrentYear) {
+                    const threeDaysAgoObj = new Date(todayObj.getTime() - 3 * 24 * 60 * 60 * 1000);
+                    endArchiveDate = threeDaysAgoObj.toISOString().split('T')[0];
+                } else {
+                    endArchiveDate = `${year}-10-31`;
+                }
+                
+                let archiveJson = null;
+                if (endArchiveDate >= startDate) {
+                    try {
+                        const archiveUrl = `https://archive-api.open-meteo.com/v1/archive?latitude=${lat}&longitude=${lon}&start_date=${startDate}&end_date=${endArchiveDate}&daily=temperature_2m_mean&timezone=auto`;
+                        const archiveRes = await fetch(archiveUrl);
+                        if (archiveRes.ok) {
+                            archiveJson = await archiveRes.json();
+                        } else {
+                            console.warn('Failed to fetch from Archive API status code:', archiveRes.status);
+                        }
+                    } catch (archiveErr) {
+                        console.error('Archive API fetch failed:', archiveErr);
+                    }
+                }
+                
+                let forecastJson = null;
+                if (isCurrentYear) {
+                    try {
+                        let pastDays = 7;
+                        if (!archiveJson) {
+                            const startDateObj = new Date(year, 3, 1); // April 1st
+                            const timeDiff = todayObj.getTime() - startDateObj.getTime();
+                            const daysDiff = Math.ceil(timeDiff / (1000 * 60 * 60 * 24));
+                            pastDays = Math.min(92, Math.max(7, daysDiff + 1));
+                        }
+                        const forecastUrl = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&daily=temperature_2m_mean,temperature_2m_min&past_days=${pastDays}&forecast_days=14&timezone=auto`;
+                        const forecastRes = await fetch(forecastUrl);
+                        if (forecastRes.ok) {
+                            forecastJson = await forecastRes.json();
+                        } else {
+                            console.warn('Failed to fetch from Forecast API status code:', forecastRes.status);
+                        }
+                    } catch (forecastErr) {
+                        console.error('Forecast API fetch failed:', forecastErr);
+                    }
+                }
+                
+                const mergedData = new Map();
+                const mergedMinData = new Map();
+                
+                if (archiveJson && archiveJson.daily && archiveJson.daily.time) {
+                    for (let i = 0; i < archiveJson.daily.time.length; i++) {
+                        const date = archiveJson.daily.time[i];
+                        const temp = archiveJson.daily.temperature_2m_mean[i];
+                        if (temp !== null && temp !== undefined) {
+                            mergedData.set(date, temp);
+                        }
+                    }
+                }
+                
+                if (forecastJson && forecastJson.daily && forecastJson.daily.time) {
+                    for (let i = 0; i < forecastJson.daily.time.length; i++) {
+                        const date = forecastJson.daily.time[i];
+                        const temp = forecastJson.daily.temperature_2m_mean[i];
+                        if (temp !== null && temp !== undefined) {
+                            mergedData.set(date, temp);
+                        }
+                        if (forecastJson.daily.temperature_2m_min) {
+                            const minTemp = forecastJson.daily.temperature_2m_min[i];
+                            if (minTemp !== null && minTemp !== undefined) {
+                                mergedMinData.set(date, minTemp);
+                            }
+                        }
+                    }
+                }
+                
+                const todayStr = todayObj.toISOString().split('T')[0];
+                const sortedDates = Array.from(mergedData.keys()).sort();
+                
+                const newSatHistory = [];
+                const newForecastDailyTemps = [];
+                
+                sortedDates.forEach(date => {
+                    const temp = mergedData.get(date);
+                    if (date <= todayStr) {
+                        if (temp >= 10) {
+                            const contribution = parseFloat(temp.toFixed(1));
+                            const dateObj = new Date(date);
+                            const formattedDate = dateObj.toLocaleDateString('uk-UA', { day: '2-digit', month: '2-digit' });
+                            newSatHistory.push({
+                                rawDate: date,
+                                date: formattedDate,
+                                temp: temp,
+                                contribution: contribution
+                            });
+                        }
+                    } else {
+                        const minTemp = mergedMinData.get(date);
+                        newForecastDailyTemps.push({
+                            rawDate: date,
+                            temp: temp,
+                            minTemp: minTemp !== undefined ? minTemp : temp
+                        });
+                    }
+                });
+                
+                if (newSatHistory.length === 0 && newForecastDailyTemps.length === 0) {
+                    throw new Error('Отримано порожні дані погоди.');
+                }
+                
+                satHistory = newSatHistory;
+                forecastDailyTemps = newForecastDailyTemps;
+                
+                localStorage.setItem('satHistory', JSON.stringify(satHistory));
+                localStorage.setItem('forecastDailyTemps', JSON.stringify(forecastDailyTemps));
+                localStorage.setItem('weather-lat-saved', lat);
+                localStorage.setItem('weather-lon-saved', lon);
+                localStorage.setItem('viticulture-weather-sat-sync-timestamp', Date.now().toString());
+                
+                recalculateSAT();
+                if (typeof updateFrostWarning === 'function') updateFrostWarning();
+                showToast(`Синхронізацію САТ завершено! Отримано ${satHistory.length} днів спостережень.`, 'success');
+                
+            } catch (err) {
+                console.error(err);
+                showToast(`Не вдалося синхронізувати дані САТ: ${err.message}`, 'error');
+            } finally {
+                isSyncingWeather = false;
+                if (btn) btn.disabled = false;
+                if (spinner) spinner.classList.add('hidden');
+            }
+        }
+
+        async function syncCurrentWeather(forceRefresh = false) {
+            const lat = parseFloat(document.getElementById('weather-lat').value) || 49.23;
+            const lon = parseFloat(document.getElementById('weather-lon').value) || 28.46;
+            
+            const btn = document.getElementById('btn-sync-current-weather');
+            const btnMgmt = document.getElementById('btn-sync-current-weather-mgmt');
+            const spinner = document.getElementById('sync-current-spinner');
+            const spinnerMgmt = document.getElementById('sync-current-spinner-mgmt');
+            
+            // Check cache
+            const cacheStr = localStorage.getItem('viticulture-weather-current-cache');
+            if (!forceRefresh && cacheStr) {
+                try {
+                    const cache = JSON.parse(cacheStr);
+                    const ageMs = Date.now() - cache.timestamp;
+                    if (ageMs < 1.5 * 60 * 60 * 1000 && cache.lat === lat && cache.lon === lon) {
+                        document.getElementById('disease-temp').value = cache.temp;
+                        document.getElementById('disease-rain').value = cache.rain;
+                        document.getElementById('disease-humidity').value = cache.humidity;
+                        
+                        calculateDiseaseRisk();
+                        
+                        const minsAgo = Math.round(ageMs / 60000);
+                        showToast(`Використано кеш погоди (отримано ${minsAgo} хв тому з Open-Meteo): ${cache.temp}°C, вологість ${cache.humidity}%, опади ${cache.rain} мм`, 'info');
+                        return;
+                    }
+                } catch(e) { console.error(e); }
+            }
+
+            if (btn) btn.disabled = true;
+            if (btnMgmt) btnMgmt.disabled = true;
+            if (spinner) spinner.classList.remove('hidden');
+            if (spinnerMgmt) spinnerMgmt.classList.remove('hidden');
+            
+            try {
+                const url = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,relative_humidity_2m&daily=precipitation_sum&timezone=auto`;
+                const res = await fetch(url);
+                if (!res.ok) throw new Error('Помилка сервера погоди');
+                const data = await res.json();
+                
+                if (data.current) {
+                    const temp = Math.round(data.current.temperature_2m);
+                    const humidity = Math.round(data.current.relative_humidity_2m);
+                    let rain = 0;
+                    if (data.daily && data.daily.precipitation_sum && data.daily.precipitation_sum.length > 0) {
+                        rain = Math.round(data.daily.precipitation_sum[0]);
+                    }
+                    
+                    document.getElementById('disease-temp').value = temp;
+                    document.getElementById('disease-rain').value = rain;
+                    document.getElementById('disease-humidity').value = humidity;
+                    
+                    calculateDiseaseRisk();
+                    
+                    // Save to cache
+                    const newCache = {
+                        timestamp: Date.now(),
+                        lat,
+                        lon,
+                        temp,
+                        humidity,
+                        rain
+                    };
+                    localStorage.setItem('viticulture-weather-current-cache', JSON.stringify(newCache));
+                    
+                    showToast(`Дані погоди оновлено успішно! Температура: ${temp}°C, вологість: ${humidity}%, опади за сьогодні: ${rain} мм`, 'success');
+                } else {
+                    throw new Error('Невірний формат відповіді API');
+                }
+            } catch (err) {
+                console.error(err);
+                showToast(`Не вдалося завантажити поточну погоду: ${err.message}`, 'error');
+            } finally {
+                if (btn) btn.disabled = false;
+                if (btnMgmt) btnMgmt.disabled = false;
+                if (spinner) spinner.classList.add('hidden');
+                if (spinnerMgmt) spinnerMgmt.classList.add('hidden');
+            }
+        }
 
         function togglePhaseStep(phaseId, stepIdx) {
             if (!phaseChecklists[phaseId]) {
