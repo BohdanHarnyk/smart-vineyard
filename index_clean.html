@@ -8146,6 +8146,17 @@ ${JSON.stringify(completedLogs, null, 2)}
                 } else {
                     // Delete completely
                     productDB = productDB.filter(prod => prod.id !== id);
+                    
+                    // Also clean up from viticulture-custom-dry-fert to prevent re-migration
+                    const oldCustomFert = localStorage.getItem('viticulture-custom-dry-fert');
+                    if (oldCustomFert) {
+                        try {
+                            let customList = JSON.parse(oldCustomFert);
+                            customList = customList.filter(f => f.name.toLowerCase() !== p.name.toLowerCase());
+                            localStorage.setItem('viticulture-custom-dry-fert', JSON.stringify(customList));
+                        } catch(e) { console.error("Error cleaning custom dry fert list on deletion", e); }
+                    }
+
                     showToast(`Препарат «${p.name}» видалено з бази.`, 'info');
                     saveProductDB();
                     renderProductGrid();
