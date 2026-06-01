@@ -4492,6 +4492,64 @@
             `;
         }
 
+        function getPhBadgeClass(ph) {
+            if (!ph) return 'bg-stone-100 text-stone-600';
+            const val = parseFloat(ph);
+            if (val < 5.5) return 'bg-rose-100 text-rose-700 font-black border border-rose-250';
+            if (val < 6.0) return 'bg-amber-100 text-amber-700 font-black border border-amber-250';
+            if (val <= 7.2) return 'bg-emerald-100 text-emerald-800 font-black border border-emerald-250';
+            if (val <= 7.8) return 'bg-teal-100 text-teal-800 font-black border border-teal-250';
+            return 'bg-blue-100 text-blue-700 font-black border border-blue-250';
+        }
+
+        function getPhLabel(ph) {
+            if (!ph) return '—';
+            const val = parseFloat(ph);
+            if (val < 5.0) return '🔴 Сильнокислий';
+            if (val < 5.5) return '⚠️ Кислий';
+            if (val < 6.0) return '🟡 Слабкокислий';
+            if (val <= 7.2) return '🟢 Нейтральний (Оптимум)';
+            if (val <= 7.8) return '🔵 Слабколужний';
+            return '❌ Лужний';
+        }
+
+        function getMoistureLabel(m) {
+            if (m === undefined || m === null) return '—';
+            const val = parseInt(m);
+            if (val < 30) return '🥀 Сухий (Полив!)';
+            if (val < 50) return '💧 Помірно вологий';
+            if (val <= 70) return '🌱 Оптимально вологий';
+            return '🌊 Перезволожений';
+        }
+
+        function updateSoilStatus(name, pH, moisture) {
+            if (!customVarieties[name]) {
+                customVarieties[name] = { ...varietyData[name] };
+            }
+            customVarieties[name].soilPH = parseFloat(pH) || 6.5;
+            customVarieties[name].soilMoisture = parseInt(moisture) || 50;
+            
+            localStorage.setItem('viticulture-custom-varieties', JSON.stringify(customVarieties));
+            varietyData[name].soilPH = parseFloat(pH) || 6.5;
+            varietyData[name].soilMoisture = parseInt(moisture) || 50;
+            
+            // Re-render details inline
+            const displayPh = document.getElementById('soil-ph-val-display');
+            const displayPhLbl = document.getElementById('soil-ph-lbl-display');
+            const displayMoist = document.getElementById('soil-moist-val-display');
+            const displayMoistLbl = document.getElementById('soil-moist-lbl-display');
+            
+            if (displayPh) {
+                displayPh.innerText = pH;
+                displayPh.className = `text-xs font-black px-2 py-0.5 rounded-md ${getPhBadgeClass(pH)}`;
+            }
+            if (displayPhLbl) displayPhLbl.innerText = getPhLabel(pH);
+            if (displayMoist) displayMoist.innerText = moisture + '%';
+            if (displayMoistLbl) displayMoistLbl.innerText = getMoistureLabel(moisture);
+            
+            showToast('Показники ґрунту оновлено', 'success');
+        }
+
         function selectVar(name) {
             activeVar = name;
             
@@ -4506,6 +4564,9 @@
             if (!d) return;
             const catInfo = getCatInfoByRip(d.rip);
             const qty = vineyardQuantities[name] || 0;
+
+            const ph = d.soilPH || 6.5;
+            const moist = d.soilMoisture !== undefined && d.soilMoisture !== null ? d.soilMoisture : 50;
 
             document.getElementById('var-details-panel').innerHTML = `
                 <div class="fade-in space-y-6">
@@ -4531,15 +4592,59 @@
                             <button onclick="changeVineyardQuantity('${name}', 1)" class="w-8 h-8 rounded-lg bg-white border border-stone-200 font-black text-stone-600 flex items-center justify-center hover:bg-stone-100 active:scale-95 transition-all">+</button>
                         </div>
                     </div>
+                    
+                    <!-- 🌱 Показники ґрунту біля куща (Soil pH & Moisture) -->
+                    <div class="bg-gradient-to-br from-emerald-50/50 to-stone-50/50 p-4 rounded-3xl border border-emerald-100/70 shadow-sm space-y-4">
+                        <div class="flex justify-between items-center">
+                            <span class="text-[10px] font-black uppercase text-emerald-800 tracking-wider flex items-center gap-1">🌱 Показники ґрунту біля кущів</span>
+                            <span class="text-[8px] font-bold text-stone-400 bg-stone-100/80 px-2 py-0.5 rounded-full">Автозбереження</span>
+                        </div>
+                        
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                            <!-- pH Slider & Badge -->
+                            <div class="space-y-2 bg-white p-3.5 rounded-2xl border border-stone-200/40 shadow-sm">
+                                <div class="flex justify-between items-center">
+                                    <div>
+                                        <span class="text-[9px] font-black text-stone-400 uppercase block">pH Кислотність</span>
+                                        <span id="soil-ph-lbl-display" class="text-[10px] font-bold text-stone-600 mt-0.5 block">${getPhLabel(ph)}</span>
+                                    </div>
+                                    <span id="soil-ph-val-display" class="text-xs font-black px-2 py-0.5 rounded-md ${getPhBadgeClass(ph)}">${ph}</span>
+                                </div>
+                                <div class="flex items-center gap-2 mt-1">
+                                    <input type="range" min="4.5" max="8.5" step="0.1" value="${ph}" 
+                                           oninput="document.getElementById('soil-ph-val-display').innerText = this.value; document.getElementById('soil-ph-val-display').className = 'text-xs font-black px-2 py-0.5 rounded-md ' + getPhBadgeClass(this.value); document.getElementById('soil-ph-lbl-display').innerText = getPhLabel(this.value);"
+                                           onchange="updateSoilStatus('${name}', this.value, document.getElementById('soil-moisture-slider').value)"
+                                           class="w-full h-1.5 bg-stone-100 rounded-lg appearance-none cursor-pointer accent-emerald-600" id="soil-ph-slider">
+                                </div>
+                            </div>
+                            
+                            <!-- Moisture Slider & Value -->
+                            <div class="space-y-2 bg-white p-3.5 rounded-2xl border border-stone-200/40 shadow-sm">
+                                <div class="flex justify-between items-center">
+                                    <div>
+                                        <span class="text-[9px] font-black text-stone-400 uppercase block">Вологість ґрунту</span>
+                                        <span id="soil-moist-lbl-display" class="text-[10px] font-bold text-stone-600 mt-0.5 block">${getMoistureLabel(moist)}</span>
+                                    </div>
+                                    <span id="soil-moist-val-display" class="text-xs font-black text-sky-600 bg-sky-50 border border-sky-150 px-2 py-0.5 rounded-md">${moist}%</span>
+                                </div>
+                                <div class="flex items-center gap-2 mt-1">
+                                    <input type="range" min="10" max="90" step="5" value="${moist}" 
+                                           oninput="document.getElementById('soil-moist-val-display').innerText = this.value + '%'; document.getElementById('soil-moist-lbl-display').innerText = getMoistureLabel(this.value);"
+                                           onchange="updateSoilStatus('${name}', document.getElementById('soil-ph-slider').value, this.value)"
+                                           class="w-full h-1.5 bg-stone-100 rounded-lg appearance-none cursor-pointer accent-sky-500" id="soil-moisture-slider">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
 
                     <div class="grid grid-cols-2 gap-3 text-xs">
                         <div class="bg-white p-3.5 rounded-2xl shadow-sm border border-emerald-100/50">
                             <span class="block opacity-40 uppercase font-black text-[9px] mb-1">📅 Термін</span>
-                            <span class="font-bold text-stone-800">${d.rip}</span>
+                            <span class="font-bold text-stone-850">${d.rip}</span>
                         </div>
                         <div class="bg-white p-3.5 rounded-2xl shadow-sm border border-emerald-100/50">
                             <span class="block opacity-40 uppercase font-black text-[9px] mb-1">⚖️ Маса грона</span>
-                            <span class="font-bold text-stone-800">${d.bunch}</span>
+                            <span class="font-bold text-stone-850">${d.bunch}</span>
                         </div>
                         <div class="bg-white p-3.5 rounded-2xl shadow-sm border border-emerald-100/50">
                             <span class="block opacity-40 uppercase font-black text-[9px] mb-1">☀️ Група, САТ & СЕТ</span>
@@ -7242,10 +7347,20 @@ Return ONLY a valid raw JSON object matching this structure, with no markdown wr
                 
                 let varietiesText = 'Не вказано';
                 try {
-                    const saved = localStorage.getItem('viticulture-grape-varieties');
-                    if (saved) {
-                        const parsed = JSON.parse(saved);
-                        varietiesText = parsed.map(v => `${v.name} (${v.type === 'W' ? 'білий' : 'червоний'}, термін: ${v.ripening || 'середній'})`).join(', ');
+                    let activeVarieties = [];
+                    Object.keys(varietyData).forEach(name => {
+                        const qty = vineyardQuantities[name] || 0;
+                        if (qty > 0) {
+                            const d = varietyData[name];
+                            let desc = `${name} (${qty} кущів, колір: ${d.col === 'W' ? 'білий' : 'червоний'}, термін: ${d.rip}`;
+                            if (d.soilPH) desc += `, pH ґрунту: ${d.soilPH}`;
+                            if (d.soilMoisture) desc += `, вологість ґрунту: ${d.soilMoisture}%`;
+                            desc += `)`;
+                            activeVarieties.push(desc);
+                        }
+                    });
+                    if (activeVarieties.length > 0) {
+                        varietiesText = activeVarieties.join(', ');
                     }
                 } catch(e) {}
                 
