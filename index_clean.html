@@ -7491,14 +7491,31 @@ ${JSON.stringify(completedLogs, null, 2)}
         function initProductDB() {
             productDB = JSON.parse(JSON.stringify(defaultProductDB));
             
-            // Migrate old custom dry fertilizers if any
+            // 1. Load saved custom products from viticulture-product-db first
+            const saved = localStorage.getItem('viticulture-product-db');
+            if (saved) {
+                try {
+                    const parsed = JSON.parse(saved);
+                    const customItems = parsed.filter(item => item.isCustom);
+                    
+                    // Remove default items that have custom overrides (by ID)
+                    customItems.forEach(custom => {
+                        productDB = productDB.filter(p => p.id !== custom.id);
+                    });
+                    
+                    productDB = productDB.concat(customItems);
+                } catch(e) { console.error("Error loading custom products", e); }
+            }
+
+            // 2. Migrate legacy custom dry fertilizers once (if any) and clear the legacy key
             const oldCustomFert = localStorage.getItem('viticulture-custom-dry-fert');
-            let migratedFertilizers = [];
             if (oldCustomFert) {
                 try {
                     const parsed = JSON.parse(oldCustomFert);
+                    let migratedAny = false;
                     parsed.forEach((f, idx) => {
-                        const exists = productDB.find(p => p.name.toLowerCase() === f.name.toLowerCase());
+                        // Check if it already exists by name (case-insensitive) in productDB
+                        const exists = productDB.some(p => p.name.toLowerCase() === f.name.toLowerCase());
                         if (!exists) {
                             const newProd = {
                                 id: `migrated-${idx}-${Date.now()}`,
@@ -7516,30 +7533,36 @@ ${JSON.stringify(completedLogs, null, 2)}
                                 techSpecs: { waitPeriod: "—", maxTreatments: 3, tempRange: "—", phOptimal: "6.0" },
                                 isCustom: true
                             };
-                            migratedFertilizers.push(newProd);
+                            productDB.push(newProd);
+                            migratedAny = true;
                         }
                     });
+                    
+                    // Clear legacy key permanently so it never runs again
+                    localStorage.removeItem('viticulture-custom-dry-fert');
+                    
+                    if (migratedAny) {
+                        saveProductDB();
+                    }
                 } catch(e) { console.error("Error migrating fertilizers", e); }
             }
-
-            const saved = localStorage.getItem('viticulture-product-db');
-            if (saved) {
-                try {
-                    const parsed = JSON.parse(saved);
-                    // Filter out any default items that are duplicated
-                    const customItems = parsed.filter(item => item.isCustom);
-                    
-                    // Remove default items that have custom overrides (by ID)
-                    customItems.forEach(custom => {
-                        productDB = productDB.filter(p => p.id !== custom.id);
-                    });
-                    
-                    productDB = productDB.concat(customItems);
-                } catch(e) { console.error(e); }
-            }
             
-            if (migratedFertilizers.length > 0) {
-                productDB = productDB.concat(migratedFertilizers);
+            // 3. De-duplicate any pre-existing duplicates in productDB by name (case-insensitive)
+            const seenNames = new Set();
+            let duplicatesFound = false;
+            productDB = productDB.filter(p => {
+                if (p.isCustom) {
+                    const nameKey = p.name.toLowerCase().trim();
+                    if (seenNames.has(nameKey)) {
+                        duplicatesFound = true;
+                        return false; // discard duplicate
+                    }
+                    seenNames.add(nameKey);
+                }
+                return true;
+            });
+            
+            if (duplicatesFound) {
                 saveProductDB();
             }
             
