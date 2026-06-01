@@ -7935,6 +7935,14 @@ ${JSON.stringify(completedLogs, null, 2)}
             productDB = productDB.filter(p => {
                 if (p.isCustom) {
                     const nameKey = p.name.toLowerCase().trim();
+                    // Automatically filter out the legacy custom carbamide with 0/0/0 NPK
+                    if (nameKey === 'карбамід') {
+                        const npk = p.composition?.npk || {};
+                        if ((npk.n || 0) === 0 && (npk.p || 0) === 0 && (npk.k || 0) === 0) {
+                            duplicatesFound = true;
+                            return false; // discard
+                        }
+                    }
                     if (seenNames.has(nameKey)) {
                         duplicatesFound = true;
                         return false; // discard duplicate
