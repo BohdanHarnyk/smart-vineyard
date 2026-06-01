@@ -6011,16 +6011,19 @@
 
         function saveGeminiKey() {
             const input = document.getElementById('gemini-key-input');
-            const key = input ? input.value.trim() : '';
-            if (!key) {
+            const rawKey = input ? input.value.trim() : '';
+            if (!rawKey) {
                 alert('Будь ласка, введіть API ключ.');
                 return;
             }
-            if (!key.startsWith('AIzaSy')) {
-                alert('Помилка: Ключ має починатися з літер "AIzaSy". Будь ласка, перевірте правильність.');
-                return;
+            // Clean up surrounding quotes if any
+            const cleanKey = rawKey.replace(/^["']|["']$/g, '').trim();
+            if (!cleanKey.startsWith('AIzaSy')) {
+                if (!confirm('Попередження: зазвичай API ключі Gemini починаються з літер "AIzaSy". Ваш ключ виглядає інакше. Зберегти цей ключ попри попередження?')) {
+                    return;
+                }
             }
-            localStorage.setItem('viticulture-gemini-key', key);
+            localStorage.setItem('viticulture-gemini-key', cleanKey);
             if (input) input.value = '';
             checkGeminiStatus();
             alert('API Ключ успішно збережено!');
