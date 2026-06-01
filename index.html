@@ -6325,7 +6325,7 @@
             const inputContainer = document.getElementById('ai-key-input-container');
             const activeContainer = document.getElementById('ai-key-active-container');
             
-            if (key && key.trim().startsWith('AIzaSy')) {
+            if (key && key.trim().length > 0) {
                 if (icon) icon.innerText = '🟢';
                 if (title) title.innerText = 'AI Асистент активний (Gemini 1.5 Flash)';
                 if (desc) desc.innerText = 'Інтелектуальний аналіз та чат-консультації активовані';
