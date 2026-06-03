@@ -1,0 +1,36 @@
+<h2>Параметри Фертигації (Поливу)</h2>
+<p class="subtitle">Які розрахунки є критично важливими для крапельного живлення виноградника?</p>
+
+<div class="options" data-multiselect>
+  <div class="option" data-choice="irrigation_time" onclick="toggleSelect(this)">
+    <div class="letter">A</div>
+    <div class="content">
+      <h3>Час поливу та об'єм води</h3>
+      <p>Розрахунок часу роботи насоса на основі виливу крапельниць (напр. 2 л/год, 2 крапельниці на кущ) та цільової норми поливу (напр. 15 л на кущ).</p>
+    </div>
+  </div>
+
+  <div class="option" data-choice="venturi" onclick="toggleSelect(this)">
+    <div class="letter">B</div>
+    <div class="content">
+      <h3>Концентрат для маточного бака та інжектор</h3>
+      <p>Розрахунок розведення для бака концентрату при використанні інжектора Вентурі (напр. коефіцієнт всмоктування 1:100 або швидкість всмоктування л/хв).</p>
+    </div>
+  </div>
+
+  <div class="option" data-choice="ec_salinity" onclick="toggleSelect(this)">
+    <div class="letter">C</div>
+    <div class="content">
+      <h3>Контроль солоності (EC) та безпека</h3>
+      <p>Оцінка приблизної солоності (EC, mS/cm) робочого розчину на основі концентрації добрива, з попередженням про ризик хімічного опіку коріння при перевищенні безпечного порогу (напр. > 2.0 mS/cm).</p>
+    </div>
+  </div>
+
+  <div class="option" data-choice="combined_fert" onclick="toggleSelect(this)">
+    <div class="letter">D</div>
+    <div class="content">
+      <h3>Усі розрахунки разом (Комбінований інтерфейс)</h3>
+      <p>Інтегрувати час поливу, розрахунок бака концентрату та автоматичний контроль безпеки розчину (EC) в одну зручну форму.</p>
+    </div>
+  </div>
+</div>

@@ -6572,11 +6572,9 @@
                 throw new Error('API ключ не знайдено. Будь ласка, збережіть ключ у верхній панелі.');
             }
             const urlsToTry = [
-                `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${key}`,
+                `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${key}`,
                 `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${key}`,
-                `https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent?key=${key}`,
-                `https://generativelanguage.googleapis.com/v1/models/gemini-2.5-flash:generateContent?key=${key}`,
-                `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash:generateContent?key=${key}`
+                `https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent?key=${key}`
             ];
             
             const parts = [{ text: prompt }];
@@ -6606,28 +6604,49 @@
             }
             
             let lastError = null;
-            for (const url of urlsToTry) {
+            for (let i = 0; i < urlsToTry.length; i++) {
+                const url = urlsToTry[i];
+                const modelName = url.match(/models\/([^:]+)/)?.[1] || 'unknown';
+                console.log(`[fetchGeminiAPI] Спроба ${i+1}/${urlsToTry.length}: ${modelName}`);
                 try {
+                    const controller = new AbortController();
+                    const timeoutId = setTimeout(() => controller.abort(), 30000);
+                    
                     const response = await fetch(url, {
                         method: 'POST',
                         headers: {
                             'Content-Type': 'application/json'
                         },
-                        body: JSON.stringify(requestBody)
+                        body: JSON.stringify(requestBody),
+                        signal: controller.signal
                     });
+                    clearTimeout(timeoutId);
+                    
+                    console.log(`[fetchGeminiAPI] ${modelName} => HTTP ${response.status}`);
                     
                     if (response.ok) {
                         const data = await response.json();
                         const textResponse = data.candidates?.[0]?.content?.parts?.[0]?.text;
                         if (textResponse) {
+                            console.log(`[fetchGeminiAPI] Успіх від ${modelName}, відповідь ${textResponse.length} символів`);
                             return textResponse;
+                        } else {
+                            console.warn(`[fetchGeminiAPI] ${modelName}: Відповідь 200, але текст відсутній`, JSON.stringify(data).substring(0, 500));
+                            lastError = `${modelName}: відповідь без тексту`;
                         }
                     } else {
                         const errData = await response.json().catch(() => ({}));
                         lastError = errData.error?.message || response.statusText;
+                        console.warn(`[fetchGeminiAPI] ${modelName}: HTTP ${response.status} — ${lastError}`);
                     }
                 } catch (e) {
-                    lastError = e.message;
+                    if (e.name === 'AbortError') {
+                        lastError = `${modelName}: таймаут 30 сек`;
+                        console.warn(`[fetchGeminiAPI] ${modelName}: Таймаут`);
+                    } else {
+                        lastError = e.message;
+                        console.warn(`[fetchGeminiAPI] ${modelName}: ${e.message}`);
+                    }
                 }
             }
             
@@ -8395,14 +8414,17 @@ ${JSON.stringify(completedLogs, null, 2)}
         }
 
         function compressImageAndProcess(file) {
+            console.log('[compressImageAndProcess] Старт, файл:', file.name, file.type, file.size, 'байт');
             const reader = new FileReader();
             reader.readAsDataURL(file);
             reader.onload = function(event) {
+                console.log('[compressImageAndProcess] FileReader завантажив, довжина dataURL:', event.target.result.length);
                 const img = new Image();
                 img.onload = function() {
                     const maxDim = 1000;
                     let width = img.width;
                     let height = img.height;
+                    console.log('[compressImageAndProcess] Оригінальний розмір:', width, 'x', height);
                     
                     if (width > height) {
                         if (width > maxDim) {
@@ -8424,8 +8446,12 @@ ${JSON.stringify(completedLogs, null, 2)}
                     
                     const compressedDataUrl = canvas.toDataURL('image/jpeg', 0.7);
                     const base64Content = compressedDataUrl.split(',')[1];
+                    console.log('[compressImageAndProcess] Стиснуто до:', width, 'x', height, ', base64 довжина:', base64Content.length);
                     
-                    analyzeProductPhotoAI(base64Content, 'image/jpeg');
+                    showToast('📸 Фото стиснуто, надсилаю на розпізнавання...', 'info');
+                    analyzeProductPhotoAI(base64Content, 'image/jpeg').catch(err => {
+                        console.error('[compressImageAndProcess] analyzeProductPhotoAI rejected:', err);
+                    });
                 };
                 img.onerror = function(err) {
                     console.error("Image load failed:", err);
@@ -8441,12 +8467,14 @@ ${JSON.stringify(completedLogs, null, 2)}
         }
 
         async function analyzeProductPhotoAI(base64Data, mimeType) {
+            console.log('[analyzeProductPhotoAI] Старт. base64 довжина:', base64Data.length, ', mimeType:', mimeType);
             const key = localStorage.getItem('viticulture-gemini-key');
             if (!key) {
                 showToast("Введіть Gemini API Key у налаштуваннях.", "warning");
                 setProductPhotoLoading(false);
                 return;
             }
+            console.log('[analyzeProductPhotoAI] API key знайдено, довжина:', key.length, ', початок:', key.substring(0, 8) + '...');
             
             const prompt = `Аналізуй це зображення упаковки/етикетки препарату для сільського господарства (добриво, фунгіцид, інсектицид, акарицид, стимулятор тощо) та отримамай всі деталі.
 Поверни виключно JSON об'єкт наступної структури:
@@ -8469,10 +8497,15 @@ ${JSON.stringify(completedLogs, null, 2)}
 Не пиши жодних передмов чи додаткових пояснень, поверни лише чистий JSON.`;
 
             try {
+                showToast('🔄 Надсилаю запит до AI... Зачекайте до 30 сек.', 'info');
+                console.log('[analyzeProductPhotoAI] Викликаю fetchGeminiAPI...');
+                
                 const jsonText = await fetchGeminiAPI(prompt, '', true, {
                     mimeType: mimeType,
                     data: base64Data
                 });
+                
+                console.log('[analyzeProductPhotoAI] Отримано відповідь, довжина:', jsonText ? jsonText.length : 'null/undefined');
                 
                 if (!jsonText) throw new Error("Не отримано відповіді від ШІ");
                 
@@ -8481,7 +8514,9 @@ ${JSON.stringify(completedLogs, null, 2)}
                     cleanedJsonText = cleanedJsonText.replace(/^```json\s*/i, '').replace(/```\s*$/, '').trim();
                 }
                 
+                console.log('[analyzeProductPhotoAI] Парсинг JSON...');
                 const parsed = JSON.parse(cleanedJsonText);
+                console.log('[analyzeProductPhotoAI] Parsed:', JSON.stringify(parsed).substring(0, 300));
                 
                 if (parsed.name) document.getElementById('add-prod-name').value = parsed.name;
                 if (parsed.type) document.getElementById('add-prod-type').value = parsed.type;
@@ -8501,12 +8536,14 @@ ${JSON.stringify(completedLogs, null, 2)}
                 if (parsed.ph) document.getElementById('add-prod-ph').value = parsed.ph;
                 
                 handleProductTypeChange();
-                showToast("✨ Препарат успішно розпізнано! Перевірте дані та збережіть.", "success");
+                showToast('✨ Препарат «' + (parsed.name || '?') + '» успішно розпізнано! Перевірте дані та збережіть.', 'success');
             } catch (err) {
-                console.error("AI Photo Recognition Error:", err);
-                showToast(`Помилка розпізнавання: ${err.message}`, "danger");
+                console.error('[analyzeProductPhotoAI] ПОМИЛКА:', err);
+                showToast('❌ Помилка розпізнавання: ' + err.message, 'danger');
+                alert('AI Photo Error: ' + err.message);
             } finally {
                 setProductPhotoLoading(false);
+                console.log('[analyzeProductPhotoAI] Завершено, завантаження зупинено.');
             }
         }
 
