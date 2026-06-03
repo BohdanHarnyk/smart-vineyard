@@ -6573,8 +6573,13 @@
             }
             const urlsToTry = [
                 `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${key}`,
-                `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${key}`,
-                `https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent?key=${key}`
+                `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-lite:generateContent?key=${key}`,
+                `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=${key}`,
+                `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-pro-latest:generateContent?key=${key}`,
+                `https://generativelanguage.googleapis.com/v1/models/gemini-pro-vision:generateContent?key=${key}`,
+                `https://generativelanguage.googleapis.com/v1beta/models/gemini-pro-vision:generateContent?key=${key}`,
+                `https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash-latest:generateContent?key=${key}`,
+                `https://generativelanguage.googleapis.com/v1/models/gemini-2.0-flash:generateContent?key=${key}`
             ];
             
             const parts = [{ text: prompt }];
@@ -6607,7 +6612,7 @@
                 console.log(`[fetchGeminiAPI] Спроба ${i+1}/${urlsToTry.length}: ${modelName}`);
                 try {
                     const controller = new AbortController();
-                    const timeoutId = setTimeout(() => controller.abort(), 30000);
+                    const timeoutId = setTimeout(() => controller.abort(), 15000);
                     
                     const response = await fetch(url, {
                         method: 'POST',
@@ -6638,7 +6643,7 @@
                     }
                 } catch (e) {
                     if (e.name === 'AbortError') {
-                        lastError = `${modelName}: таймаут 30 сек`;
+                        lastError = `${modelName}: таймаут 15 сек`;
                         console.warn(`[fetchGeminiAPI] ${modelName}: Таймаут`);
                     } else {
                         lastError = e.message;
@@ -6647,7 +6652,8 @@
                 }
             }
             
-            throw new Error(`API Error: ${lastError || 'Невідома помилка при запиті до Gemini API'}`);
+            const keyHint = key.startsWith('AIzaSy') ? '' : ' Ваш ключ не схожий на стандартний Gemini API ключ (має починатися з AIzaSy).';
+            throw new Error(`API Error: ${lastError || 'Невідома помилка'}.${keyHint} Спробовано ${urlsToTry.length} моделей.`);
         }
 
         async function analyzeAICandidate() {
