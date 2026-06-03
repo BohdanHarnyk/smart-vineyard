@@ -6,6 +6,7 @@
     <title>Smart Vineyard | Вінниччина Professional</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/heic2any/dist/heic2any.min.js"></script>
 
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap');
@@ -2061,7 +2062,7 @@
                         
                         <!-- Блок ШІ-сканування упаковки -->
                         <div class="p-4 bg-purple-50/50 rounded-2xl border-2 border-dashed border-purple-200 text-center space-y-2 relative overflow-hidden transition-all duration-300" id="prod-photo-dropzone">
-                            <input type="file" id="add-prod-photo-input" accept="image/*" capture="environment" class="hidden" onchange="handleProductPhotoUpload(event)">
+                            <input type="file" id="add-prod-photo-input" accept="image/*" class="hidden" onchange="handleProductPhotoUpload(event)">
                             
                             <!-- Звичайний стан -->
                             <div id="prod-photo-status-idle" class="space-y-1.5 cursor-pointer" onclick="document.getElementById('add-prod-photo-input').click()">
@@ -8348,7 +8349,7 @@ ${JSON.stringify(completedLogs, null, 2)}
             }
         }
 
-        function handleProductPhotoUpload(event) {
+        async function handleProductPhotoUpload(event) {
             const file = event.target.files[0];
             if (!file) return;
             
@@ -8360,7 +8361,33 @@ ${JSON.stringify(completedLogs, null, 2)}
             }
             
             setProductPhotoLoading(true);
-            compressImageAndProcess(file);
+            
+            const fileName = file.name.toLowerCase();
+            if (fileName.endsWith('.heic') || fileName.endsWith('.heif') || file.type === 'image/heic' || file.type === 'image/heif') {
+                try {
+                    if (typeof heic2any === 'undefined') {
+                        throw new Error("Бібліотека конвертації HEIC завантажується, спробуйте ще раз через секунду.");
+                    }
+                    showToast("Перетворюємо формат HEIC з iPhone...", "info");
+                    
+                    const convertedBlob = await heic2any({
+                        blob: file,
+                        toType: "image/jpeg",
+                        quality: 0.8
+                    });
+                    
+                    const finalBlob = Array.isArray(convertedBlob) ? convertedBlob[0] : convertedBlob;
+                    const jpegFile = new File([finalBlob], "converted.jpg", { type: "image/jpeg" });
+                    compressImageAndProcess(jpegFile);
+                } catch (err) {
+                    console.error("HEIC Conversion failed:", err);
+                    showToast(`Помилка конвертації HEIC: ${err.message}`, "danger");
+                    setProductPhotoLoading(false);
+                }
+            } else {
+                compressImageAndProcess(file);
+            }
+            
             event.target.value = '';
         }
 
@@ -8369,7 +8396,6 @@ ${JSON.stringify(completedLogs, null, 2)}
             reader.readAsDataURL(file);
             reader.onload = function(event) {
                 const img = new Image();
-                img.src = event.target.result;
                 img.onload = function() {
                     const maxDim = 1000;
                     let width = img.width;
@@ -8398,6 +8424,12 @@ ${JSON.stringify(completedLogs, null, 2)}
                     
                     analyzeProductPhotoAI(base64Content, 'image/jpeg');
                 };
+                img.onerror = function(err) {
+                    console.error("Image load failed:", err);
+                    showToast("Не вдалося завантажити зображення. Спробуйте інше фото.", "danger");
+                    setProductPhotoLoading(false);
+                };
+                img.src = event.target.result;
             };
             reader.onerror = function(error) {
                 showToast("Помилка читання зображення.", "danger");
