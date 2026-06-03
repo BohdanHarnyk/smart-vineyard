@@ -6597,11 +6597,8 @@
                 };
             }
             
-            if (jsonMode) {
-                requestBody.generationConfig = {
-                    responseMimeType: "application/json"
-                };
-            }
+            // Note: responseMimeType removed — not supported by all API key types.
+            // JSON output is enforced via prompt instructions instead.
             
             let lastError = null;
             for (let i = 0; i < urlsToTry.length; i++) {
