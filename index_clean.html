@@ -6973,27 +6973,13 @@ Return ONLY a valid raw JSON object matching this structure, with no markdown wr
   "cleanedText": "Ukrainian string describing the task clearly, translated to short formal style"
 }`;
 
-                const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${key}`;
-                const payload = {
-                    contents: [{
-                        parts: [{
-                            text: `${systemPrompt}\n\nInput text to parse: "${textVal}"`
-                        }]
-                    }]
-                };
-
-                const res = await fetch(url, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(payload)
-                });
-
-                if (!res.ok) throw new Error('Gemini API request failed');
-                const resData = await res.json();
-                
-                const aiText = resData.candidates?.[0]?.content?.parts?.[0]?.text || '';
-                const jsonText = aiText.replace(/```json/g, '').replace(/```/g, '').trim();
-                const parsed = JSON.parse(jsonText);
+                const jsonTextRaw = await fetchGeminiAPI(`${systemPrompt}\n\nInput text to parse: "${textVal}"`, '', true);
+                if (!jsonTextRaw) throw new Error('Не отримано відповіді від ШІ');
+                let cleanedJsonText = jsonTextRaw.trim();
+                if (cleanedJsonText.startsWith('```')) {
+                    cleanedJsonText = cleanedJsonText.replace(/^```json\s*/i, '').replace(/```\s*$/, '').trim();
+                }
+                const parsed = JSON.parse(cleanedJsonText);
 
                 if (parsed.type) {
                     setTodoType(parsed.type);
@@ -7406,26 +7392,9 @@ ${JSON.stringify(completedLogs, null, 2)}
 
 Пишіть дуже професійно, ємко, без зайвої «води». Форматуйте текст красивими HTML тегами (наприклад, strong, em, ul, li, br) для виведення в компактне віконце.`;
 
-                const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${key}`;
-                const payload = {
-                    contents: [{
-                        parts: [{
-                            text: prompt
-                        }]
-                    }]
-                };
-                
-                const res = await fetch(url, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(payload)
-                });
-                
-                if (!res.ok) throw new Error('Помилка запиту до Gemini API');
-                const data = await res.json();
-                
-                let rawText = data.candidates?.[0]?.content?.parts?.[0]?.text || '';
-                rawText = rawText.replace(/```html/g, '').replace(/```/g, '').trim();
+                const rawTextRaw = await fetchGeminiAPI(prompt, '', false);
+                if (!rawTextRaw) throw new Error('Не отримано відповіді від ШІ');
+                let rawText = rawTextRaw.replace(/```html/g, '').replace(/```/g, '').trim();
                 
                 outputBox.innerHTML = `
                     <div class="space-y-3">
@@ -8063,7 +8032,6 @@ ${JSON.stringify(completedLogs, null, 2)}
                 return;
             }
             
-            const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${key}`;
             const prompt = `Аналізуй це зображення упаковки/етикетки препарату для сільського господарства (добриво, фунгіцид, інсектицид, акарицид, стимулятор тощо) та отримамай всі деталі.
 Поверни виключно JSON об'єкт наступної структури:
 {
@@ -8085,37 +8053,19 @@ ${JSON.stringify(completedLogs, null, 2)}
 Не пиши жодних передмов чи додаткових пояснень, поверни лише чистий JSON.`;
 
             try {
-                const response = await fetch(url, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        contents: [{
-                            parts: [
-                                { text: prompt },
-                                {
-                                    inlineData: {
-                                        mimeType: mimeType,
-                                        data: base64Data
-                                    }
-                                }
-                            ]
-                        }],
-                        generationConfig: {
-                            responseMimeType: "application/json"
-                        }
-                    })
+                const jsonText = await fetchGeminiAPI(prompt, '', true, {
+                    mimeType: mimeType,
+                    data: base64Data
                 });
                 
-                if (!response.ok) {
-                    const errData = await response.json();
-                    throw new Error(errData.error?.message || response.statusText);
-                }
-                
-                const resData = await response.json();
-                const jsonText = resData.candidates?.[0]?.content?.parts?.[0]?.text;
                 if (!jsonText) throw new Error("Не отримано відповіді від ШІ");
                 
-                const parsed = JSON.parse(jsonText.trim());
+                let cleanedJsonText = jsonText.trim();
+                if (cleanedJsonText.startsWith('```')) {
+                    cleanedJsonText = cleanedJsonText.replace(/^```json\s*/i, '').replace(/```\s*$/, '').trim();
+                }
+                
+                const parsed = JSON.parse(cleanedJsonText);
                 
                 if (parsed.name) document.getElementById('add-prod-name').value = parsed.name;
                 if (parsed.type) document.getElementById('add-prod-type').value = parsed.type;
