@@ -2303,6 +2303,31 @@
     </main>
 
     <script>
+        // Toast notifications utility
+        function showToast(message, type = 'info') {
+            const container = document.getElementById('toast-container');
+            if (!container) return;
+            
+            const toast = document.createElement('div');
+            const toastType = type === 'danger' ? 'error' : type;
+            toast.className = `toast toast-${toastType}`;
+            
+            let icon = 'ℹ️';
+            if (toastType === 'success') icon = '✅';
+            else if (toastType === 'error') icon = '❌';
+            else if (toastType === 'warning') icon = '⚠️';
+            
+            toast.innerHTML = `<span class="text-base">${icon}</span> <span class="font-bold">${message}</span>`;
+            container.appendChild(toast);
+            
+            setTimeout(() => {
+                toast.classList.add('removing');
+                toast.addEventListener('transitionend', () => {
+                    toast.remove();
+                });
+            }, 4000);
+        }
+
         let currentTab = 'phases';
         let currentActivePhase = 3;
         let activeVar = 'Аватар';
