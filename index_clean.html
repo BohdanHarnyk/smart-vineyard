@@ -2258,6 +2258,15 @@
     </main>
 
     <script>
+        // Debugging error handlers
+        window.onerror = function(message, source, lineno, colno, error) {
+            alert("JS Error: " + message + " at line " + lineno + ":" + colno + "\nSource: " + source);
+            return false;
+        };
+        window.onunhandledrejection = function(event) {
+            alert("Unhandled Promise Rejection: " + (event.reason ? (event.reason.message || event.reason) : event));
+        };
+
         // Toast notifications utility
         function showToast(message, type = 'info') {
             const container = document.getElementById('toast-container');
