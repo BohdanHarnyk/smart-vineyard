@@ -6554,8 +6554,8 @@
             }
             // Clean up surrounding quotes if any
             const cleanKey = rawKey.replace(/^["']|["']$/g, '').trim();
-            if (!cleanKey.startsWith('AIzaSy')) {
-                if (!confirm('Попередження: зазвичай API ключі Gemini починаються з літер "AIzaSy". Ваш ключ виглядає інакше. Зберегти цей ключ попри попередження?')) {
+            if (!cleanKey.startsWith('AIzaSy') && !cleanKey.startsWith('AQ.')) {
+                if (!confirm('Попередження: зазвичай API ключі Gemini починаються з літер "AIzaSy" або "AQ.". Ваш ключ виглядає інакше. Зберегти цей ключ попри попередження?')) {
                     return;
                 }
             }
@@ -6697,10 +6697,12 @@
         }
 
         async function fetchGeminiAPI(prompt, systemInstruction = '', jsonMode = false, attachment = null) {
-            const key = localStorage.getItem('viticulture-gemini-key');
-            if (!key) {
+            const rawKey = localStorage.getItem('viticulture-gemini-key');
+            if (!rawKey) {
                 throw new Error('API ключ не знайдено. Будь ласка, збережіть ключ у верхній панелі.');
             }
+            // Trim, clean surrounding quotes, and encode the key
+            const key = encodeURIComponent(rawKey.trim().replace(/^["']|["']$/g, ''));
             
             // Step 1: Discover the best available model
             const discoveredUrl = await discoverGeminiModel(key);
@@ -9202,10 +9204,12 @@ ${JSON.stringify(completedLogs, null, 2)}
                     keyInput.value = savedKey;
                 }
                 keyInput.addEventListener('input', (e) => {
-                    const val = e.target.value.trim();
-                    if (val.startsWith('AIzaSy')) {
-                        localStorage.setItem('viticulture-gemini-key', val);
-                        checkGeminiStatus();
+                    const val = e.target.value.trim().replace(/^["']|["']$/g, '');
+                    if (val.startsWith('AIzaSy') || val.startsWith('AQ.')) {
+                        if (val.length >= 35) {
+                            localStorage.setItem('viticulture-gemini-key', val);
+                            checkGeminiStatus();
+                        }
                     }
                 });
             }
@@ -9214,7 +9218,8 @@ ${JSON.stringify(completedLogs, null, 2)}
             const urlParams = new URLSearchParams(window.location.search);
             const keyParam = urlParams.get('gemini_key');
             if (keyParam) {
-                localStorage.setItem('viticulture-gemini-key', keyParam);
+                const cleanParam = keyParam.trim().replace(/^["']|["']$/g, '');
+                localStorage.setItem('viticulture-gemini-key', cleanParam);
                 const cleanUrl = window.location.origin + window.location.pathname;
                 window.history.replaceState({}, document.title, cleanUrl);
             }
