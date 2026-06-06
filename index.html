@@ -2013,6 +2013,48 @@
 
 
 
+                        <!-- Modal: Gemini Quota Help -->
+            <div id="modal-gemini-quota-help" class="fixed inset-0 bg-stone-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+                <div class="bg-white w-full max-w-md rounded-[32px] p-6 shadow-2xl border border-stone-200/50 space-y-4 max-h-[90vh] overflow-y-auto custom-scrollbar">
+                    <div class="flex justify-between items-center border-b border-stone-100 pb-3">
+                        <h3 class="text-sm font-black text-rose-600 uppercase tracking-wider">⚠️ Обмеження квоти Gemini API</h3>
+                        <button type="button" onclick="closeQuotaHelpModal()" class="text-stone-400 hover:text-stone-600 text-lg">✕</button>
+                    </div>
+                    
+                    <div class="space-y-3.5 text-xs text-stone-700 leading-relaxed">
+                        <p class="font-bold text-stone-900 text-sm">Чому виникає помилка "limit: 0" або "Quota Exceeded"?</p>
+                        <p>Ваш API ключ успішно перевірено, але Google обмежив кількість безкоштовних запитів для вашого проекту до нуля.</p>
+                        
+                        <div class="bg-amber-50 p-3.5 rounded-2xl border border-amber-200/60 space-y-2">
+                            <span class="block font-black text-[9px] uppercase tracking-wider text-amber-800">💡 Як це виправити:</span>
+                            <ol class="list-decimal list-inside space-y-1.5 font-medium text-amber-950">
+                                <li>
+                                    <strong class="text-amber-900">Створіть ключ у новому проекті:</strong><br>
+                                    Перейдіть у <a href="https://aistudio.google.com/" target="_blank" class="text-emerald-700 underline font-bold animate-pulse">Google AI Studio</a>, натисніть <strong>"Create API key"</strong> та виберіть опцію <strong>"Create API key in new project"</strong>. Часто нові проекти отримують стандартну безкоштовну квоту одразу.
+                                </li>
+                                <li>
+                                    <strong class="text-amber-900">Перевірте регіональні обмеження:</strong><br>
+                                    Безкоштовний доступ може обмежуватися для акаунтів, зареєстрованих у деяких країнах, якщо до Google Cloud не прив'язано платіжний метод.
+                                </li>
+                                <li>
+                                    <strong class="text-amber-900">Підключіть Billing (Оплату):</strong><br>
+                                    У консолі Google Cloud увімкніть тарифікацію (Billing) для вашого проекту. Ви все одно зможете використовувати безкоштовні ліміти (які є досить великими), але Google розблокує ваш доступ.
+                                </li>
+                            </ol>
+                        </div>
+                    </div>
+                    
+                    <div class="flex gap-2 pt-2">
+                        <a href="https://aistudio.google.com/" target="_blank" class="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white text-center py-3.5 rounded-2xl font-black text-xs uppercase tracking-wider transition-all shadow-sm flex items-center justify-center">
+                            Відкрити AI Studio ↗
+                        </a>
+                        <button type="button" onclick="closeQuotaHelpModal()" class="py-3.5 px-6 rounded-2xl border border-stone-200 text-stone-600 font-black text-xs uppercase tracking-wider hover:bg-stone-50 transition-all">
+                            Закрити
+                        </button>
+                    </div>
+                </div>
+            </div>
+
                         <!-- Modal: Swap Product (Alternative Selection) -->
             <div id="modal-swap-product" class="fixed inset-0 bg-stone-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
                 <div class="bg-white w-full max-w-md rounded-[32px] p-6 shadow-2xl border border-stone-200/50 space-y-4 max-h-[90vh] overflow-y-auto custom-scrollbar">
@@ -6566,6 +6608,16 @@
             }
         }
 
+        function openQuotaHelpModal() {
+            const modal = document.getElementById('modal-gemini-quota-help');
+            if (modal) modal.classList.remove('hidden');
+        }
+
+        function closeQuotaHelpModal() {
+            const modal = document.getElementById('modal-gemini-quota-help');
+            if (modal) modal.classList.add('hidden');
+        }
+
         // Cache for discovered model URL to avoid re-listing models every time
         let _cachedGeminiModelUrl = null;
 
@@ -6769,8 +6821,8 @@
             
             // Clear cache on total failure
             _cachedGeminiModelUrl = null;
-            const errorSummary = allErrors.length > 0 ? allErrors[0] : 'Невідома помилка';
-            throw new Error(`API Error: ${errorSummary}. Спробовано ${uniqueUrls.length} моделей.`);
+            const errorDetails = allErrors.length > 0 ? allErrors.join('; ') : 'Невідома помилка';
+            throw new Error(`API Error: ${errorDetails}. Спробовано ${uniqueUrls.length} моделей.`);
         }
 
         async function analyzeAICandidate() {
@@ -6910,6 +6962,9 @@
                         <p class="text-xs text-stone-600 mt-1 leading-relaxed">${err.message}</p>
                     </div>
                 `;
+                if (err.message.includes('limit: 0') || err.message.toLowerCase().includes('quota') || err.message.includes('429')) {
+                    openQuotaHelpModal();
+                }
             } finally {
                 if (spinner) spinner.classList.add('hidden');
             }
@@ -7155,6 +7210,9 @@
                             </div>
                         </div>
                     `;
+                }
+                if (err.message.includes('limit: 0') || err.message.toLowerCase().includes('quota') || err.message.includes('429')) {
+                    openQuotaHelpModal();
                 }
             } finally {
                 if (spinner) spinner.classList.add('hidden');
@@ -8660,7 +8718,9 @@ ${JSON.stringify(completedLogs, null, 2)}
             } catch (err) {
                 console.error('[analyzeProductPhotoAI] ПОМИЛКА:', err);
                 showToast('❌ Помилка розпізнавання: ' + err.message, 'danger');
-                alert('AI Photo Error: ' + err.message);
+                if (err.message.includes('limit: 0') || err.message.toLowerCase().includes('quota') || err.message.includes('429')) {
+                    openQuotaHelpModal();
+                }
             } finally {
                 setProductPhotoLoading(false);
                 console.log('[analyzeProductPhotoAI] Завершено, завантаження зупинено.');
@@ -8846,6 +8906,9 @@ ${JSON.stringify(completedLogs, null, 2)}
             } catch (err) {
                 console.error(err);
                 showToast(`Помилка AI: ${err.message}`, 'error');
+                if (err.message.includes('limit: 0') || err.message.toLowerCase().includes('quota') || err.message.includes('429')) {
+                    openQuotaHelpModal();
+                }
             } finally {
                 btn.innerHTML = originalText;
                 btn.disabled = false;

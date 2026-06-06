@@ -1968,6 +1968,48 @@
 
 
 
+                        <!-- Modal: Gemini Quota Help -->
+            <div id="modal-gemini-quota-help" class="fixed inset-0 bg-stone-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+                <div class="bg-white w-full max-w-md rounded-[32px] p-6 shadow-2xl border border-stone-200/50 space-y-4 max-h-[90vh] overflow-y-auto custom-scrollbar">
+                    <div class="flex justify-between items-center border-b border-stone-100 pb-3">
+                        <h3 class="text-sm font-black text-rose-650 uppercase tracking-wider">⚠️ Обмеження квоти Gemini API</h3>
+                        <button type="button" onclick="closeQuotaHelpModal()" class="text-stone-400 hover:text-stone-600 text-lg">✕</button>
+                    </div>
+                    
+                    <div class="space-y-3.5 text-xs text-stone-700 leading-relaxed">
+                        <p class="font-bold text-stone-900 text-sm">Чому виникає помилка "limit: 0" або "Quota Exceeded"?</p>
+                        <p>Ваш API ключ успішно перевірено, але Google обмежив кількість безкоштовних запитів для вашого проекту до нуля.</p>
+                        
+                        <div class="bg-amber-50 p-3.5 rounded-2xl border border-amber-200/60 space-y-2">
+                            <span class="block font-black text-[9px] uppercase tracking-wider text-amber-800">💡 Як це виправити:</span>
+                            <ol class="list-decimal list-inside space-y-1.5 font-medium text-amber-950">
+                                <li>
+                                    <strong class="text-amber-900">Створіть ключ у новому проекті:</strong><br>
+                                    Перейдіть у <a href="https://aistudio.google.com/" target="_blank" class="text-emerald-700 underline font-bold animate-pulse">Google AI Studio</a>, натисніть <strong>"Create API key"</strong> та виберіть опцію <strong>"Create API key in new project"</strong>. Часто нові проекти отримують стандартну безкоштовну квоту одразу.
+                                </li>
+                                <li>
+                                    <strong class="text-amber-900">Перевірте регіональні обмеження:</strong><br>
+                                    Безкоштовний доступ може обмежуватися для акаунтів, зареєстрованих у деяких країнах, якщо до Google Cloud не прив'язано платіжний метод.
+                                </li>
+                                <li>
+                                    <strong class="text-amber-900">Підключіть Billing (Оплату):</strong><br>
+                                    У консолі Google Cloud увімкніть тарифікацію (Billing) для вашого проекту. Ви все одно зможете використовувати безкоштовні ліміти (які є досить великими), але Google розблокує ваш доступ.
+                                </li>
+                            </ol>
+                        </div>
+                    </div>
+                    
+                    <div class="flex gap-2 pt-2">
+                        <a href="https://aistudio.google.com/" target="_blank" class="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white text-center py-3.5 rounded-2xl font-black text-xs uppercase tracking-wider transition-all shadow-sm flex items-center justify-center">
+                            Відкрити AI Studio ↗
+                        </a>
+                        <button type="button" onclick="closeQuotaHelpModal()" class="py-3.5 px-6 rounded-2xl border border-stone-200 text-stone-600 font-black text-xs uppercase tracking-wider hover:bg-stone-50 transition-all">
+                            Закрити
+                        </button>
+                    </div>
+                </div>
+            </div>
+
                         <!-- Modal: Swap Product (Alternative Selection) -->
             <div id="modal-swap-product" class="fixed inset-0 bg-stone-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
                 <div class="bg-white w-full max-w-md rounded-[32px] p-6 shadow-2xl border border-stone-200/50 space-y-4 max-h-[90vh] overflow-y-auto custom-scrollbar">
@@ -6203,18 +6245,116 @@
             }
         }
 
+        function openQuotaHelpModal() {
+            const modal = document.getElementById('modal-gemini-quota-help');
+            if (modal) modal.classList.remove('hidden');
+        }
+
+        function closeQuotaHelpModal() {
+            const modal = document.getElementById('modal-gemini-quota-help');
+            if (modal) modal.classList.add('hidden');
+        }
+
+        // Cache for discovered model URL to avoid re-listing models every time
+        let _cachedGeminiModelUrl = null;
+
+        async function discoverGeminiModel(key) {
+            if (_cachedGeminiModelUrl) return _cachedGeminiModelUrl;
+            
+            console.log('[discoverGeminiModel] Шукаю доступні моделі...');
+            const listUrls = [
+                `https://generativelanguage.googleapis.com/v1beta/models?key=${key}`,
+                `https://generativelanguage.googleapis.com/v1/models?key=${key}`
+            ];
+            
+            // Preferred models in priority order (best for vision/multimodal tasks)
+            const preferredModels = [
+                'gemini-2.0-flash',
+                'gemini-2.0-flash-lite', 
+                'gemini-1.5-flash',
+                'gemini-1.5-flash-latest',
+                'gemini-1.5-pro',
+                'gemini-1.5-pro-latest',
+                'gemini-pro-vision',
+                'gemini-pro'
+            ];
+            
+            for (const listUrl of listUrls) {
+                try {
+                    const apiVersion = listUrl.includes('/v1beta/') ? 'v1beta' : 'v1';
+                    console.log(`[discoverGeminiModel] Спроба ${apiVersion}...`);
+                    const resp = await fetch(listUrl);
+                    if (!resp.ok) {
+                        console.warn(`[discoverGeminiModel] ${apiVersion} => HTTP ${resp.status}`);
+                        continue;
+                    }
+                    const data = await resp.json();
+                    const models = data.models || [];
+                    console.log(`[discoverGeminiModel] Знайдено ${models.length} моделей у ${apiVersion}`);
+                    
+                    // Log all available model names
+                    const modelNames = models.map(m => m.name).join(', ');
+                    console.log(`[discoverGeminiModel] Доступні: ${modelNames}`);
+                    
+                    // Find the best model that supports generateContent
+                    for (const preferred of preferredModels) {
+                        const found = models.find(m => {
+                            const name = m.name || '';
+                            const shortName = name.replace('models/', '');
+                            const supportsGenerate = !m.supportedGenerationMethods || 
+                                m.supportedGenerationMethods.includes('generateContent');
+                            return (shortName === preferred || shortName.startsWith(preferred)) && supportsGenerate;
+                        });
+                        if (found) {
+                            const modelId = (found.name || '').replace('models/', '');
+                            const url = `https://generativelanguage.googleapis.com/${apiVersion}/models/${modelId}:generateContent?key=${key}`;
+                            console.log(`[discoverGeminiModel] ✅ Обрано модель: ${modelId} (${apiVersion})`);
+                            _cachedGeminiModelUrl = url;
+                            return url;
+                        }
+                    }
+                    
+                    // If no preferred model found, pick ANY model that supports generateContent
+                    const anyModel = models.find(m => {
+                        return !m.supportedGenerationMethods || 
+                            m.supportedGenerationMethods.includes('generateContent');
+                    });
+                    if (anyModel) {
+                        const modelId = (anyModel.name || '').replace('models/', '');
+                        const url = `https://generativelanguage.googleapis.com/${apiVersion}/models/${modelId}:generateContent?key=${key}`;
+                        console.log(`[discoverGeminiModel] ⚠️ Запасна модель: ${modelId} (${apiVersion})`);
+                        _cachedGeminiModelUrl = url;
+                        return url;
+                    }
+                } catch (e) {
+                    console.warn(`[discoverGeminiModel] Помилка:`, e.message);
+                }
+            }
+            return null;
+        }
+
         async function fetchGeminiAPI(prompt, systemInstruction = '', jsonMode = false, attachment = null) {
             const key = localStorage.getItem('viticulture-gemini-key');
             if (!key) {
                 throw new Error('API ключ не знайдено. Будь ласка, збережіть ключ у верхній панелі.');
             }
-            const urlsToTry = [
-                `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${key}`,
-                `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${key}`,
-                `https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent?key=${key}`,
-                `https://generativelanguage.googleapis.com/v1/models/gemini-2.5-flash:generateContent?key=${key}`,
-                `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash:generateContent?key=${key}`
-            ];
+            
+            // Step 1: Discover the best available model
+            const discoveredUrl = await discoverGeminiModel(key);
+            
+            // Build URLs to try: discovered model first, then fallbacks
+            const urlsToTry = [];
+            if (discoveredUrl) {
+                urlsToTry.push(discoveredUrl);
+            }
+            // Fallback hardcoded URLs in case discovery fails
+            urlsToTry.push(
+                `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${key}`,
+                `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-lite:generateContent?key=${key}`,
+                `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=${key}`
+            );
+            // Remove duplicates
+            const uniqueUrls = [...new Set(urlsToTry)];
             
             const parts = [{ text: prompt }];
             if (attachment) {
@@ -6236,39 +6376,90 @@
                 };
             }
             
-            if (jsonMode) {
-                requestBody.generationConfig = {
-                    responseMimeType: "application/json"
-                };
-            }
-            
             let lastError = null;
-            for (const url of urlsToTry) {
-                try {
-                    const response = await fetch(url, {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json'
-                        },
-                        body: JSON.stringify(requestBody)
-                    });
-                    
-                    if (response.ok) {
-                        const data = await response.json();
-                        const textResponse = data.candidates?.[0]?.content?.parts?.[0]?.text;
-                        if (textResponse) {
-                            return textResponse;
-                        }
+            let allErrors = [];
+            for (let i = 0; i < uniqueUrls.length; i++) {
+                const url = uniqueUrls[i];
+                const modelName = url.match(/models\/([^:]+)/)?.[1] || 'unknown';
+                
+                // Allow up to 2 retries for rate limit (429) errors
+                for (let retry = 0; retry <= 2; retry++) {
+                    if (retry > 0) {
+                        console.log(`[fetchGeminiAPI] Повтор ${retry}/2 для ${modelName}...`);
                     } else {
-                        const errData = await response.json().catch(() => ({}));
-                        lastError = errData.error?.message || response.statusText;
+                        console.log(`[fetchGeminiAPI] Спроба ${i+1}/${uniqueUrls.length}: ${modelName}`);
                     }
-                } catch (e) {
-                    lastError = e.message;
+                    try {
+                        const controller = new AbortController();
+                        const timeoutId = setTimeout(() => controller.abort(), 45000);
+                        
+                        const response = await fetch(url, {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json'
+                            },
+                            body: JSON.stringify(requestBody),
+                            signal: controller.signal
+                        });
+                        clearTimeout(timeoutId);
+                        
+                        console.log(`[fetchGeminiAPI] ${modelName} => HTTP ${response.status}`);
+                        
+                        if (response.ok) {
+                            const data = await response.json();
+                            const textResponse = data.candidates?.[0]?.content?.parts?.[0]?.text;
+                            if (textResponse) {
+                                console.log(`[fetchGeminiAPI] ✅ Успіх від ${modelName}, відповідь ${textResponse.length} символів`);
+                                return textResponse;
+                            } else {
+                                const reason = data.candidates?.[0]?.finishReason || 'невідомо';
+                                console.warn(`[fetchGeminiAPI] ${modelName}: HTTP 200, але текст відсутній. finishReason: ${reason}`, JSON.stringify(data).substring(0, 500));
+                                lastError = `${modelName}: відповідь без тексту (${reason})`;
+                                allErrors.push(lastError);
+                                break; // Don't retry on 200 with empty response
+                            }
+                        } else if (response.status === 429 && retry < 2) {
+                            // Rate limited — extract retry delay and wait
+                            const errData = await response.json().catch(() => ({}));
+                            const errMsg = errData.error?.message || '';
+                            // Try to extract delay from "Please retry in 17.979611419s"
+                            const delayMatch = errMsg.match(/retry in ([\d.]+)s/i);
+                            let waitSec = delayMatch ? Math.ceil(parseFloat(delayMatch[1])) + 2 : 20;
+                            waitSec = Math.min(waitSec, 60); // Cap at 60s
+                            
+                            console.log(`[fetchGeminiAPI] 429 Rate Limited. Чекаю ${waitSec} сек...`);
+                            showToast(`⏳ Квота перевищена. Автоповтор через ${waitSec} сек...`, 'warning');
+                            
+                            await new Promise(resolve => setTimeout(resolve, waitSec * 1000));
+                            continue; // Retry the same URL
+                        } else {
+                            const errData = await response.json().catch(() => ({}));
+                            lastError = `${modelName}: ${errData.error?.message || response.statusText}`;
+                            allErrors.push(lastError);
+                            console.warn(`[fetchGeminiAPI] ${modelName}: HTTP ${response.status} — ${lastError}`);
+                            
+                            if (response.status === 403 || response.status === 401) {
+                                _cachedGeminiModelUrl = null;
+                            }
+                            break; // Don't retry on non-429 errors
+                        }
+                    } catch (e) {
+                        if (e.name === 'AbortError') {
+                            lastError = `${modelName}: таймаут 45 сек`;
+                        } else {
+                            lastError = `${modelName}: ${e.message}`;
+                        }
+                        allErrors.push(lastError);
+                        console.warn(`[fetchGeminiAPI] ${lastError}`);
+                        break; // Don't retry on network errors
+                    }
                 }
             }
             
-            throw new Error(`API Error: ${lastError || 'Невідома помилка при запиті до Gemini API'}`);
+            // Clear cache on total failure
+            _cachedGeminiModelUrl = null;
+            const errorDetails = allErrors.length > 0 ? allErrors.join('; ') : 'Невідома помилка';
+            throw new Error(`API Error: ${errorDetails}. Спробовано ${uniqueUrls.length} моделей.`);
         }
 
         async function analyzeAICandidate() {
@@ -6408,6 +6599,9 @@
                         <p class="text-xs text-stone-600 mt-1 leading-relaxed">${err.message}</p>
                     </div>
                 `;
+                if (err.message.includes('limit: 0') || err.message.toLowerCase().includes('quota') || err.message.includes('429')) {
+                    openQuotaHelpModal();
+                }
             } finally {
                 if (spinner) spinner.classList.add('hidden');
             }
@@ -6653,6 +6847,9 @@
                             </div>
                         </div>
                     `;
+                }
+                if (err.message.includes('limit: 0') || err.message.toLowerCase().includes('quota') || err.message.includes('429')) {
+                    openQuotaHelpModal();
                 }
             } finally {
                 if (spinner) spinner.classList.add('hidden');
@@ -8043,7 +8240,9 @@ ${JSON.stringify(completedLogs, null, 2)}
                     const compressedDataUrl = canvas.toDataURL('image/jpeg', 0.7);
                     const base64Content = compressedDataUrl.split(',')[1];
                     
-                    analyzeProductPhotoAI(base64Content, 'image/jpeg');
+                    analyzeProductPhotoAI(base64Content, 'image/jpeg').catch(err => {
+                        console.error('[compressImageAndProcess] analyzeProductPhotoAI rejected:', err);
+                    });
                 };
                 img.onerror = function(err) {
                     console.error("Image load failed:", err);
@@ -8123,6 +8322,9 @@ ${JSON.stringify(completedLogs, null, 2)}
             } catch (err) {
                 console.error("AI Photo Recognition Error:", err);
                 showToast(`Помилка розпізнавання: ${err.message}`, "danger");
+                if (err.message.includes('limit: 0') || err.message.toLowerCase().includes('quota') || err.message.includes('429')) {
+                    openQuotaHelpModal();
+                }
             } finally {
                 setProductPhotoLoading(false);
             }
@@ -8307,6 +8509,9 @@ ${JSON.stringify(completedLogs, null, 2)}
             } catch (err) {
                 console.error(err);
                 showToast(`Помилка AI: ${err.message}`, 'error');
+                if (err.message.includes('limit: 0') || err.message.toLowerCase().includes('quota') || err.message.includes('429')) {
+                    openQuotaHelpModal();
+                }
             } finally {
                 btn.innerHTML = originalText;
                 btn.disabled = false;
