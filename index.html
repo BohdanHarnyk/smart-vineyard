@@ -6566,21 +6566,106 @@
             }
         }
 
+        // Cache for discovered model URL to avoid re-listing models every time
+        let _cachedGeminiModelUrl = null;
+
+        async function discoverGeminiModel(key) {
+            if (_cachedGeminiModelUrl) return _cachedGeminiModelUrl;
+            
+            console.log('[discoverGeminiModel] Шукаю доступні моделі...');
+            const listUrls = [
+                `https://generativelanguage.googleapis.com/v1beta/models?key=${key}`,
+                `https://generativelanguage.googleapis.com/v1/models?key=${key}`
+            ];
+            
+            // Preferred models in priority order (best for vision/multimodal tasks)
+            const preferredModels = [
+                'gemini-2.0-flash',
+                'gemini-2.0-flash-lite', 
+                'gemini-1.5-flash',
+                'gemini-1.5-flash-latest',
+                'gemini-1.5-pro',
+                'gemini-1.5-pro-latest',
+                'gemini-pro-vision',
+                'gemini-pro'
+            ];
+            
+            for (const listUrl of listUrls) {
+                try {
+                    const apiVersion = listUrl.includes('/v1beta/') ? 'v1beta' : 'v1';
+                    console.log(`[discoverGeminiModel] Спроба ${apiVersion}...`);
+                    const resp = await fetch(listUrl);
+                    if (!resp.ok) {
+                        console.warn(`[discoverGeminiModel] ${apiVersion} => HTTP ${resp.status}`);
+                        continue;
+                    }
+                    const data = await resp.json();
+                    const models = data.models || [];
+                    console.log(`[discoverGeminiModel] Знайдено ${models.length} моделей у ${apiVersion}`);
+                    
+                    // Log all available model names
+                    const modelNames = models.map(m => m.name).join(', ');
+                    console.log(`[discoverGeminiModel] Доступні: ${modelNames}`);
+                    
+                    // Find the best model that supports generateContent
+                    for (const preferred of preferredModels) {
+                        const found = models.find(m => {
+                            const name = m.name || '';
+                            const shortName = name.replace('models/', '');
+                            const supportsGenerate = !m.supportedGenerationMethods || 
+                                m.supportedGenerationMethods.includes('generateContent');
+                            return (shortName === preferred || shortName.startsWith(preferred)) && supportsGenerate;
+                        });
+                        if (found) {
+                            const modelId = (found.name || '').replace('models/', '');
+                            const url = `https://generativelanguage.googleapis.com/${apiVersion}/models/${modelId}:generateContent?key=${key}`;
+                            console.log(`[discoverGeminiModel] ✅ Обрано модель: ${modelId} (${apiVersion})`);
+                            _cachedGeminiModelUrl = url;
+                            return url;
+                        }
+                    }
+                    
+                    // If no preferred model found, pick ANY model that supports generateContent
+                    const anyModel = models.find(m => {
+                        return !m.supportedGenerationMethods || 
+                            m.supportedGenerationMethods.includes('generateContent');
+                    });
+                    if (anyModel) {
+                        const modelId = (anyModel.name || '').replace('models/', '');
+                        const url = `https://generativelanguage.googleapis.com/${apiVersion}/models/${modelId}:generateContent?key=${key}`;
+                        console.log(`[discoverGeminiModel] ⚠️ Запасна модель: ${modelId} (${apiVersion})`);
+                        _cachedGeminiModelUrl = url;
+                        return url;
+                    }
+                } catch (e) {
+                    console.warn(`[discoverGeminiModel] Помилка:`, e.message);
+                }
+            }
+            return null;
+        }
+
         async function fetchGeminiAPI(prompt, systemInstruction = '', jsonMode = false, attachment = null) {
             const key = localStorage.getItem('viticulture-gemini-key');
             if (!key) {
                 throw new Error('API ключ не знайдено. Будь ласка, збережіть ключ у верхній панелі.');
             }
-            const urlsToTry = [
+            
+            // Step 1: Discover the best available model
+            const discoveredUrl = await discoverGeminiModel(key);
+            
+            // Build URLs to try: discovered model first, then fallbacks
+            const urlsToTry = [];
+            if (discoveredUrl) {
+                urlsToTry.push(discoveredUrl);
+            }
+            // Fallback hardcoded URLs in case discovery fails
+            urlsToTry.push(
                 `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${key}`,
                 `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-lite:generateContent?key=${key}`,
-                `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=${key}`,
-                `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-pro-latest:generateContent?key=${key}`,
-                `https://generativelanguage.googleapis.com/v1/models/gemini-pro-vision:generateContent?key=${key}`,
-                `https://generativelanguage.googleapis.com/v1beta/models/gemini-pro-vision:generateContent?key=${key}`,
-                `https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash-latest:generateContent?key=${key}`,
-                `https://generativelanguage.googleapis.com/v1/models/gemini-2.0-flash:generateContent?key=${key}`
-            ];
+                `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=${key}`
+            );
+            // Remove duplicates
+            const uniqueUrls = [...new Set(urlsToTry)];
             
             const parts = [{ text: prompt }];
             if (attachment) {
@@ -6602,17 +6687,15 @@
                 };
             }
             
-            // Note: responseMimeType removed — not supported by all API key types.
-            // JSON output is enforced via prompt instructions instead.
-            
             let lastError = null;
-            for (let i = 0; i < urlsToTry.length; i++) {
-                const url = urlsToTry[i];
+            let allErrors = [];
+            for (let i = 0; i < uniqueUrls.length; i++) {
+                const url = uniqueUrls[i];
                 const modelName = url.match(/models\/([^:]+)/)?.[1] || 'unknown';
-                console.log(`[fetchGeminiAPI] Спроба ${i+1}/${urlsToTry.length}: ${modelName}`);
+                console.log(`[fetchGeminiAPI] Спроба ${i+1}/${uniqueUrls.length}: ${modelName}`);
                 try {
                     const controller = new AbortController();
-                    const timeoutId = setTimeout(() => controller.abort(), 15000);
+                    const timeoutId = setTimeout(() => controller.abort(), 30000);
                     
                     const response = await fetch(url, {
                         method: 'POST',
@@ -6630,30 +6713,40 @@
                         const data = await response.json();
                         const textResponse = data.candidates?.[0]?.content?.parts?.[0]?.text;
                         if (textResponse) {
-                            console.log(`[fetchGeminiAPI] Успіх від ${modelName}, відповідь ${textResponse.length} символів`);
+                            console.log(`[fetchGeminiAPI] ✅ Успіх від ${modelName}, відповідь ${textResponse.length} символів`);
                             return textResponse;
                         } else {
-                            console.warn(`[fetchGeminiAPI] ${modelName}: Відповідь 200, але текст відсутній`, JSON.stringify(data).substring(0, 500));
-                            lastError = `${modelName}: відповідь без тексту`;
+                            const reason = data.candidates?.[0]?.finishReason || 'невідомо';
+                            console.warn(`[fetchGeminiAPI] ${modelName}: HTTP 200, але текст відсутній. finishReason: ${reason}`, JSON.stringify(data).substring(0, 500));
+                            lastError = `${modelName}: відповідь без тексту (${reason})`;
+                            allErrors.push(lastError);
                         }
                     } else {
                         const errData = await response.json().catch(() => ({}));
-                        lastError = errData.error?.message || response.statusText;
+                        lastError = `${modelName}: ${errData.error?.message || response.statusText}`;
+                        allErrors.push(lastError);
                         console.warn(`[fetchGeminiAPI] ${modelName}: HTTP ${response.status} — ${lastError}`);
+                        
+                        // If model returned an auth error (403), clear cache so we rediscover
+                        if (response.status === 403 || response.status === 401) {
+                            _cachedGeminiModelUrl = null;
+                        }
                     }
                 } catch (e) {
                     if (e.name === 'AbortError') {
-                        lastError = `${modelName}: таймаут 15 сек`;
-                        console.warn(`[fetchGeminiAPI] ${modelName}: Таймаут`);
+                        lastError = `${modelName}: таймаут 30 сек`;
                     } else {
-                        lastError = e.message;
-                        console.warn(`[fetchGeminiAPI] ${modelName}: ${e.message}`);
+                        lastError = `${modelName}: ${e.message}`;
                     }
+                    allErrors.push(lastError);
+                    console.warn(`[fetchGeminiAPI] ${lastError}`);
                 }
             }
             
-            const keyHint = key.startsWith('AIzaSy') ? '' : ' Ваш ключ не схожий на стандартний Gemini API ключ (має починатися з AIzaSy).';
-            throw new Error(`API Error: ${lastError || 'Невідома помилка'}.${keyHint} Спробовано ${urlsToTry.length} моделей.`);
+            // Clear cache on total failure
+            _cachedGeminiModelUrl = null;
+            const errorSummary = allErrors.length > 0 ? allErrors[0] : 'Невідома помилка';
+            throw new Error(`API Error: ${errorSummary}. Спробовано ${uniqueUrls.length} моделей.`);
         }
 
         async function analyzeAICandidate() {
