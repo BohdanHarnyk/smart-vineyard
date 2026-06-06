@@ -6692,54 +6692,78 @@
             for (let i = 0; i < uniqueUrls.length; i++) {
                 const url = uniqueUrls[i];
                 const modelName = url.match(/models\/([^:]+)/)?.[1] || 'unknown';
-                console.log(`[fetchGeminiAPI] Спроба ${i+1}/${uniqueUrls.length}: ${modelName}`);
-                try {
-                    const controller = new AbortController();
-                    const timeoutId = setTimeout(() => controller.abort(), 30000);
-                    
-                    const response = await fetch(url, {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json'
-                        },
-                        body: JSON.stringify(requestBody),
-                        signal: controller.signal
-                    });
-                    clearTimeout(timeoutId);
-                    
-                    console.log(`[fetchGeminiAPI] ${modelName} => HTTP ${response.status}`);
-                    
-                    if (response.ok) {
-                        const data = await response.json();
-                        const textResponse = data.candidates?.[0]?.content?.parts?.[0]?.text;
-                        if (textResponse) {
-                            console.log(`[fetchGeminiAPI] ✅ Успіх від ${modelName}, відповідь ${textResponse.length} символів`);
-                            return textResponse;
-                        } else {
-                            const reason = data.candidates?.[0]?.finishReason || 'невідомо';
-                            console.warn(`[fetchGeminiAPI] ${modelName}: HTTP 200, але текст відсутній. finishReason: ${reason}`, JSON.stringify(data).substring(0, 500));
-                            lastError = `${modelName}: відповідь без тексту (${reason})`;
-                            allErrors.push(lastError);
-                        }
+                
+                // Allow up to 2 retries for rate limit (429) errors
+                for (let retry = 0; retry <= 2; retry++) {
+                    if (retry > 0) {
+                        console.log(`[fetchGeminiAPI] Повтор ${retry}/2 для ${modelName}...`);
                     } else {
-                        const errData = await response.json().catch(() => ({}));
-                        lastError = `${modelName}: ${errData.error?.message || response.statusText}`;
-                        allErrors.push(lastError);
-                        console.warn(`[fetchGeminiAPI] ${modelName}: HTTP ${response.status} — ${lastError}`);
+                        console.log(`[fetchGeminiAPI] Спроба ${i+1}/${uniqueUrls.length}: ${modelName}`);
+                    }
+                    try {
+                        const controller = new AbortController();
+                        const timeoutId = setTimeout(() => controller.abort(), 45000);
                         
-                        // If model returned an auth error (403), clear cache so we rediscover
-                        if (response.status === 403 || response.status === 401) {
-                            _cachedGeminiModelUrl = null;
+                        const response = await fetch(url, {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json'
+                            },
+                            body: JSON.stringify(requestBody),
+                            signal: controller.signal
+                        });
+                        clearTimeout(timeoutId);
+                        
+                        console.log(`[fetchGeminiAPI] ${modelName} => HTTP ${response.status}`);
+                        
+                        if (response.ok) {
+                            const data = await response.json();
+                            const textResponse = data.candidates?.[0]?.content?.parts?.[0]?.text;
+                            if (textResponse) {
+                                console.log(`[fetchGeminiAPI] ✅ Успіх від ${modelName}, відповідь ${textResponse.length} символів`);
+                                return textResponse;
+                            } else {
+                                const reason = data.candidates?.[0]?.finishReason || 'невідомо';
+                                console.warn(`[fetchGeminiAPI] ${modelName}: HTTP 200, але текст відсутній. finishReason: ${reason}`, JSON.stringify(data).substring(0, 500));
+                                lastError = `${modelName}: відповідь без тексту (${reason})`;
+                                allErrors.push(lastError);
+                                break; // Don't retry on 200 with empty response
+                            }
+                        } else if (response.status === 429 && retry < 2) {
+                            // Rate limited — extract retry delay and wait
+                            const errData = await response.json().catch(() => ({}));
+                            const errMsg = errData.error?.message || '';
+                            // Try to extract delay from "Please retry in 17.979611419s"
+                            const delayMatch = errMsg.match(/retry in ([\d.]+)s/i);
+                            let waitSec = delayMatch ? Math.ceil(parseFloat(delayMatch[1])) + 2 : 20;
+                            waitSec = Math.min(waitSec, 60); // Cap at 60s
+                            
+                            console.log(`[fetchGeminiAPI] 429 Rate Limited. Чекаю ${waitSec} сек...`);
+                            showToast(`⏳ Квота перевищена. Автоповтор через ${waitSec} сек...`, 'warning');
+                            
+                            await new Promise(resolve => setTimeout(resolve, waitSec * 1000));
+                            continue; // Retry the same URL
+                        } else {
+                            const errData = await response.json().catch(() => ({}));
+                            lastError = `${modelName}: ${errData.error?.message || response.statusText}`;
+                            allErrors.push(lastError);
+                            console.warn(`[fetchGeminiAPI] ${modelName}: HTTP ${response.status} — ${lastError}`);
+                            
+                            if (response.status === 403 || response.status === 401) {
+                                _cachedGeminiModelUrl = null;
+                            }
+                            break; // Don't retry on non-429 errors
                         }
+                    } catch (e) {
+                        if (e.name === 'AbortError') {
+                            lastError = `${modelName}: таймаут 45 сек`;
+                        } else {
+                            lastError = `${modelName}: ${e.message}`;
+                        }
+                        allErrors.push(lastError);
+                        console.warn(`[fetchGeminiAPI] ${lastError}`);
+                        break; // Don't retry on network errors
                     }
-                } catch (e) {
-                    if (e.name === 'AbortError') {
-                        lastError = `${modelName}: таймаут 30 сек`;
-                    } else {
-                        lastError = `${modelName}: ${e.message}`;
-                    }
-                    allErrors.push(lastError);
-                    console.warn(`[fetchGeminiAPI] ${lastError}`);
                 }
             }
             
