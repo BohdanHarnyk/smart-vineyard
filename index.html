@@ -6649,16 +6649,18 @@
                 `https://generativelanguage.googleapis.com/v1/models?key=${key}`
             ];
             
-            // Preferred models in priority order (best for vision/multimodal tasks)
+            // Preferred models in priority order — newest stable first.
+            // Uses prefix matching so "gemini-2.5-flash" catches "gemini-2.5-flash-preview-05-20" etc.
             const preferredModels = [
+                'gemini-2.5-flash',
+                'gemini-2.5-pro',
+                'gemini-2.0-flash-001',
+                'gemini-2.0-flash-lite-001',
                 'gemini-2.0-flash',
-                'gemini-2.0-flash-lite', 
+                'gemini-1.5-flash-002',
+                'gemini-1.5-pro-002',
                 'gemini-1.5-flash',
-                'gemini-1.5-flash-latest',
-                'gemini-1.5-pro',
-                'gemini-1.5-pro-latest',
-                'gemini-pro-vision',
-                'gemini-pro'
+                'gemini-1.5-pro'
             ];
             
             for (const listUrl of listUrls) {
@@ -6731,11 +6733,11 @@
             if (discoveredUrl) {
                 urlsToTry.push(discoveredUrl);
             }
-            // Fallback hardcoded URLs in case discovery fails
+            // Hardcoded fallbacks used when discovery fails — keep these current stable IDs
             urlsToTry.push(
-                `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${key}`,
-                `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-lite:generateContent?key=${key}`,
-                `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=${key}`
+                `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${key}`,
+                `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-001:generateContent?key=${key}`,
+                `https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash-002:generateContent?key=${key}`
             );
             // Remove duplicates
             const uniqueUrls = [...new Set(urlsToTry)];
