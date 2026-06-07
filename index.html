@@ -6582,8 +6582,11 @@
         function copyAutoSetupLink() {
             const key = localStorage.getItem('viticulture-gemini-key');
             if (!key) return;
-            // Use URL fragment (#) so the key never appears in server logs or referrer headers
-            const link = window.location.origin + window.location.pathname + '#gemini_key=' + encodeURIComponent(key);
+            // Use query param (?gemini_key=) — messaging apps (iMessage, WhatsApp, Telegram, Viber)
+            // silently strip URL fragments (#...) when sharing links, which broke key delivery.
+            // The key is removed from the URL immediately via replaceState on page load,
+            // so it never lingers in the address bar or browser history.
+            const link = window.location.origin + window.location.pathname + '?gemini_key=' + encodeURIComponent(key);
             navigator.clipboard.writeText(link).then(() => {
                 alert('Посилання автоналаштування скопійовано! Надішліть його батькам, щоб вони автоматично підключили AI.');
             }).catch(err => {
@@ -9244,20 +9247,23 @@ ${JSON.stringify(completedLogs, null, 2)}
                 });
             }
             
-            // Load Gemini API Key from URL fragment (#gemini_key=) or legacy query param (?gemini_key=)
-            let keyParam = null;
-            const hashParams = new URLSearchParams(window.location.hash.replace(/^#/, ''));
-            if (hashParams.get('gemini_key')) {
-                keyParam = decodeURIComponent(hashParams.get('gemini_key'));
-            } else {
+            // Load Gemini API Key from URL — supports both ?query and #fragment forms.
+            // Query param is primary because messaging apps (iMessage, WhatsApp etc.) strip fragments.
+            // Key is erased from the address bar immediately so it never stays in browser history.
+            {
                 const urlParams = new URLSearchParams(window.location.search);
-                keyParam = urlParams.get('gemini_key');
-            }
-            if (keyParam) {
-                const cleanParam = keyParam.trim().replace(/^["']|["']$/g, '');
-                localStorage.setItem('viticulture-gemini-key', cleanParam);
-                // Remove the key from the URL so it doesn't linger in the address bar
-                window.history.replaceState({}, document.title, window.location.pathname);
+                const hashParams = new URLSearchParams(window.location.hash.replace(/^#/, ''));
+                const rawKeyParam = urlParams.get('gemini_key') || hashParams.get('gemini_key');
+                if (rawKeyParam) {
+                    const cleanParam = decodeURIComponent(rawKeyParam).trim().replace(/^["']|["']$/g, '');
+                    if (cleanParam) {
+                        localStorage.setItem('viticulture-gemini-key', cleanParam);
+                        checkGeminiStatus(); // update UI to show "AI connected"
+                        showToast('🟢 AI ключ отримано! Асистент активовано.', 'success');
+                    }
+                    // Always strip the key from the URL regardless
+                    window.history.replaceState({}, document.title, window.location.pathname);
+                }
             }
             
             // Load saved candidates
