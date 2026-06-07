@@ -2368,7 +2368,14 @@
             else if (toastType === 'error') icon = '❌';
             else if (toastType === 'warning') icon = '⚠️';
             
-            toast.innerHTML = `<span class="text-base">${icon}</span> <span class="font-bold">${message}</span>`;
+            const iconSpan = document.createElement('span');
+            iconSpan.className = 'text-base';
+            iconSpan.textContent = icon;
+            const msgSpan = document.createElement('span');
+            msgSpan.className = 'font-bold';
+            msgSpan.textContent = message;
+            toast.appendChild(iconSpan);
+            toast.appendChild(msgSpan);
             container.appendChild(toast);
             
             setTimeout(() => {
@@ -5030,8 +5037,8 @@
 
             try {
                 const responseText = await fetchGeminiAPI(prompt, systemInstruction, true);
-                const data = JSON.parse(responseText);
-                
+                const data = cleanAIJson(responseText);
+
                 if (data.error) {
                     alert(`AI не знайшов сорт "${name}". Спробуйте іншу або точнішу назву.`);
                     return;
@@ -6575,7 +6582,8 @@
         function copyAutoSetupLink() {
             const key = localStorage.getItem('viticulture-gemini-key');
             if (!key) return;
-            const link = window.location.origin + window.location.pathname + '?gemini_key=' + key;
+            // Use URL fragment (#) so the key never appears in server logs or referrer headers
+            const link = window.location.origin + window.location.pathname + '#gemini_key=' + encodeURIComponent(key);
             navigator.clipboard.writeText(link).then(() => {
                 alert('Посилання автоналаштування скопійовано! Надішліть його батькам, щоб вони автоматично підключили AI.');
             }).catch(err => {
@@ -6618,11 +6626,22 @@
             if (modal) modal.classList.add('hidden');
         }
 
-        // Cache for discovered model URL to avoid re-listing models every time
-        let _cachedGeminiModelUrl = null;
+        // Strips markdown code fences from AI responses and parses JSON.
+        // Needed as fallback when models ignore responseMimeType (e.g. older gemini-pro).
+        function cleanAIJson(text) {
+            let s = (text || '').trim();
+            if (s.startsWith('```')) {
+                s = s.replace(/^```(?:json)?\s*/i, '').replace(/```\s*$/, '').trim();
+            }
+            return JSON.parse(s);
+        }
+
+        // Cache for discovered model URL to avoid re-listing models every time.
+        // Stores { url, keyPrefix } so cache is invalidated when key changes.
+        let _cachedGeminiModel = null;
 
         async function discoverGeminiModel(key) {
-            if (_cachedGeminiModelUrl) return _cachedGeminiModelUrl;
+            if (_cachedGeminiModel && _cachedGeminiModel.keyPrefix === key.slice(0, 12)) return _cachedGeminiModel.url;
             
             console.log('[discoverGeminiModel] Шукаю доступні моделі...');
             const listUrls = [
@@ -6672,21 +6691,21 @@
                             const modelId = (found.name || '').replace('models/', '');
                             const url = `https://generativelanguage.googleapis.com/${apiVersion}/models/${modelId}:generateContent?key=${key}`;
                             console.log(`[discoverGeminiModel] ✅ Обрано модель: ${modelId} (${apiVersion})`);
-                            _cachedGeminiModelUrl = url;
+                            _cachedGeminiModel = { url, keyPrefix: key.slice(0, 12) };
                             return url;
                         }
                     }
-                    
+
                     // If no preferred model found, pick ANY model that supports generateContent
                     const anyModel = models.find(m => {
-                        return !m.supportedGenerationMethods || 
+                        return !m.supportedGenerationMethods ||
                             m.supportedGenerationMethods.includes('generateContent');
                     });
                     if (anyModel) {
                         const modelId = (anyModel.name || '').replace('models/', '');
                         const url = `https://generativelanguage.googleapis.com/${apiVersion}/models/${modelId}:generateContent?key=${key}`;
                         console.log(`[discoverGeminiModel] ⚠️ Запасна модель: ${modelId} (${apiVersion})`);
-                        _cachedGeminiModelUrl = url;
+                        _cachedGeminiModel = { url, keyPrefix: key.slice(0, 12) };
                         return url;
                     }
                 } catch (e) {
@@ -6696,7 +6715,7 @@
             return null;
         }
 
-        async function fetchGeminiAPI(prompt, systemInstruction = '', jsonMode = false, attachment = null) {
+        async function fetchGeminiAPI(prompt, systemInstruction = '', jsonMode = false, attachment = null, contentsOverride = null) {
             const rawKey = localStorage.getItem('viticulture-gemini-key');
             if (!rawKey) {
                 throw new Error('API ключ не знайдено. Будь ласка, збережіть ключ у верхній панелі.');
@@ -6721,26 +6740,34 @@
             // Remove duplicates
             const uniqueUrls = [...new Set(urlsToTry)];
             
-            const parts = [{ text: prompt }];
-            if (attachment) {
-                parts.push({
-                    inlineData: {
-                        mimeType: attachment.mimeType,
-                        data: attachment.data
-                    }
-                });
+            let contents;
+            if (contentsOverride) {
+                contents = contentsOverride;
+            } else {
+                const parts = [{ text: prompt }];
+                if (attachment) {
+                    parts.push({
+                        inlineData: {
+                            mimeType: attachment.mimeType,
+                            data: attachment.data
+                        }
+                    });
+                }
+                contents = [{ parts }];
             }
-            
-            const requestBody = {
-                contents: [{ parts: parts }]
-            };
-            
+
+            const requestBody = { contents };
+
             if (systemInstruction) {
                 requestBody.systemInstruction = {
                     parts: [{ text: systemInstruction }]
                 };
             }
-            
+
+            if (jsonMode) {
+                requestBody.generationConfig = { responseMimeType: 'application/json' };
+            }
+
             let lastError = null;
             let allErrors = [];
             for (let i = 0; i < uniqueUrls.length; i++) {
@@ -6804,7 +6831,7 @@
                             console.warn(`[fetchGeminiAPI] ${modelName}: HTTP ${response.status} — ${lastError}`);
                             
                             if (response.status === 403 || response.status === 401) {
-                                _cachedGeminiModelUrl = null;
+                                _cachedGeminiModel = null;
                             }
                             break; // Don't retry on non-429 errors
                         }
@@ -6822,7 +6849,7 @@
             }
             
             // Clear cache on total failure
-            _cachedGeminiModelUrl = null;
+            _cachedGeminiModel = null;
             const errorDetails = allErrors.length > 0 ? allErrors.join('; ') : 'Невідома помилка';
             throw new Error(`API Error: ${errorDetails}. Спробовано ${uniqueUrls.length} моделей.`);
         }
@@ -6866,8 +6893,8 @@
 
             try {
                 const responseText = await fetchGeminiAPI(prompt, systemInstruction, true);
-                const data = JSON.parse(responseText);
-                
+                const data = cleanAIJson(responseText);
+
                 if (data.error) {
                     resultBox.innerHTML = `
                         <div class="text-center text-rose-500 py-12">
@@ -7171,22 +7198,23 @@
             localStorage.setItem('viticulture-ai-chat-history', JSON.stringify(aiChatHistory));
             
             const systemInstruction = "Ти — досвідчений український агроном-консультант, експерт з виноградарства. Відповідай чітко, коротко, структуровано, українською мовою. Твої поради мають бути практичними, адаптованими під клімат України, з акцентом на безпечне застосування препаратів (ЗЗР) та добрив. Пиши структурованими списками.";
-            
-            let contextPrompt = "";
-            aiChatHistory.forEach(turn => {
-                contextPrompt += turn.role === 'user' ? `Запитання: ${turn.content}\n` : `Відповідь: ${turn.content}\n`;
-            });
-            contextPrompt += "Відповідь:";
 
-            const attachmentToSend = selectedChatAttachment ? {
-                mimeType: selectedChatAttachment.mimeType,
-                data: selectedChatAttachment.data
-            } : null;
+            // Build native Gemini multi-turn contents array from history.
+            // The last entry is the current user message (already pushed above).
+            const multiTurnContents = aiChatHistory.map((turn, idx) => {
+                const isLastUser = idx === aiChatHistory.length - 1 && turn.role === 'user';
+                const parts = [{ text: turn.content }];
+                // Attach image to the last user message if present
+                if (isLastUser && selectedChatAttachment) {
+                    parts.push({ inlineData: { mimeType: selectedChatAttachment.mimeType, data: selectedChatAttachment.data } });
+                }
+                return { role: turn.role === 'model' ? 'model' : 'user', parts };
+            });
 
             clearChatAttachment();
 
             try {
-                const responseText = await fetchGeminiAPI(contextPrompt, systemInstruction, false, attachmentToSend);
+                const responseText = await fetchGeminiAPI('', systemInstruction, false, null, multiTurnContents);
                 aiChatHistory.push({ role: 'model', content: responseText });
                 localStorage.setItem('viticulture-ai-chat-history', JSON.stringify(aiChatHistory));
                 
@@ -9214,14 +9242,20 @@ ${JSON.stringify(completedLogs, null, 2)}
                 });
             }
             
-            // Load Gemini API Key from URL parameters if present
-            const urlParams = new URLSearchParams(window.location.search);
-            const keyParam = urlParams.get('gemini_key');
+            // Load Gemini API Key from URL fragment (#gemini_key=) or legacy query param (?gemini_key=)
+            let keyParam = null;
+            const hashParams = new URLSearchParams(window.location.hash.replace(/^#/, ''));
+            if (hashParams.get('gemini_key')) {
+                keyParam = decodeURIComponent(hashParams.get('gemini_key'));
+            } else {
+                const urlParams = new URLSearchParams(window.location.search);
+                keyParam = urlParams.get('gemini_key');
+            }
             if (keyParam) {
                 const cleanParam = keyParam.trim().replace(/^["']|["']$/g, '');
                 localStorage.setItem('viticulture-gemini-key', cleanParam);
-                const cleanUrl = window.location.origin + window.location.pathname;
-                window.history.replaceState({}, document.title, cleanUrl);
+                // Remove the key from the URL so it doesn't linger in the address bar
+                window.history.replaceState({}, document.title, window.location.pathname);
             }
             
             // Load saved candidates
