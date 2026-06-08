@@ -7,6 +7,9 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/heic2any/dist/heic2any.min.js"></script>
+    <!-- Twemoji: replaces emoji text with SVG images so every device renders them identically.
+         Fixes "small squares" on old Android, Windows, and budget phones. -->
+    <script src="https://cdn.jsdelivr.net/npm/twemoji@14.0.2/dist/twemoji.min.js" crossorigin="anonymous"></script>
 
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap');
@@ -132,6 +135,15 @@
         .toast-info { background: linear-gradient(135deg, #2563eb, #1d4ed8); }
         .toast-warning { background: linear-gradient(135deg, #d97706, #b45309); }
         @keyframes toastIn { from { opacity: 0; transform: translateX(60px); } to { opacity: 1; transform: translateX(0); } }
+
+        /* Twemoji SVG images — keep them inline and properly sized */
+        img.emoji {
+            display: inline;
+            height: 1em;
+            width: 1em;
+            margin: 0 0.05em 0 0.1em;
+            vertical-align: -0.1em;
+        }
     </style>
 </head>
 <body class="flex flex-col min-h-screen">
@@ -9250,20 +9262,37 @@ ${JSON.stringify(completedLogs, null, 2)}
             // Load Gemini API Key from URL — supports both ?query and #fragment forms.
             // Query param is primary because messaging apps (iMessage, WhatsApp etc.) strip fragments.
             // Key is erased from the address bar immediately so it never stays in browser history.
-            {
+            // IMPORTANT: URLSearchParams.get() already percent-decodes values, so we must NOT call
+            // decodeURIComponent() again — doing so crashes with URIError on keys that contain %
+            // (e.g. some AQ.-format Google keys), which would silently abort the entire onload handler.
+            try {
                 const urlParams = new URLSearchParams(window.location.search);
                 const hashParams = new URLSearchParams(window.location.hash.replace(/^#/, ''));
+                // URLSearchParams.get() returns already-decoded value (or null)
                 const rawKeyParam = urlParams.get('gemini_key') || hashParams.get('gemini_key');
                 if (rawKeyParam) {
-                    const cleanParam = decodeURIComponent(rawKeyParam).trim().replace(/^["']|["']$/g, '');
+                    const cleanParam = rawKeyParam.trim().replace(/^["']|["']$/g, '');
                     if (cleanParam) {
                         localStorage.setItem('viticulture-gemini-key', cleanParam);
-                        checkGeminiStatus(); // update UI to show "AI connected"
-                        showToast('🟢 AI ключ отримано! Асистент активовано.', 'success');
+                        checkGeminiStatus();
+                        // Show a prominent banner — a brief toast is easy to miss
+                        const maskedKey = cleanParam.slice(0, 8) + '...' + cleanParam.slice(-4);
+                        const banner = document.createElement('div');
+                        banner.id = 'ai-key-received-banner';
+                        banner.style.cssText = 'position:fixed;top:0;left:0;right:0;z-index:99999;background:linear-gradient(90deg,#059669,#047857);color:#fff;padding:14px 20px;text-align:center;font-family:inherit;font-size:14px;font-weight:800;box-shadow:0 4px 20px rgba(0,0,0,0.2);';
+                        banner.innerHTML = '🟢 AI-ключ отримано (' + maskedKey + ')! Асистент активовано — натисніть, щоб закрити.';
+                        banner.onclick = () => banner.remove();
+                        document.body.prepend(banner);
+                        setTimeout(() => { if (banner.parentNode) banner.remove(); }, 12000);
+                    } else {
+                        console.warn('[key-from-url] Key param was present but empty after cleaning.');
                     }
-                    // Always strip the key from the URL regardless
+                    // Always strip the key from the URL regardless of whether it was valid
                     window.history.replaceState({}, document.title, window.location.pathname);
                 }
+            } catch (e) {
+                // Never let URL key parsing crash the rest of the app init
+                console.error('[key-from-url] Failed to process gemini_key param:', e);
             }
             
             // Load saved candidates
@@ -9324,6 +9353,16 @@ ${JSON.stringify(completedLogs, null, 2)}
             
             // Init cumulative temperature chart
             setTimeout(initChart, 200);
+
+            // Replace all emoji text nodes with SVG images (Twemoji).
+            // Fixes "small squares" on old Android / Windows devices that lack updated emoji fonts.
+            if (window.twemoji) {
+                twemoji.parse(document.body, {
+                    folder: 'svg',
+                    ext: '.svg',
+                    base: 'https://cdn.jsdelivr.net/npm/twemoji@14.0.2/assets/'
+                });
+            }
         };
     </script>
 </body>
