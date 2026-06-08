@@ -2105,13 +2105,13 @@
 
             <!-- Modal: Add Custom Product -->
             <div id="modal-add-product" class="fixed inset-0 bg-stone-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
-                <div class="bg-white w-full max-w-md rounded-[32px] p-6 shadow-2xl border border-stone-200/50 space-y-4 max-h-[90vh] overflow-y-auto custom-scrollbar">
-                    <div class="flex justify-between items-center border-b border-stone-100 pb-3">
+                <div class="bg-white w-full max-w-md rounded-[32px] shadow-2xl border border-stone-200/50 flex flex-col max-h-[90vh]">
+                    <div class="flex justify-between items-center border-b border-stone-100 p-6 pb-4 flex-shrink-0">
                         <h3 id="product-modal-title" class="text-lg font-black text-emerald-900">➕ Новий препарат</h3>
                         <button type="button" onclick="closeAddProductModal()" class="text-stone-400 hover:text-stone-600 text-lg">✕</button>
                     </div>
-                    
-                    <form id="form-add-product" onsubmit="saveCustomProduct(event)" class="space-y-4">
+
+                    <form id="form-add-product" onsubmit="saveCustomProduct(event)" class="space-y-4 overflow-y-auto flex-1 custom-scrollbar p-6 pt-4">
                         <input type="hidden" id="add-prod-id">
                         
                         <!-- Блок ШІ-сканування упаковки -->
@@ -2228,11 +2228,13 @@
                             </div>
                         </div>
 
-                        <div class="flex gap-3 pt-2">
-                            <button type="button" onclick="closeAddProductModal()" class="flex-1 py-3 rounded-xl border border-stone-200 text-stone-600 font-black text-xs uppercase tracking-wider hover:bg-stone-50 transition-all">Скасувати</button>
-                            <button type="submit" class="flex-1 py-3 bg-emerald-600 hover:bg-emerald-700 text-white font-black text-xs uppercase tracking-wider rounded-xl shadow-md transition-all">Зберегти</button>
-                        </div>
                     </form>
+
+                    <!-- Sticky footer — always visible regardless of scroll -->
+                    <div class="flex gap-3 p-6 pt-4 border-t border-stone-100 flex-shrink-0">
+                        <button type="button" onclick="closeAddProductModal()" class="flex-1 py-3 rounded-xl border border-stone-200 text-stone-600 font-black text-xs uppercase tracking-wider hover:bg-stone-50 transition-all">Скасувати</button>
+                        <button type="submit" form="form-add-product" class="flex-1 py-3 bg-emerald-600 hover:bg-emerald-700 text-white font-black text-xs uppercase tracking-wider rounded-xl shadow-md transition-all">Зберегти</button>
+                    </div>
                 </div>
             </div>
 
@@ -8400,10 +8402,10 @@ ${JSON.stringify(completedLogs, null, 2)}
             }
             
             if (searchVal) {
-                list = list.filter(p => 
-                    p.name.toLowerCase().includes(searchVal) || 
-                    p.applicationScope.toLowerCase().includes(searchVal) ||
-                    (p.composition.activeIngredients && p.composition.activeIngredients.some(ai => ai.name.toLowerCase().includes(searchVal)))
+                list = list.filter(p =>
+                    (p.name || '').toLowerCase().includes(searchVal) ||
+                    (p.applicationScope || '').toLowerCase().includes(searchVal) ||
+                    (p.composition && p.composition.activeIngredients && p.composition.activeIngredients.some(ai => (ai.name || '').toLowerCase().includes(searchVal)))
                 );
             }
             
@@ -8762,6 +8764,11 @@ ${JSON.stringify(completedLogs, null, 2)}
                 
                 handleProductTypeChange();
                 showToast('✨ Препарат «' + (parsed.name || '?') + '» успішно розпізнано! Перевірте дані та збережіть.', 'success');
+                // Scroll the form to the bottom so the sticky Save button is visible
+                setTimeout(() => {
+                    const formEl = document.getElementById('form-add-product');
+                    if (formEl) formEl.scrollTop = formEl.scrollHeight;
+                }, 120);
             } catch (err) {
                 console.error('[analyzeProductPhotoAI] ПОМИЛКА:', err);
                 showToast('❌ Помилка розпізнавання: ' + err.message, 'danger');
