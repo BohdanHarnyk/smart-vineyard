@@ -121,6 +121,43 @@
             .dash-grid-2 { grid-template-columns: 1fr; }
         }
 
+        /* Sprint 3: task checklist */
+        .dash-task-progress-wrap { height: 6px; background: var(--color-border); border-radius: 3px; overflow: hidden; }
+        .dash-task-progress-fill { height: 100%; background: var(--color-accent); border-radius: 3px; transition: width 0.3s ease; }
+        .dash-task-row { display: flex; align-items: flex-start; gap: 10px; padding: 9px 0; border-bottom: 1px solid var(--color-border); cursor: pointer; }
+        .dash-task-row:last-child { border-bottom: none; }
+        .dash-task-check { width: 18px; height: 18px; border-radius: 5px; border: 1.5px solid var(--color-border); display: flex; align-items: center; justify-content: center; flex-shrink: 0; margin-top: 1px; font-size: 11px; color: #fff; }
+        .dash-task-check.checked { background: var(--color-accent); border-color: var(--color-accent); }
+        .dash-task-name { font-size: 13px; font-weight: 500; color: var(--color-text-primary); }
+        .dash-task-name.done { text-decoration: line-through; color: var(--color-text-muted); }
+        .dash-task-meta { font-size: 11px; color: var(--color-text-secondary); }
+
+        /* Sprint 4: AI suggested prompts */
+        .ai-empty-title { font-size: 13px; font-weight: 600; color: var(--color-text-secondary); margin: 6px 0 10px; }
+        .suggested-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+        .suggested-prompt { display: flex; flex-direction: column; gap: 3px; text-align: left; background: var(--color-card); border: 1px solid var(--color-border); border-radius: 10px; padding: 10px; cursor: pointer; transition: border-color 0.15s, background 0.15s; }
+        .suggested-prompt:hover { border-color: var(--color-accent); background: #F2FBF5; }
+        .suggested-prompt .sp-text { font-size: 12px; font-weight: 500; color: var(--color-text-primary); }
+        .suggested-prompt .sp-cat { font-size: 10px; color: var(--color-text-muted); text-transform: uppercase; letter-spacing: 0.05em; }
+        @media (max-width: 768px) { .suggested-grid { grid-template-columns: 1fr; } }
+
+        /* Sprint 5: FAB + Quick Log modal */
+        .fab { position: fixed; bottom: 24px; right: 24px; width: 54px; height: 54px; border-radius: 50%; background: var(--color-primary-mid); color: #fff; border: none; box-shadow: 0 4px 14px rgba(15,61,36,0.35); cursor: pointer; display: flex; align-items: center; justify-content: center; z-index: 95; transition: transform 0.15s; }
+        .fab:hover { transform: scale(1.06); }
+        .fab svg { width: 24px; height: 24px; }
+        @media (max-width: 768px) { .fab { bottom: 76px; } }
+        .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.45); z-index: 200; display: none; align-items: center; justify-content: center; padding: 16px; }
+        .modal-overlay.show { display: flex; }
+        .modal-card { background: var(--color-card); border-radius: 16px; padding: 20px; width: 100%; max-width: 440px; }
+        .modal-card h3 { font-size: 17px; font-weight: 600; margin-bottom: 14px; }
+        .log-type-row { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 12px; }
+        .log-type-chip { font-size: 12px; font-weight: 500; padding: 6px 12px; border-radius: 8px; border: 1px solid var(--color-border); background: var(--color-surface); color: var(--color-text-secondary); cursor: pointer; }
+        .log-type-chip.active { background: var(--color-primary-mid); color: #fff; border-color: var(--color-primary-mid); }
+        .modal-textarea { width: 100%; border: 1px solid var(--color-border); border-radius: 8px; padding: 10px; font-family: inherit; font-size: 13px; resize: vertical; box-sizing: border-box; }
+        .modal-footer { display: flex; justify-content: flex-end; gap: 8px; margin-top: 14px; }
+        .btn-secondary { background: var(--color-surface); border: 1px solid var(--color-border); color: var(--color-text-secondary); padding: 8px 16px; border-radius: 8px; font-size: 13px; font-weight: 500; cursor: pointer; }
+        .btn-primary { background: var(--color-primary-mid); border: none; color: #fff; padding: 8px 16px; border-radius: 8px; font-size: 13px; font-weight: 600; cursor: pointer; }
+
         /* Mobile chrome: top bar (hamburger) + sidebar drawer + bottom nav */
         .bottom-nav, .mobile-topbar, .sidebar-backdrop { display: none; }
         @media (max-width: 768px) {
@@ -392,6 +429,14 @@
                     <div class="dash-card-title">Поточні загрози</div>
                     <div id="dash-threats"></div>
                 </div>
+            </div>
+            <div class="dash-card">
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+                    <div class="dash-card-title" style="margin-bottom:0;">Операційні задачі · поточна фаза</div>
+                    <span class="dash-caption" id="dash-tasks-progress"></span>
+                </div>
+                <div class="dash-task-progress-wrap"><div class="dash-task-progress-fill" id="dash-progress-fill" style="width:0%"></div></div>
+                <div id="dash-task-list" style="margin-top:10px;"></div>
             </div>
         </section>
 
@@ -2575,6 +2620,26 @@
         <button onclick="switchTab('ai-assistant')" id="bnav-ai-assistant" class="bottom-nav-item"><i data-lucide="bot"></i><span>AI</span></button>
     </nav>
 
+    <!-- Sprint 5: Quick Log FAB + modal -->
+    <button class="fab" onclick="openQuickLog()" aria-label="Швидкий запис роботи"><i data-lucide="plus"></i></button>
+    <div class="modal-overlay" id="quicklog-overlay" onclick="if(event.target===this) closeQuickLog()">
+        <div class="modal-card" role="dialog" aria-modal="true" aria-label="Швидкий запис роботи">
+            <h3>Що зробили сьогодні?</h3>
+            <div class="log-type-row" id="quicklog-types">
+                <button type="button" class="log-type-chip active" onclick="setQuickLogType(this, 'Обприскування')">Обприскування</button>
+                <button type="button" class="log-type-chip" onclick="setQuickLogType(this, 'Полив')">Полив</button>
+                <button type="button" class="log-type-chip" onclick="setQuickLogType(this, 'Підживлення')">Підживлення</button>
+                <button type="button" class="log-type-chip" onclick="setQuickLogType(this, 'Огляд')">Огляд</button>
+                <button type="button" class="log-type-chip" onclick="setQuickLogType(this, 'Інше')">Інше</button>
+            </div>
+            <textarea class="modal-textarea" id="quicklog-text" rows="3" placeholder="Деталі: препарат, доза, кількість кущів..."></textarea>
+            <div class="modal-footer">
+                <button class="btn-secondary" onclick="closeQuickLog()">Скасувати</button>
+                <button class="btn-primary" onclick="saveQuickLog()">Зберегти запис</button>
+            </div>
+        </div>
+    </div>
+
     <script>
         // Безпечний розбір значень із localStorage: за пошкоджених/невалідних даних
         // повертає fallback замість того, щоб кидати виняток і ламати ініціалізацію (B1).
@@ -3064,6 +3129,28 @@
             } else {
                 tc.innerHTML = '<p class="dash-caption">Немає активних загроз для цієї фази.</p>';
             }
+
+            // Operational tasks checklist (Sprint 3) — protection actions of current phase
+            const actions = (phasesData[phaseId] && phasesData[phaseId].protectionActions) || [];
+            const checks = phaseChecklists[phaseId] || [];
+            const doneCount = actions.reduce((n, _, i) => n + (checks[i] ? 1 : 0), 0);
+            const pct = actions.length ? Math.round(doneCount / actions.length * 100) : 0;
+            const progEl = document.getElementById('dash-tasks-progress');
+            const fillEl = document.getElementById('dash-progress-fill');
+            const listEl = document.getElementById('dash-task-list');
+            if (progEl) progEl.textContent = doneCount + '/' + actions.length + ' (' + pct + '%)';
+            if (fillEl) fillEl.style.width = pct + '%';
+            if (listEl) {
+                listEl.innerHTML = actions.map((a, i) => `
+                    <div class="dash-task-row" onclick="togglePhaseStep(${phaseId}, ${i}); renderDashboard();">
+                        <span class="dash-task-check ${checks[i] ? 'checked' : ''}">${checks[i] ? '✓' : ''}</span>
+                        <div>
+                            <p class="dash-task-name ${checks[i] ? 'done' : ''}">${escapeHtml(a.work || a.product || '')}</p>
+                            <p class="dash-task-meta">${escapeHtml(a.product || '')}${a.dosage ? ' · ' + escapeHtml(a.dosage) : ''}${a.method ? ' · ' + escapeHtml(a.method) : ''}</p>
+                        </div>
+                    </div>
+                `).join('');
+            }
         }
 
         // Мобільна шухляда навігації (sidebar drawer)
@@ -3078,6 +3165,45 @@
             const bd = document.querySelector('.sidebar-backdrop');
             if (sb) sb.classList.remove('open');
             if (bd) bd.classList.remove('show');
+        }
+
+        // Sprint 5: Quick Log (FAB) — швидкий запис виконаної роботи в журнал
+        let quickLogType = 'Обприскування';
+        function openQuickLog() {
+            const o = document.getElementById('quicklog-overlay');
+            if (o) o.classList.add('show');
+        }
+        function closeQuickLog() {
+            const o = document.getElementById('quicklog-overlay');
+            if (o) o.classList.remove('show');
+        }
+        function setQuickLogType(btn, type) {
+            quickLogType = type;
+            document.querySelectorAll('#quicklog-types .log-type-chip').forEach(c => c.classList.remove('active'));
+            btn.classList.add('active');
+        }
+        function saveQuickLog() {
+            const ta = document.getElementById('quicklog-text');
+            const details = ta ? ta.value.trim() : '';
+            if (!details) { showToast('Опишіть, що зроблено.', 'warning'); return; }
+            const today = new Date().toISOString().split('T')[0];
+            const item = {
+                id: Date.now() + Math.random(),
+                text: quickLogType + ': ' + details,
+                dueDate: today,
+                completed: true,
+                completedDate: today,
+                type: 'work',
+                weather: null
+            };
+            if (!Array.isArray(todoList)) todoList = [];
+            todoList.push(item);
+            localStorage.setItem('vineyardTodo', JSON.stringify(todoList));
+            if (typeof renderTodos === 'function') renderTodos();
+            if (typeof renderDashboard === 'function') renderDashboard();
+            ta.value = '';
+            closeQuickLog();
+            showToast('Запис додано в журнал.', 'success');
         }
 
         // Tab Navigation
@@ -7663,6 +7789,22 @@
             }
         }
 
+        // Sprint 4: підказки для порожнього стану AI-чату
+        const SUGGESTED_PROMPTS = [
+            { icon: '🍇', text: 'Проаналізуй сорт Аватар для Вінниці', category: 'Сорти' },
+            { icon: '🔬', text: 'Що таке горошина і як їй запобігти?', category: 'Хвороби' },
+            { icon: '💧', text: 'Розрахуй дози NPK для 50 кущів', category: 'Живлення' },
+            { icon: '🛡️', text: 'Протокол захисту від мілдью', category: 'Захист' },
+            { icon: '📅', text: 'Підбери 3 ранніх зимостійких сорти', category: 'Сорти' },
+            { icon: '⚗️', text: 'Скільки лимонної кислоти для pH 5.5?', category: 'Хімія' }
+        ];
+        function fillAiPrompt(i) {
+            const p = SUGGESTED_PROMPTS[i];
+            if (!p) return;
+            const input = document.getElementById('ai-chat-input');
+            if (input) { input.value = p.text; input.focus(); }
+        }
+
         function renderAgroChatHistory() {
             const transcript = document.getElementById('ai-chat-transcript');
             if (!transcript) return;
@@ -7675,7 +7817,22 @@
                     </div>
                 </div>
             `;
-            
+
+            // Sprint 4: empty state з підказками-промптами
+            if (!aiChatHistory || aiChatHistory.length === 0) {
+                transcript.innerHTML += `
+                    <div class="ai-empty-title">Спробуйте запитати:</div>
+                    <div class="suggested-grid">
+                        ${SUGGESTED_PROMPTS.map((p, i) => `
+                            <button type="button" class="suggested-prompt" onclick="fillAiPrompt(${i})">
+                                <span class="sp-text">${p.icon} ${escapeHtml(p.text)}</span>
+                                <span class="sp-cat">${escapeHtml(p.category)}</span>
+                            </button>
+                        `).join('')}
+                    </div>
+                `;
+            }
+
             aiChatHistory.forEach(turn => {
                 if (turn.role === 'user') {
                     // Екрануємо введений користувачем текст перед вставкою в innerHTML (B5).
