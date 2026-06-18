@@ -89,11 +89,59 @@
         .sidebar-nav-item svg { width: 18px; height: 18px; flex-shrink: 0; }
         .sidebar-main-area { flex: 1; min-width: 0; display: flex; flex-direction: column; }
 
-        /* Bottom nav (mobile) */
-        .bottom-nav { display: none; }
+        /* Dashboard (Sprint 2) */
+        .dash-h1 { font-size: 22px; font-weight: 600; color: var(--color-text-primary); }
+        .dash-caption { font-size: 12px; color: var(--color-text-secondary); }
+        .dash-stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
+        .stat-card { background: var(--color-card); border: 1px solid var(--color-border); border-radius: 12px; padding: 16px; display: flex; flex-direction: column; gap: 2px; }
+        .stat-label { font-size: 11px; font-weight: 500; text-transform: uppercase; letter-spacing: 0.06em; color: var(--color-text-muted); }
+        .stat-value { font-size: 26px; font-weight: 600; color: var(--color-text-primary); line-height: 1.1; }
+        .stat-sub { font-size: 12px; color: var(--color-text-secondary); }
+        .stat-badge { align-self: flex-start; margin-top: 6px; font-size: 11px; font-weight: 600; padding: 2px 8px; border-radius: 4px; }
+        .badge-success { background: #E6F5EC; color: #1A7A40; }
+        .badge-warning { background: #FDF4E3; color: #8A5A0A; }
+        .dash-grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+        .dash-card { background: var(--color-card); border: 1px solid var(--color-border); border-radius: 12px; padding: 16px; }
+        .dash-card-title { font-size: 15px; font-weight: 600; margin-bottom: 12px; color: var(--color-text-primary); }
+        .phase-track { display: flex; gap: 6px; margin-bottom: 8px; }
+        .phase-step { flex: 1; height: 6px; border-radius: 4px; background: var(--color-border); }
+        .phase-step.done { background: var(--color-accent); }
+        .phase-step.current { background: var(--color-primary-mid); box-shadow: 0 0 0 2px rgba(26,92,58,0.25); }
+        .phase-labels { display: flex; gap: 6px; }
+        .phase-lbl { flex: 1; font-size: 9px; text-align: center; color: var(--color-text-muted); line-height: 1.15; }
+        .phase-lbl.active { color: var(--color-primary-mid); font-weight: 600; }
+        .threat-row { display: flex; align-items: flex-start; gap: 10px; padding: 8px 0; border-bottom: 1px solid var(--color-border); }
+        .threat-row:last-child { border-bottom: none; }
+        .threat-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; margin-top: 4px; }
+        .threat-name { font-size: 13px; font-weight: 600; color: var(--color-text-primary); }
+        .threat-desc { font-size: 11px; color: var(--color-text-secondary); }
+        .threat-action { margin-left: auto; align-self: center; font-size: 11px; font-weight: 600; color: var(--color-primary-mid); background: var(--color-surface); border: 1px solid var(--color-border); border-radius: 8px; padding: 5px 10px; cursor: pointer; white-space: nowrap; }
+        @media (max-width: 768px) {
+            .dash-stats { grid-template-columns: repeat(2, 1fr); }
+            .dash-grid-2 { grid-template-columns: 1fr; }
+        }
+
+        /* Mobile chrome: top bar (hamburger) + sidebar drawer + bottom nav */
+        .bottom-nav, .mobile-topbar, .sidebar-backdrop { display: none; }
         @media (max-width: 768px) {
             .app-shell { display: block; }
-            .sidebar { display: none; }
+            .mobile-topbar {
+                display: flex; align-items: center; gap: 10px; position: sticky; top: 0; z-index: 100;
+                background: var(--color-primary); color: #fff; padding: 10px 14px;
+            }
+            .mobile-topbar-btn {
+                background: rgba(255,255,255,0.1); border: none; color: #fff; width: 38px; height: 38px;
+                border-radius: 8px; display: flex; align-items: center; justify-content: center; cursor: pointer;
+            }
+            .mobile-topbar-title { font-size: 15px; font-weight: 600; }
+            /* Sidebar → off-canvas drawer (exposes ALL sections on mobile) */
+            .sidebar {
+                position: fixed; top: 0; left: 0; bottom: 0; height: 100%; width: 250px; z-index: 120;
+                transform: translateX(-100%); transition: transform 0.25s ease;
+            }
+            .sidebar.open { transform: translateX(0); }
+            .sidebar-backdrop { position: fixed; inset: 0; background: rgba(0,0,0,0.45); z-index: 115; }
+            .sidebar-backdrop.show { display: block; }
             .bottom-nav {
                 display: flex; position: fixed; bottom: 0; left: 0; right: 0; z-index: 90;
                 background: var(--color-primary); border-top: 1px solid rgba(255,255,255,0.08);
@@ -252,6 +300,7 @@
 
 
     <div class="app-shell">
+    <div class="sidebar-backdrop" onclick="closeMobileSidebar()"></div>
     <aside class="sidebar" aria-label="Основна навігація">
         <div class="sidebar-brand">
             <i data-lucide="grape"></i>
@@ -273,6 +322,10 @@
         <button onclick="switchTab('guide')" id="nav-guide" class="sidebar-nav-item"><i data-lucide="book-open"></i><span>Інструкція</span></button>
     </aside>
     <div class="sidebar-main-area">
+    <div class="mobile-topbar">
+        <button class="mobile-topbar-btn" onclick="toggleMobileSidebar()" aria-label="Відкрити меню"><i data-lucide="menu"></i></button>
+        <span class="mobile-topbar-title">Smart Vineyard</span>
+    </div>
     <header class="green-gradient text-white py-10 px-6 shadow-xl relative overflow-hidden">
         <div class="absolute top-0 right-0 p-10 opacity-10 pointer-events-none">
             <span class="text-[150px]">🍇</span>
@@ -300,12 +353,45 @@
 
     <main id="main-content" class="flex-grow max-w-7xl mx-auto w-full px-4 py-8">
 
-        <!-- TAB: OVERVIEW (Dashboard) — наповнення у Sprint 2 -->
-        <section id="tab-overview" class="tab-content space-y-8">
-            <div class="bg-white rounded-3xl border border-stone-200/60 p-10 text-center">
-                <span class="block text-5xl mb-3 opacity-30">🏠</span>
-                <h2 class="text-xl font-black text-emerald-950">Огляд виноградника</h2>
-                <p class="text-stone-500 text-sm mt-2 max-w-md mx-auto">Зведений дашборд (САТ, поточна фаза, загрози, задачі на сьогодні) зʼявиться тут у наступному спринті.</p>
+        <!-- TAB: OVERVIEW (Dashboard) — Sprint 2 -->
+        <section id="tab-overview" class="tab-content space-y-6">
+            <div>
+                <h1 class="dash-h1">Огляд виноградника</h1>
+                <p class="dash-caption">Зведення стану на сьогодні</p>
+            </div>
+            <div class="dash-stats">
+                <div class="stat-card">
+                    <span class="stat-label">САТ сьогодні</span>
+                    <span class="stat-value" id="dash-sat">—</span>
+                    <span class="stat-sub" id="dash-sat-sub"></span>
+                    <span class="stat-badge badge-success" id="dash-phase-badge"></span>
+                </div>
+                <div class="stat-card">
+                    <span class="stat-label">До наступної фази</span>
+                    <span class="stat-value" id="dash-next">—</span>
+                    <span class="stat-sub" id="dash-next-sub"></span>
+                </div>
+                <div class="stat-card">
+                    <span class="stat-label">Сорти</span>
+                    <span class="stat-value" id="dash-varieties">—</span>
+                    <span class="stat-sub" id="dash-varieties-sub"></span>
+                </div>
+                <div class="stat-card">
+                    <span class="stat-label">Задачі</span>
+                    <span class="stat-value" id="dash-tasks">—</span>
+                    <span class="stat-sub">активних</span>
+                </div>
+            </div>
+            <div class="dash-grid-2">
+                <div class="dash-card">
+                    <div class="dash-card-title">Фаза вегетації</div>
+                    <div class="phase-track" id="dash-phase-track"></div>
+                    <div class="phase-labels" id="dash-phase-labels"></div>
+                </div>
+                <div class="dash-card">
+                    <div class="dash-card-title">Поточні загрози</div>
+                    <div id="dash-threats"></div>
+                </div>
             </div>
         </section>
 
@@ -2907,6 +2993,93 @@
         
         const grapeSVG = (hex) => `<svg width="14" height="14" viewBox="0 0 24 24" fill="${hex}" class="mr-2 inline-block"><circle cx="9" cy="9" r="3"/><circle cx="15" cy="9" r="3"/><circle cx="12" cy="13" r="3"/><circle cx="8" cy="14" r="3"/><circle cx="16" cy="14" r="3"/><path d="M12 2v4" stroke="#15803d" stroke-width="2"/></svg>`;
 
+        // Dashboard (Sprint 2): зведення стану з реальних даних застосунку.
+        function renderDashboard() {
+            if (!document.getElementById('tab-overview')) return;
+            const sat = Math.round(totalSAT || 0);
+            const phaseId = getRecommendedPhaseId(totalSAT || 0);
+            const uppers = { 1: 200, 2: 450, 3: 800, 4: 1000, 5: 1500, 6: 2000 };
+            const phaseName = (phasesData[phaseId] && phasesData[phaseId].title) || ('Фаза ' + phaseId);
+
+            document.getElementById('dash-sat').textContent = sat + '°';
+            document.getElementById('dash-sat-sub').textContent = 'накопичено за сезон';
+            document.getElementById('dash-phase-badge').textContent = 'Фаза ' + phaseId + ' · ' + phaseName;
+
+            const nextEl = document.getElementById('dash-next');
+            const nextSub = document.getElementById('dash-next-sub');
+            if (phaseId < 7 && uppers[phaseId]) {
+                nextEl.textContent = Math.max(0, uppers[phaseId] - sat) + '°';
+                const np = phasesData[phaseId + 1];
+                nextSub.textContent = np ? ('далі: ' + np.title) : '';
+            } else {
+                nextEl.textContent = '—';
+                nextSub.textContent = 'Фінальна фаза сезону';
+            }
+
+            const vCount = (typeof varietyData === 'object' && varietyData) ? Object.keys(varietyData).length : 0;
+            let bushes = 0;
+            if (typeof vineyardQuantities === 'object' && vineyardQuantities) {
+                Object.values(vineyardQuantities).forEach(n => { bushes += (parseInt(n) || 0); });
+            }
+            document.getElementById('dash-varieties').textContent = vCount;
+            document.getElementById('dash-varieties-sub').textContent = bushes + ' кущів на ділянці';
+
+            const active = Array.isArray(todoList) ? todoList.filter(t => !t.completed).length : 0;
+            document.getElementById('dash-tasks').textContent = active;
+
+            // Phase timeline
+            const track = document.getElementById('dash-phase-track');
+            const labels = document.getElementById('dash-phase-labels');
+            track.innerHTML = '';
+            labels.innerHTML = '';
+            for (let p = 1; p <= 7; p++) {
+                const step = document.createElement('div');
+                step.className = 'phase-step' + (p < phaseId ? ' done' : '') + (p === phaseId ? ' current' : '');
+                track.appendChild(step);
+                const lbl = document.createElement('span');
+                lbl.className = 'phase-lbl' + (p === phaseId ? ' active' : '');
+                lbl.textContent = (phasesData[p] && phasesData[p].title) ? phasesData[p].title.split(' ')[0] : ('Ф' + p);
+                labels.appendChild(lbl);
+            }
+
+            // Threats for current phase
+            const tc = document.getElementById('dash-threats');
+            const th = phaseThreats[phaseId];
+            if (th) {
+                const rows = [
+                    { sev: '#C94040', d: th.pathogens },
+                    { sev: '#E8A020', d: th.disorders },
+                    { sev: '#E8A020', d: th.pests }
+                ].filter(r => r.d);
+                tc.innerHTML = rows.map(r => `
+                    <div class="threat-row">
+                        <span class="threat-dot" style="background:${r.sev}"></span>
+                        <div>
+                            <p class="threat-name">${escapeHtml(r.d.name)}</p>
+                            <p class="threat-desc">${escapeHtml(r.d.desc)}</p>
+                        </div>
+                        <button class="threat-action" onclick="switchTab('phases')">Протокол</button>
+                    </div>
+                `).join('');
+            } else {
+                tc.innerHTML = '<p class="dash-caption">Немає активних загроз для цієї фази.</p>';
+            }
+        }
+
+        // Мобільна шухляда навігації (sidebar drawer)
+        function toggleMobileSidebar() {
+            const sb = document.querySelector('.sidebar');
+            const bd = document.querySelector('.sidebar-backdrop');
+            const open = sb.classList.toggle('open');
+            if (bd) bd.classList.toggle('show', open);
+        }
+        function closeMobileSidebar() {
+            const sb = document.querySelector('.sidebar');
+            const bd = document.querySelector('.sidebar-backdrop');
+            if (sb) sb.classList.remove('open');
+            if (bd) bd.classList.remove('show');
+        }
+
         // Tab Navigation
         function switchTab(id) {
             currentTab = id;
@@ -2920,6 +3093,7 @@
             if (activeNav) { activeNav.classList.add('active'); activeNav.setAttribute('aria-current', 'page'); }
             const activeBnav = document.getElementById('bnav-' + id);
             if (activeBnav) activeBnav.classList.add('active');
+            closeMobileSidebar();
 
             if (id === 'products') {
                 renderProductGrid();
@@ -2927,6 +3101,8 @@
                 selectStep(currentActivePhase);
             } else if (id === 'analytics') {
                 setTimeout(initChart, 50); // Small delay to ensure canvas is visible
+            } else if (id === 'overview') {
+                renderDashboard();
             }
         }
 
@@ -9497,6 +9673,10 @@ ${JSON.stringify(completedLogs, null, 2)}
             
             // Init cumulative temperature chart
             setTimeout(initChart, 200);
+
+            // Dashboard як стартовий екран (Sprint 2)
+            renderDashboard();
+            switchTab('overview');
 
             // Replace all emoji text nodes with SVG images (Twemoji).
             // Fixes "small squares" on old Android / Windows devices that lack updated emoji fonts.
