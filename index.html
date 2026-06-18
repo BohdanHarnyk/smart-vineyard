@@ -27,6 +27,8 @@
     <!-- Чисті агро-розрахунки: єдине джерело формул, покрите Vitest (ADR 0001). Звичайний
          (не async/defer) скрипт — гарантовано доступний як window.Calc до основного скрипта. -->
     <script src="./src/calc.js"></script>
+    <!-- Lucide icons (UMD, запінено) — замінює emoji в навігації; lucide.createIcons() після рендера -->
+    <script src="https://cdn.jsdelivr.net/npm/lucide@0.460.0/dist/umd/lucide.min.js"></script>
     <!-- Twemoji: replaces emoji text with SVG images so every device renders them identically.
          Fixes "small squares" on old Android, Windows, and budget phones. -->
     <script src="https://cdn.jsdelivr.net/npm/twemoji@14.0.2/dist/twemoji.min.js" crossorigin="anonymous"></script>
@@ -44,6 +46,68 @@
 
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Golos+Text:wght@400;500;600;700&display=swap');
+
+        /* ============ DESIGN SYSTEM (Redesign Sprint 1) ============ */
+        :root {
+            --color-primary: #0F3D24;
+            --color-primary-mid: #1A5C3A;
+            --color-accent: #4CAF6F;
+            --color-accent-light: #6EE09A;
+            --color-surface: #F5F7F4;
+            --color-card: #FFFFFF;
+            --color-border: rgba(0,0,0,0.08);
+            --color-text-primary: #1A1A1A;
+            --color-text-secondary: #5A5A5A;
+            --color-text-muted: #9A9A9A;
+            --color-danger: #C94040;
+            --color-warning: #E8A020;
+            --color-success: #2E7A50;
+        }
+        body { font-family: 'Golos Text', 'Plus Jakarta Sans', sans-serif; }
+
+        /* App shell: sidebar (desktop) + main */
+        .app-shell { display: flex; min-height: 100vh; }
+        .sidebar {
+            width: 220px; flex-shrink: 0; background: var(--color-primary);
+            display: flex; flex-direction: column; gap: 2px;
+            padding: 16px 8px; position: sticky; top: 0; height: 100vh; overflow-y: auto;
+        }
+        .sidebar-brand { display: flex; align-items: center; gap: 10px; padding: 6px 12px 14px; color: #fff; }
+        .sidebar-brand-title { font-size: 14px; font-weight: 600; line-height: 1.1; }
+        .sidebar-brand-sub { font-size: 10px; color: var(--color-accent-light); text-transform: uppercase; letter-spacing: 0.06em; }
+        .sidebar-section { font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em;
+            color: rgba(255,255,255,0.4); padding: 14px 12px 4px; }
+        .sidebar-nav-item {
+            display: flex; align-items: center; gap: 10px; padding: 9px 12px; margin: 1px 4px;
+            border-radius: 8px; color: rgba(255,255,255,0.65); font-size: 13px; font-weight: 500;
+            cursor: pointer; transition: background 0.15s, color 0.15s; border: none; background: none;
+            width: calc(100% - 8px); text-align: left;
+        }
+        .sidebar-nav-item:hover { background: rgba(255,255,255,0.08); color: rgba(255,255,255,0.92); }
+        .sidebar-nav-item.active { background: rgba(76,175,111,0.22); color: var(--color-accent-light); font-weight: 600; }
+        .sidebar-nav-item svg { width: 18px; height: 18px; flex-shrink: 0; }
+        .sidebar-main-area { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+
+        /* Bottom nav (mobile) */
+        .bottom-nav { display: none; }
+        @media (max-width: 768px) {
+            .app-shell { display: block; }
+            .sidebar { display: none; }
+            .bottom-nav {
+                display: flex; position: fixed; bottom: 0; left: 0; right: 0; z-index: 90;
+                background: var(--color-primary); border-top: 1px solid rgba(255,255,255,0.08);
+                padding: 6px 4px calc(6px + env(safe-area-inset-bottom)); justify-content: space-around;
+            }
+            .bottom-nav-item {
+                display: flex; flex-direction: column; align-items: center; gap: 2px; flex: 1;
+                background: none; border: none; color: rgba(255,255,255,0.6); font-size: 10px; font-weight: 500;
+                padding: 4px; cursor: pointer;
+            }
+            .bottom-nav-item.active { color: var(--color-accent-light); }
+            .bottom-nav-item svg { width: 20px; height: 20px; }
+            body { padding-bottom: 64px; }
+        }
 
         /* Доступність (O6): пропуск до вмісту та видимий фокус для клавіатури */
         .skip-link { position: absolute; left: -9999px; top: 0; z-index: 200; background: #064e3b; color: #fff; padding: 10px 16px; border-radius: 0 0 10px 0; font-weight: 800; }
@@ -187,6 +251,28 @@
     <div id="toast-container" class="toast-container" role="status" aria-live="polite" aria-atomic="true"></div>
 
 
+    <div class="app-shell">
+    <aside class="sidebar" aria-label="Основна навігація">
+        <div class="sidebar-brand">
+            <i data-lucide="grape"></i>
+            <div>
+                <div class="sidebar-brand-title">Smart Vineyard</div>
+                <div class="sidebar-brand-sub">Вінниччина</div>
+            </div>
+        </div>
+        <div class="sidebar-section">Головне</div>
+        <button onclick="switchTab('overview')" id="nav-overview" class="sidebar-nav-item"><i data-lucide="layout-dashboard"></i><span>Огляд</span></button>
+        <button onclick="switchTab('phases')" id="nav-phases" class="sidebar-nav-item active"><i data-lucide="calendar-days"></i><span>Календар фаз</span></button>
+        <button onclick="switchTab('analytics')" id="nav-analytics" class="sidebar-nav-item"><i data-lucide="trending-up"></i><span>Смарт-аналітика</span></button>
+        <button onclick="switchTab('calculators')" id="nav-calculators" class="sidebar-nav-item"><i data-lucide="calculator"></i><span>Калькулятори</span></button>
+        <button onclick="switchTab('safety')" id="nav-safety" class="sidebar-nav-item"><i data-lucide="flask-conical"></i><span>Лабораторія &amp; ГК</span></button>
+        <div class="sidebar-section">Знання</div>
+        <button onclick="switchTab('varieties')" id="nav-varieties" class="sidebar-nav-item"><i data-lucide="grape"></i><span>Бібліотека сортів</span></button>
+        <button onclick="switchTab('products')" id="nav-products" class="sidebar-nav-item"><i data-lucide="database"></i><span>База препаратів</span></button>
+        <button onclick="switchTab('ai-assistant')" id="nav-ai-assistant" class="sidebar-nav-item"><i data-lucide="bot"></i><span>AI помічник</span></button>
+        <button onclick="switchTab('guide')" id="nav-guide" class="sidebar-nav-item"><i data-lucide="book-open"></i><span>Інструкція</span></button>
+    </aside>
+    <div class="sidebar-main-area">
     <header class="green-gradient text-white py-10 px-6 shadow-xl relative overflow-hidden">
         <div class="absolute top-0 right-0 p-10 opacity-10 pointer-events-none">
             <span class="text-[150px]">🍇</span>
@@ -212,20 +298,16 @@
         </div>
     </header>
 
-    <nav class="bg-white border-b border-emerald-100 sticky top-0 z-50 shadow-md" aria-label="Основна навігація">
-        <div class="max-w-7xl mx-auto px-4 flex overflow-x-auto no-scrollbar py-1">
-            <button onclick="switchTab('phases')" id="nav-phases" class="nav-btn active flex-shrink-0 px-6 py-4 font-bold text-stone-500 hover:text-emerald-700">📅 Календар Фаз</button>
-            <button onclick="switchTab('analytics')" id="nav-analytics" class="nav-btn flex-shrink-0 px-6 py-4 font-bold text-stone-500 hover:text-emerald-700">📊 Смарт-Аналітика</button>
-            <button onclick="switchTab('varieties')" id="nav-varieties" class="nav-btn flex-shrink-0 px-6 py-4 font-bold text-stone-500 hover:text-emerald-700">🍇 Бібліотека Сортів</button>
-            <button onclick="switchTab('calculators')" id="nav-calculators" class="nav-btn flex-shrink-0 px-6 py-4 font-bold text-stone-500 hover:text-emerald-700">🧮 Калькулятори</button>
-            <button onclick="switchTab('safety')" id="nav-safety" class="nav-btn flex-shrink-0 px-6 py-4 font-bold text-stone-500 hover:text-emerald-700">🧪 Лабораторія & ГК</button>
-            <button onclick="switchTab('ai-assistant')" id="nav-ai-assistant" class="nav-btn flex-shrink-0 px-6 py-4 font-bold text-stone-500 hover:text-emerald-700">🔬 AI Помічник</button>
-            <button onclick="switchTab('guide')" id="nav-guide" class="nav-btn flex-shrink-0 px-6 py-4 font-bold text-stone-500 hover:text-emerald-700">📖 Інструкція</button>
-            <button onclick="switchTab('products')" id="nav-products" class="nav-btn flex-shrink-0 px-6 py-4 font-bold text-stone-500 hover:text-emerald-700">🗄 База Препаратів</button>
-        </div>
-    </nav>
-
     <main id="main-content" class="flex-grow max-w-7xl mx-auto w-full px-4 py-8">
+
+        <!-- TAB: OVERVIEW (Dashboard) — наповнення у Sprint 2 -->
+        <section id="tab-overview" class="tab-content space-y-8">
+            <div class="bg-white rounded-3xl border border-stone-200/60 p-10 text-center">
+                <span class="block text-5xl mb-3 opacity-30">🏠</span>
+                <h2 class="text-xl font-black text-emerald-950">Огляд виноградника</h2>
+                <p class="text-stone-500 text-sm mt-2 max-w-md mx-auto">Зведений дашборд (САТ, поточна фаза, загрози, задачі на сьогодні) зʼявиться тут у наступному спринті.</p>
+            </div>
+        </section>
 
         <!-- TAB: PHASES -->
         <section id="tab-phases" class="tab-content active space-y-8">
@@ -2397,6 +2479,15 @@
 
 
     </main>
+    </div><!-- /.sidebar-main-area -->
+    </div><!-- /.app-shell -->
+
+    <nav class="bottom-nav" aria-label="Мобільна навігація">
+        <button onclick="switchTab('overview')" id="bnav-overview" class="bottom-nav-item"><i data-lucide="layout-dashboard"></i><span>Огляд</span></button>
+        <button onclick="switchTab('phases')" id="bnav-phases" class="bottom-nav-item active"><i data-lucide="sprout"></i><span>Виноградник</span></button>
+        <button onclick="switchTab('calculators')" id="bnav-calculators" class="bottom-nav-item"><i data-lucide="flask-conical"></i><span>Агрохімія</span></button>
+        <button onclick="switchTab('ai-assistant')" id="bnav-ai-assistant" class="bottom-nav-item"><i data-lucide="bot"></i><span>AI</span></button>
+    </nav>
 
     <script>
         // Безпечний розбір значень із localStorage: за пошкоджених/невалідних даних
@@ -2820,13 +2911,16 @@
         function switchTab(id) {
             currentTab = id;
             document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
-            document.getElementById('tab-' + id).classList.add('active');
-            
-            document.querySelectorAll('.nav-btn').forEach(b => { b.classList.remove('active'); b.removeAttribute('aria-current'); });
+            const tabEl = document.getElementById('tab-' + id);
+            if (tabEl) tabEl.classList.add('active');
+
+            // Активний стан у sidebar (desktop) і bottom-nav (mobile)
+            document.querySelectorAll('.sidebar-nav-item, .bottom-nav-item').forEach(b => { b.classList.remove('active'); b.removeAttribute('aria-current'); });
             const activeNav = document.getElementById('nav-' + id);
-            activeNav.classList.add('active');
-            activeNav.setAttribute('aria-current', 'page');
-            
+            if (activeNav) { activeNav.classList.add('active'); activeNav.setAttribute('aria-current', 'page'); }
+            const activeBnav = document.getElementById('bnav-' + id);
+            if (activeBnav) activeBnav.classList.add('active');
+
             if (id === 'products') {
                 renderProductGrid();
             } else if (id === 'phases') {
@@ -9412,6 +9506,11 @@ ${JSON.stringify(completedLogs, null, 2)}
                     ext: '.svg',
                     base: 'https://cdn.jsdelivr.net/npm/twemoji@14.0.2/assets/'
                 });
+            }
+
+            // Lucide: рендер SVG-іконок навігації (data-lucide) — Redesign Sprint 1
+            if (window.lucide && typeof window.lucide.createIcons === 'function') {
+                window.lucide.createIcons();
             }
         };
     </script>
