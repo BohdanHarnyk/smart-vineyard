@@ -2,14 +2,50 @@
 <html lang="uk">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- CSP (O3): дозволяє лише відомі джерела. 'unsafe-inline' лишається для inline-скриптів
+         і onclick-обробників; 'unsafe-eval' прибрано (Tailwind тепер зібраний, без JIT-eval). -->
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' data: https://fonts.gstatic.com; img-src 'self' data: blob: https://cdn.jsdelivr.net; connect-src 'self' https://api.open-meteo.com https://archive-api.open-meteo.com https://generativelanguage.googleapis.com; worker-src 'self' blob:; object-src 'none'; base-uri 'self'; form-action 'self'">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+
+    <!-- PWA -->
+    <meta name="theme-color" content="#064e3b">
+    <meta name="description" content="Цифрова агрономічна платформа для точного виноградарства. Працює офлайн.">
+    <link rel="manifest" href="./manifest.webmanifest">
+    <link rel="icon" type="image/svg+xml" href="./icon.svg">
+    <link rel="apple-touch-icon" href="./icon.svg">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Smart Vineyard">
+
     <title>Smart Vineyard | Вінниччина Professional</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/heic2any/dist/heic2any.min.js"></script>
+    <!-- Tailwind: зібраний статичний CSS (npm run build:css) замість Play CDN — ADR 0007 -->
+    <link rel="stylesheet" href="./styles.css">
+    <!-- CDN-залежності з закріпленими версіями (ADR 0007) -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.6/dist/chart.umd.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/heic2any@0.0.4/dist/heic2any.min.js"></script>
+    <!-- Чисті агро-розрахунки: єдине джерело формул, покрите Vitest (ADR 0001). Звичайний
+         (не async/defer) скрипт — гарантовано доступний як window.Calc до основного скрипта. -->
+    <script src="./src/calc.js"></script>
+
+    <!-- PWA: реєстрація service worker для офлайн-роботи -->
+    <script>
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', function () {
+                navigator.serviceWorker.register('./sw.js', { scope: './' }).catch(function (err) {
+                    console.warn('[PWA] Не вдалося зареєструвати service worker:', err);
+                });
+            });
+        }
+    </script>
 
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap');
+
+        /* Доступність (O6): пропуск до вмісту та видимий фокус для клавіатури */
+        .skip-link { position: absolute; left: -9999px; top: 0; z-index: 200; background: #064e3b; color: #fff; padding: 10px 16px; border-radius: 0 0 10px 0; font-weight: 800; }
+        .skip-link:focus { left: 0; }
+        :focus-visible { outline: 3px solid #10b981; outline-offset: 2px; border-radius: 4px; }
         
         body { 
             font-family: 'Plus Jakarta Sans', sans-serif; 
@@ -135,7 +171,8 @@
     </style>
 </head>
 <body class="flex flex-col min-h-screen">
-    <div id="toast-container" class="toast-container"></div>
+    <a href="#main-content" class="skip-link">Перейти до основного вмісту</a>
+    <div id="toast-container" class="toast-container" role="status" aria-live="polite" aria-atomic="true"></div>
 
 
     <header class="green-gradient text-white py-10 px-6 shadow-xl relative overflow-hidden">
@@ -163,7 +200,7 @@
         </div>
     </header>
 
-    <nav class="bg-white border-b border-emerald-100 sticky top-0 z-50 shadow-md">
+    <nav class="bg-white border-b border-emerald-100 sticky top-0 z-50 shadow-md" aria-label="Основна навігація">
         <div class="max-w-7xl mx-auto px-4 flex overflow-x-auto no-scrollbar py-1">
             <button onclick="switchTab('phases')" id="nav-phases" class="nav-btn active flex-shrink-0 px-6 py-4 font-bold text-stone-500 hover:text-emerald-700">📅 Календар Фаз</button>
             <button onclick="switchTab('analytics')" id="nav-analytics" class="nav-btn flex-shrink-0 px-6 py-4 font-bold text-stone-500 hover:text-emerald-700">📊 Смарт-Аналітика</button>
@@ -176,7 +213,7 @@
         </div>
     </nav>
 
-    <main class="flex-grow max-w-7xl mx-auto w-full px-4 py-8">
+    <main id="main-content" class="flex-grow max-w-7xl mx-auto w-full px-4 py-8">
 
         <!-- TAB: PHASES -->
         <section id="tab-phases" class="tab-content active space-y-8">
@@ -1540,6 +1577,9 @@
                             </button>
                         </div>
                     </div>
+                    <p class="text-[10px] text-stone-400 font-semibold mt-2 leading-snug">
+                        🔒 Ключ зберігається лише локально на цьому пристрої та використовується тільки для запитів до Google Gemini. Не вводьте чужий ключ на спільних комп'ютерах. Ключ не потрапляє в резервні копії.
+                    </p>
                 </div>
             </div>
 
@@ -2300,6 +2340,30 @@
     </main>
 
     <script>
+        // Безпечний розбір значень із localStorage: за пошкоджених/невалідних даних
+        // повертає fallback замість того, щоб кидати виняток і ламати ініціалізацію (B1).
+        function safeParse(raw, fallback) {
+            if (raw === null || raw === undefined) return fallback;
+            try {
+                return JSON.parse(raw);
+            } catch (e) {
+                console.warn('[safeParse] Пошкоджені дані у сховищі, використано значення за замовчуванням:', e);
+                return fallback;
+            }
+        }
+
+        // Екранує текст перед вставкою в innerHTML, щоб дані користувача/AI зі спецсимволами
+        // не ламали верстку й не давали ін'єкції розмітки (B5).
+        function escapeHtml(value) {
+            if (value === null || value === undefined) return '';
+            return String(value)
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#39;');
+        }
+
         // Debugging error handlers
         window.onerror = function(message, source, lineno, colno, error) {
             alert("JS Error: " + message + " at line " + lineno + ":" + colno + "\nSource: " + source);
@@ -2688,8 +2752,10 @@
             document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
             document.getElementById('tab-' + id).classList.add('active');
             
-            document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
-            document.getElementById('nav-' + id).classList.add('active');
+            document.querySelectorAll('.nav-btn').forEach(b => { b.classList.remove('active'); b.removeAttribute('aria-current'); });
+            const activeNav = document.getElementById('nav-' + id);
+            activeNav.classList.add('active');
+            activeNav.setAttribute('aria-current', 'page');
             
             if (id === 'products') {
                 renderProductGrid();
@@ -3922,8 +3988,8 @@
                 if (cacheTimestamp && satHistoryStr && forecastDailyTempsStr && savedLat && savedLon) {
                     const ageMs = Date.now() - parseInt(cacheTimestamp);
                     if (ageMs < 1.5 * 60 * 60 * 1000 && parseFloat(savedLat) === lat && parseFloat(savedLon) === lon) {
-                        satHistory = JSON.parse(satHistoryStr);
-                        forecastDailyTemps = JSON.parse(forecastDailyTempsStr);
+                        satHistory = safeParse(satHistoryStr, satHistory);
+                        forecastDailyTemps = safeParse(forecastDailyTempsStr, forecastDailyTemps);
                         recalculateSAT();
                         if (typeof updateFrostWarning === 'function') updateFrostWarning();
                         const minsAgo = Math.round(ageMs / 60000);
@@ -4164,11 +4230,8 @@
             let cumulativeSAT = 0;
             
             satHistory.forEach(entry => {
-                if (entry.temp >= 10) {
-                    entry.sat_contribution = parseFloat(entry.temp.toFixed(1));
-                } else {
-                    entry.sat_contribution = 0;
-                }
+                // Формула — у src/calc.js (тестується Vitest)
+                entry.sat_contribution = Calc.satContribution(entry.temp);
                 entry.contribution = entry.sat_contribution;
                 cumulativeSAT += entry.sat_contribution;
                 entry.cumulative = parseFloat(cumulativeSAT.toFixed(1));
@@ -4418,33 +4481,13 @@
             const rain = parseFloat(document.getElementById('disease-rain').value) || 0;
             const hum = parseFloat(document.getElementById('disease-humidity').value) || 0;
             
-            // MILDEW RISK CALCULATIONS (6-6-26 Rule: rain > 6mm, temp 6-26°C)
-            let mildewRisk = 'low';
-            let mildewAdvice = 'Умови безпечні. Профілактичні заходи за календарем фаз.';
-            
-            if (rain > 6 && temp >= 6 && temp <= 26) {
-                mildewRisk = 'high';
-                mildewAdvice = '🚨 КРИТИЧНИЙ РИЗИК! Правило 6-6-26 спрацювало. Неминучий спалах мілдью через 7-10 днів. Обов\'язково внесіть Акробат або Танос на випередження!';
-            } else if (rain > 2 && temp >= 8 && temp <= 28) {
-                mildewRisk = 'medium';
-                mildewAdvice = '⚠️ Підвищений ризик. Волога лоза сприяє поширенню інфекції. Проведіть обробку контактним мідьвмісним препаратом при першій нагоді.';
-            }
-            
-            // OIDIUM RISK CALCULATIONS (Optimal temp 15-25°C, high humidity even without rain)
-            let oidiumRisk = 'low';
-            let oidiumAdvice = 'Умови безпечні. Профілактика сіркою за планом.';
-            
-            if (temp >= 15 && temp <= 25 && hum > 70) {
-                oidiumRisk = 'high';
-                oidiumAdvice = '🚨 КРИТИЧНИЙ РИЗИК! Поєднання помірної температури та високої вологості ідеальне для оїдіуму. Обов\'язково застосуйте Луна Експірієнс або Сірку (Тіовіт Джет).';
-            } else if (temp >= 12 && temp <= 28 && hum > 55) {
-                oidiumRisk = 'medium';
-                oidiumAdvice = '⚠️ Помірний ризик. Сприятливі умови для розвитку спор. Забезпечте провітрювання грон (видалення листя) та обробіть профілактично.';
-            }
-            
+            // Класифікація ризику — у src/calc.js (правило 6-6-26 та оїдіум; тестується Vitest)
+            const mildew = Calc.assessMildew(temp, rain);
+            const oidium = Calc.assessOidium(temp, hum);
+
             // Update UI elements
-            updateRiskCard('mildew', mildewRisk, mildewAdvice);
-            updateRiskCard('oidium', oidiumRisk, oidiumAdvice);
+            updateRiskCard('mildew', mildew.risk, mildew.advice);
+            updateRiskCard('oidium', oidium.risk, oidium.advice);
         }
 
         function updateRiskCard(type, risk, advice) {
@@ -6156,6 +6199,8 @@
         // --- GEMINI AI ASSISTANT & VARIETY ANALYZER LOGIC ---
         let aiMode = 'analyzer';
         let aiCandidates = [];
+        // Поточний сорт із перевірки САТ — для кнопки «Зберегти в кандидати» (B2).
+        let satCheckCandidate = null;
         let aiChatHistory = [];
         let selectedChatAttachment = null;
 
@@ -6267,16 +6312,18 @@
                 `https://generativelanguage.googleapis.com/v1/models?key=${key}`
             ];
             
-            // Preferred models in priority order (best for vision/multimodal tasks)
+            // Preferred models in priority order (best for vision/multimodal tasks).
+            // Тримати синхронним з повною версією index.html (ADR 0005).
             const preferredModels = [
+                'gemini-2.5-flash',
+                'gemini-2.5-pro',
+                'gemini-2.0-flash-001',
+                'gemini-2.0-flash-lite-001',
                 'gemini-2.0-flash',
-                'gemini-2.0-flash-lite', 
+                'gemini-1.5-flash-002',
+                'gemini-1.5-pro-002',
                 'gemini-1.5-flash',
-                'gemini-1.5-flash-latest',
-                'gemini-1.5-pro',
-                'gemini-1.5-pro-latest',
-                'gemini-pro-vision',
-                'gemini-pro'
+                'gemini-1.5-pro'
             ];
             
             for (const listUrl of listUrls) {
@@ -6333,6 +6380,18 @@
             return null;
         }
 
+        // Запасні моделі Gemini — використовуються, лише коли авто-визначення (discoverGeminiModel)
+        // не спрацювало. ЄДИНЕ місце для оновлення ID моделей, коли вони застаріють (B6).
+        const GEMINI_FALLBACK_MODELS = [
+            { version: 'v1beta', model: 'gemini-2.5-flash' },
+            { version: 'v1beta', model: 'gemini-2.0-flash-001' },
+            { version: 'v1', model: 'gemini-1.5-flash-002' }
+        ];
+        function geminiFallbackUrls(key) {
+            return GEMINI_FALLBACK_MODELS.map(m =>
+                `https://generativelanguage.googleapis.com/${m.version}/models/${m.model}:generateContent?key=${key}`);
+        }
+
         async function fetchGeminiAPI(prompt, systemInstruction = '', jsonMode = false, attachment = null) {
             const rawKey = localStorage.getItem('viticulture-gemini-key');
             if (!rawKey) {
@@ -6349,12 +6408,8 @@
             if (discoveredUrl) {
                 urlsToTry.push(discoveredUrl);
             }
-            // Fallback hardcoded URLs in case discovery fails
-            urlsToTry.push(
-                `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${key}`,
-                `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-lite:generateContent?key=${key}`,
-                `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=${key}`
-            );
+            // Запасні моделі (єдине джерело — GEMINI_FALLBACK_MODELS), коли discovery не спрацював (B6).
+            urlsToTry.push(...geminiFallbackUrls(key));
             // Remove duplicates
             const uniqueUrls = [...new Set(urlsToTry)];
             
@@ -6549,8 +6604,10 @@
                     icon = '🔴';
                 }
                 
-                // Render result card with dynamic saving button
-                const dataEscaped = JSON.stringify(data).replace(/'/g, "&apos;").replace(/"/g, '&quot;');
+                // Render result card with dynamic saving button.
+                // Зберігаємо об'єкт у змінній замість вбудовування JSON у onclick — інакше
+                // апострофи/лапки в полях ламають обробник (B2).
+                satCheckCandidate = data;
                 resultBox.innerHTML = `
                     <div class="space-y-5 text-left fade-in">
                         <div class="flex items-center justify-between gap-4 flex-wrap border-b border-stone-200/60 pb-3">
@@ -6588,7 +6645,7 @@
                             <p class="text-stone-700 italic font-medium">${data.care}</p>
                         </div>
                         
-                        <button onclick="saveAICandidate(JSON.parse('${dataEscaped}'))" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white py-3 rounded-2xl font-black text-xs uppercase tracking-wider transition-all flex items-center justify-center gap-1.5 shadow-sm">
+                        <button onclick="saveAICandidate(satCheckCandidate)" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white py-3 rounded-2xl font-black text-xs uppercase tracking-wider transition-all flex items-center justify-center gap-1.5 shadow-sm">
                             <span>＋</span> Зберегти в кандидати на посадку
                         </button>
                     </div>
@@ -6951,7 +7008,8 @@
             
             aiChatHistory.forEach(turn => {
                 if (turn.role === 'user') {
-                    let displayText = turn.content;
+                    // Екрануємо введений користувачем текст перед вставкою в innerHTML (B5).
+                    let displayText = escapeHtml(turn.content);
                     if (displayText.startsWith('[Зображення:')) {
                         displayText = displayText.replace(/^\[Зображення:\s*([^\]]+)\]/, '📷 <span class="opacity-75 italic text-[10px] font-bold block mb-1 border-b border-emerald-500/20 pb-0.5">$1</span>');
                     }
@@ -6964,7 +7022,8 @@
                         </div>
                     `;
                 } else if (turn.role === 'model') {
-                    const formattedResponse = turn.content.replace(/\n/g, '<br>');
+                    // Екрануємо відповідь AI, потім дозволяємо лише переноси рядків (B5).
+                    const formattedResponse = escapeHtml(turn.content).replace(/\n/g, '<br>');
                     transcript.innerHTML += `
                         <div class="flex gap-3 max-w-[85%] fade-in">
                             <div class="w-8 h-8 rounded-full bg-emerald-100 border border-emerald-200 flex items-center justify-center text-sm flex-shrink-0">👨‍🌾</div>
@@ -7021,20 +7080,10 @@
             const vol = parseFloat(document.getElementById('ga3-volume').value) || 0;
             const ppm = parseFloat(document.getElementById('ga3-ppm').value) || 0;
             const formulation = parseFloat(document.getElementById('ga3-formulation').value) || 100;
-            
-            // Total active substance needed in mg
-            const activeSubstanceMg = vol * ppm;
-            
-            // Total commercial formulation needed in mg
-            const formulationMg = (activeSubstanceMg * 100) / formulation;
-            
-            const resultEl = document.getElementById('ga3-result');
-            
-            if (formulationMg >= 1000) {
-                resultEl.innerText = (formulationMg / 1000).toFixed(2) + ' г';
-            } else {
-                resultEl.innerText = Math.round(formulationMg) + ' мг';
-            }
+
+            // Формула — у src/calc.js (тестується Vitest)
+            const formulationMg = Calc.ga3FormulationMg(vol, ppm, formulation);
+            document.getElementById('ga3-result').innerText = Calc.formatGA3Result(formulationMg);
         }
 
         // --- TO-DO LIST & JOURNAL OF OPERATIONS LOGIC ---
@@ -7710,11 +7759,20 @@ ${JSON.stringify(completedLogs, null, 2)}
             }
         }
 
+        // Єдиний предикат: які ключі localStorage входять у резервну копію (O10).
+        // API-ключ Gemini навмисно ВИКЛЮЧЕНО, щоб він не витікав у файл бекапу (приватність).
+        const BACKUP_EXTRA_KEYS = ['satHistory', 'forecastDailyTemps', 'phaseChecklists', 'phaseChecklistDates', 'phaseNutritionChecklists', 'phaseNutritionChecklistDates', 'vineyardTodo', 'isJournalCollapsed', 'user-local-sat', 'activeScenario', 'weather-lat', 'weather-lon', 'weather-lat-saved', 'weather-lon-saved'];
+        const BACKUP_EXCLUDE_KEYS = ['viticulture-gemini-key'];
+        function isBackupKey(key) {
+            if (!key || BACKUP_EXCLUDE_KEYS.includes(key)) return false;
+            return key.startsWith('viticulture-') || BACKUP_EXTRA_KEYS.includes(key);
+        }
+
         function exportDatabase() {
             const data = {};
             for (let i = 0; i < localStorage.length; i++) {
                 const key = localStorage.key(i);
-                if (key && (key.startsWith('viticulture-') || key === 'satHistory' || key === 'forecastDailyTemps' || key === 'phaseChecklists' || key === 'phaseChecklistDates' || key === 'vineyardTodo' || key === 'weather-lat' || key === 'weather-lon' || key === 'weather-lat-saved' || key === 'weather-lon-saved')) {
+                if (isBackupKey(key)) {
                     data[key] = localStorage.getItem(key);
                 }
             }
@@ -7738,7 +7796,7 @@ ${JSON.stringify(completedLogs, null, 2)}
                     const data = JSON.parse(e.target.result);
                     
                     const keys = Object.keys(data);
-                    const valid = keys.some(key => key.startsWith('viticulture-') || key === 'satHistory' || key === 'vineyardTodo' || key === 'todoList');
+                    const valid = keys.some(key => key.startsWith('viticulture-') || key === 'satHistory' || key === 'vineyardTodo');
                     if (!valid && keys.length > 0) {
                         alert('Помилка: файл не містить валідних даних GrapeGrew.');
                         return;
@@ -7749,7 +7807,7 @@ ${JSON.stringify(completedLogs, null, 2)}
                         const keysToRemove = [];
                         for (let i = 0; i < localStorage.length; i++) {
                             const key = localStorage.key(i);
-                            if (key && (key.startsWith('viticulture-') || key === 'satHistory' || key === 'forecastDailyTemps' || key === 'phaseChecklists' || key === 'phaseChecklistDates' || key === 'todoList' || key === 'weather-lat' || key === 'weather-lon' || key === 'weather-lat-saved' || key === 'weather-lon-saved')) {
+                            if (isBackupKey(key)) {
                                 keysToRemove.push(key);
                             }
                         }
@@ -8752,13 +8810,13 @@ ${JSON.stringify(completedLogs, null, 2)}
             // Load Phase Checklist
             const cachedChecklists = localStorage.getItem('phaseChecklists');
             if (cachedChecklists) {
-                phaseChecklists = JSON.parse(cachedChecklists);
+                phaseChecklists = safeParse(cachedChecklists, phaseChecklists);
             }
 
             // Load Todo List
             const cachedTodo = localStorage.getItem('vineyardTodo');
             if (cachedTodo) {
-                todoList = JSON.parse(cachedTodo);
+                todoList = safeParse(cachedTodo, todoList);
             }
 
             // Load weather lat/lon from localStorage

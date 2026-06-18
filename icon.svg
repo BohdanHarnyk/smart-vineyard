@@ -1,0 +1,28 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512" role="img" aria-label="Smart Vineyard">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#0a6b4f"/>
+      <stop offset="1" stop-color="#022c22"/>
+    </linearGradient>
+    <radialGradient id="berry" cx="0.35" cy="0.3" r="0.8">
+      <stop offset="0" stop-color="#7c5cff"/>
+      <stop offset="1" stop-color="#4c2db3"/>
+    </radialGradient>
+  </defs>
+  <rect x="0" y="0" width="512" height="512" rx="112" fill="url(#bg)"/>
+  <!-- leaf -->
+  <path d="M256 116 C292 96 332 104 344 132 C322 138 304 152 296 174 C286 150 268 132 256 116 Z" fill="#34d399"/>
+  <rect x="250" y="150" width="12" height="40" rx="6" fill="#10b981"/>
+  <!-- grape cluster -->
+  <g fill="url(#berry)">
+    <circle cx="200" cy="216" r="34"/>
+    <circle cx="256" cy="208" r="34"/>
+    <circle cx="312" cy="216" r="34"/>
+    <circle cx="228" cy="266" r="34"/>
+    <circle cx="284" cy="266" r="34"/>
+    <circle cx="256" cy="316" r="34"/>
+    <circle cx="200" cy="316" r="30" opacity="0.95"/>
+    <circle cx="312" cy="316" r="30" opacity="0.95"/>
+    <circle cx="256" cy="366" r="30"/>
+  </g>
+</svg>

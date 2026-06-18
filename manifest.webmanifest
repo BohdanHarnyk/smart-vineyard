@@ -1,0 +1,29 @@
+{
+  "name": "Smart Vineyard — Розумний Виноградник",
+  "short_name": "Smart Vineyard",
+  "description": "Цифрова агрономічна платформа для точного виноградарства: календар фаз, САТ/GDD, калькулятори, база сортів і препаратів, AI-помічник. Працює офлайн.",
+  "lang": "uk",
+  "dir": "ltr",
+  "start_url": "./?source=pwa",
+  "scope": "./",
+  "id": "/?source=pwa",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "background_color": "#f0f4f0",
+  "theme_color": "#064e3b",
+  "categories": ["productivity", "utilities", "lifestyle"],
+  "icons": [
+    {
+      "src": "./icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    },
+    {
+      "src": "./icon-maskable.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "maskable"
+    }
+  ]
+}

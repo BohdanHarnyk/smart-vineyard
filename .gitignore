@@ -1,6 +1,13 @@
 # Local agent files
 .agents/
 
+# Brainstorm/scratch artifacts (not part of the app)
+.superpowers/
+scratch/
+
+# Node dev toolchain (tests/lint only — not shipped)
+node_modules/
+
 # Temporary files
 .tmp/
 
