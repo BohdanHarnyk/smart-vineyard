@@ -65,6 +65,8 @@
             --color-success: #2E7A50;
         }
         body { font-family: 'Golos Text', 'Plus Jakarta Sans', sans-serif; }
+        /* Інлайн Lucide-іконки масштабуються за розміром тексту контейнера */
+        .lucide { width: 1em; height: 1em; display: inline-block; vertical-align: -0.12em; }
 
         /* App shell: sidebar (desktop) + main */
         .app-shell { display: flex; min-height: 100vh; }
@@ -456,7 +458,7 @@
                 <div onclick="toggleJournalCollapse()" class="flex justify-between items-center cursor-pointer select-none pb-6 border-b border-emerald-100 transition-all duration-300" id="todo-card-header">
                     <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 w-full mr-4">
                         <div class="flex items-center gap-3">
-                            <span class="text-2xl md:text-3xl">📋</span>
+                            <span class="text-2xl md:text-3xl"><i data-lucide="clipboard-list"></i></span>
                             <div>
                                 <h3 class="text-xl md:text-2xl font-black text-emerald-950">Журнал операцій & To-Do</h3>
                                 <p class="text-[10px] md:text-xs text-stone-500 uppercase tracking-widest font-bold">Органайзер сезонних робіт та фіксація дат виконання</p>
@@ -846,7 +848,7 @@
                     <div class="flex items-center gap-3">
                         <span class="text-3xl md:text-4xl">📊</span>
                         <div>
-                            <h3 class="text-xl md:text-2xl font-black text-emerald-950">🧠 deAgro Адаптивна Аналітика</h3>
+                            <h3 class="text-xl md:text-2xl font-black text-emerald-950"><i data-lucide="brain-circuit"></i> deAgro Адаптивна Аналітика</h3>
                             <p class="text-[10px] md:text-xs text-stone-500 uppercase tracking-widest font-bold">Аналіз накопичених даних, агрохімічний спектр та ШІ-рекомендації</p>
                         </div>
                     </div>
@@ -925,7 +927,7 @@
                 <div class="absolute right-0 top-0 p-10 opacity-10 pointer-events-none text-9xl">❄️</div>
                 <div class="flex flex-col md:flex-row justify-between items-center gap-6 relative z-10">
                     <div class="max-w-2xl">
-                        <h2 class="text-3xl font-black mb-2">🚨 Екстрений протокол: Заморозки</h2>
+                        <h2 class="text-3xl font-black mb-2"><i data-lucide="siren"></i> Екстрений протокол: Заморозки</h2>
                         <p class="text-rose-100 font-light italic">Для Вінниччина ризик весняних приморозків зберігається до 17 травня. Якщо прогноз температури падає нижче +2°C:</p>
                         <ul class="mt-4 space-y-1.5 text-xs text-rose-100 font-medium">
                             <li>• <strong class="text-white">За 20 годин:</strong> Anti-stress по листу (Мегафол 25 мл + Калійне добриво 20 г на 10 л води).</li>
@@ -1139,7 +1141,7 @@
                     <!-- ─── ROOT STEP 1: NPK Scale & Targets ─── -->
                     <div id="root-step-1" class="space-y-6 transition-all duration-300">
                         <div class="bg-emerald-950/60 p-4 rounded-2xl border border-emerald-800/60 flex items-center gap-3">
-                            <span class="text-2xl">🎯</span>
+                            <span class="text-2xl"><i data-lucide="target"></i></span>
                             <div>
                                 <h4 class="text-sm font-black text-white">Крок 1: Масштаб виноградника & потреби NPK</h4>
                                 <p class="text-[10px] text-emerald-400/80">Визначте цільові норми елементів живлення та оберіть добрива для розрахунку</p>
@@ -1285,7 +1287,7 @@
                     <!-- ─── ROOT STEP 2: Fertigation & Weight Calculation ─── -->
                     <div id="root-step-2" class="space-y-6 hidden transition-all duration-300">
                         <div class="bg-emerald-950/60 p-4 rounded-2xl border border-emerald-800/60 flex items-center gap-3">
-                            <span class="text-2xl">💧</span>
+                            <span class="text-2xl"><i data-lucide="droplet"></i></span>
                             <div>
                                 <h4 class="text-sm font-black text-white">Крок 2: Розрахунок ваги та розведення (Фертигація)</h4>
                                 <p class="text-[10px] text-emerald-400/80">Рецептура з Кроку 1 автоматично синхронізується. Налаштуйте параметри поливу.</p>
@@ -1441,7 +1443,7 @@
                     <!-- ─── ROOT STEP 3: EC Guardian (Safety) ─── -->
                     <div id="root-step-3" class="space-y-6 hidden transition-all duration-300">
                         <div class="bg-emerald-950/60 p-4 rounded-2xl border border-emerald-800/60 flex items-center gap-3">
-                            <span class="text-2xl">🛡️</span>
+                            <span class="text-2xl"><i data-lucide="shield"></i></span>
                             <div>
                                 <h4 class="text-sm font-black text-white">Крок 3: EC Guardian — Контроль безпеки солоності</h4>
                                 <p class="text-[10px] text-emerald-400/80">Перевірка електропровідності розчину для запобігання хімічного опіку коріння</p>
@@ -1547,7 +1549,7 @@
                     <!-- ─── FOLIAR STEP 1: Sprayer Setup ─── -->
                     <div id="foliar-step-1" class="space-y-6 transition-all duration-300">
                         <div class="bg-emerald-950/60 p-4 rounded-2xl border border-emerald-800/60 flex items-center gap-3">
-                            <span class="text-2xl">🚿</span>
+                            <span class="text-2xl"><i data-lucide="shower-head"></i></span>
                             <div>
                                 <h4 class="text-sm font-black text-white">Крок 1: Налаштування обприскувача</h4>
                                 <p class="text-[10px] text-emerald-400/80">Визначте об'єм робочого розчину для оприскування</p>
@@ -1613,7 +1615,7 @@
                     <!-- ─── FOLIAR STEP 2: Tank Mix Formation ─── -->
                     <div id="foliar-step-2" class="space-y-6 hidden transition-all duration-300">
                         <div class="bg-emerald-950/60 p-4 rounded-2xl border border-emerald-800/60 flex items-center gap-3">
-                            <span class="text-2xl">🌦️</span>
+                            <span class="text-2xl"><i data-lucide="cloud-sun-rain"></i></span>
                             <div>
                                 <h4 class="text-sm font-black text-white">Крок 2: Формування бакової суміші</h4>
                                 <p class="text-[10px] text-emerald-400/80">Додайте препарати та отримайте пропорційний розрахунок доз на розрахований об'єм</p>
@@ -1678,7 +1680,7 @@
                     <!-- ─── FOLIAR STEP 3: pH Stabilization & Protocol ─── -->
                     <div id="foliar-step-3" class="space-y-6 hidden transition-all duration-300">
                         <div class="bg-emerald-950/60 p-4 rounded-2xl border border-emerald-800/60 flex items-center gap-3">
-                            <span class="text-2xl">🍋</span>
+                            <span class="text-2xl"><i data-lucide="citrus"></i></span>
                             <div>
                                 <h4 class="text-sm font-black text-white">Крок 3: pH Стабілізація та Підсумковий протокол</h4>
                                 <p class="text-[10px] text-emerald-400/80">Підкислення робочого розчину та фінальний протокол оприскування</p>
@@ -1734,7 +1736,7 @@
                 <!-- Column 1: Phytotoxicity & Lemon Acid -->
                 <div class="lg:col-span-6 space-y-8">
                     <div class="bg-white p-10 rounded-[40px] custom-shadow border border-emerald-100">
-                        <h3 class="text-2xl font-black text-emerald-900 mb-6">🧪 Фітотоксичність & Резистентність</h3>
+                        <h3 class="text-2xl font-black text-emerald-900 mb-6"><i data-lucide="flask-conical"></i> Фітотоксичність & Резистентність</h3>
                         <div class="space-y-6">
                             <div class="p-6 bg-rose-50 border-l-8 border-rose-500 rounded-2xl">
                                 <h4 class="font-black text-rose-800 text-sm uppercase mb-1">Мідь + Амінокислоти</h4>
@@ -1748,7 +1750,7 @@
                     </div>
                     
                     <div class="bg-stone-900 text-white p-10 rounded-[40px] shadow-2xl">
-                        <h3 class="text-2xl font-black mb-6">🍋 Секретний рН-агент: Лимонна кислота</h3>
+                        <h3 class="text-2xl font-black mb-6"><i data-lucide="citrus"></i> Секретний рН-агент: Лимонна кислота</h3>
                         <p class="text-sm opacity-70 mb-6 leading-relaxed">Більшість сучасних системних фунгіцидів та інсектицидів (Фалькон, Кораген) стрімко деградують і втрачають ефективність при лужному рН води (> 7.0). Особливо критично підкислювати бакову суміш перед внесенням лужного БОРУ.</p>
                         <div class="bg-white/10 p-6 rounded-3xl border border-white/10">
                             <span class="block font-black text-emerald-400 text-xs uppercase mb-2">Золота пропорція підкислення</span>
