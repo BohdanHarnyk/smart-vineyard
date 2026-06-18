@@ -214,14 +214,14 @@
 
     <nav class="bg-white border-b border-emerald-100 sticky top-0 z-50 shadow-md" aria-label="Основна навігація">
         <div class="max-w-7xl mx-auto px-4 flex overflow-x-auto no-scrollbar py-1">
-            <button onclick="switchTab('phases')" id="nav-phases" class="nav-btn active flex-shrink-0 px-6 py-4 font-bold text-stone-500 hover:text-emerald-700">📅 Календар Фаз</button>
-            <button onclick="switchTab('analytics')" id="nav-analytics" class="nav-btn flex-shrink-0 px-6 py-4 font-bold text-stone-500 hover:text-emerald-700">📊 Смарт-Аналітика</button>
-            <button onclick="switchTab('varieties')" id="nav-varieties" class="nav-btn flex-shrink-0 px-6 py-4 font-bold text-stone-500 hover:text-emerald-700">🍇 Бібліотека Сортів</button>
-            <button onclick="switchTab('calculators')" id="nav-calculators" class="nav-btn flex-shrink-0 px-6 py-4 font-bold text-stone-500 hover:text-emerald-700">🧮 Калькулятори</button>
-            <button onclick="switchTab('safety')" id="nav-safety" class="nav-btn flex-shrink-0 px-6 py-4 font-bold text-stone-500 hover:text-emerald-700">🧪 Лабораторія & ГК</button>
-            <button onclick="switchTab('ai-assistant')" id="nav-ai-assistant" class="nav-btn flex-shrink-0 px-6 py-4 font-bold text-stone-500 hover:text-emerald-700">🔬 AI Помічник</button>
-            <button onclick="switchTab('guide')" id="nav-guide" class="nav-btn flex-shrink-0 px-6 py-4 font-bold text-stone-500 hover:text-emerald-700">📖 Інструкція</button>
-            <button onclick="switchTab('products')" id="nav-products" class="nav-btn flex-shrink-0 px-6 py-4 font-bold text-stone-500 hover:text-emerald-700">🗄 База Препаратів</button>
+            <button data-action="switchTab" data-action-param="phases" id="nav-phases" class="nav-btn active flex-shrink-0 px-6 py-4 font-bold text-stone-500 hover:text-emerald-700">📅 Календар Фаз</button>
+            <button data-action="switchTab" data-action-param="analytics" id="nav-analytics" class="nav-btn flex-shrink-0 px-6 py-4 font-bold text-stone-500 hover:text-emerald-700">📊 Смарт-Аналітика</button>
+            <button data-action="switchTab" data-action-param="varieties" id="nav-varieties" class="nav-btn flex-shrink-0 px-6 py-4 font-bold text-stone-500 hover:text-emerald-700">🍇 Бібліотека Сортів</button>
+            <button data-action="switchTab" data-action-param="calculators" id="nav-calculators" class="nav-btn flex-shrink-0 px-6 py-4 font-bold text-stone-500 hover:text-emerald-700">🧮 Калькулятори</button>
+            <button data-action="switchTab" data-action-param="safety" id="nav-safety" class="nav-btn flex-shrink-0 px-6 py-4 font-bold text-stone-500 hover:text-emerald-700">🧪 Лабораторія & ГК</button>
+            <button data-action="switchTab" data-action-param="ai-assistant" id="nav-ai-assistant" class="nav-btn flex-shrink-0 px-6 py-4 font-bold text-stone-500 hover:text-emerald-700">🔬 AI Помічник</button>
+            <button data-action="switchTab" data-action-param="guide" id="nav-guide" class="nav-btn flex-shrink-0 px-6 py-4 font-bold text-stone-500 hover:text-emerald-700">📖 Інструкція</button>
+            <button data-action="switchTab" data-action-param="products" id="nav-products" class="nav-btn flex-shrink-0 px-6 py-4 font-bold text-stone-500 hover:text-emerald-700">🗄 База Препаратів</button>
         </div>
     </nav>
 
@@ -2422,6 +2422,29 @@
                 .replace(/"/g, '&quot;')
                 .replace(/'/g, '&#39;');
         }
+
+        // Делегування подій (O8): елемент з data-action викликає глобальну функцію за іменем.
+        // Працює і для динамічно доданих елементів (через спливання). Співіснує з наявними
+        // inline-обробниками під час поетапної міграції. Мета — зняти inline-обробники, що
+        // згодом дозволить прибрати 'unsafe-inline' зі script-src CSP.
+        (function initEventDelegation() {
+            function dispatch(e) {
+                const el = e.target.closest('[data-action]');
+                if (!el) return;
+                const fnName = el.getAttribute('data-action');
+                const fn = window[fnName];
+                if (typeof fn !== 'function') return;
+                const param = el.getAttribute('data-action-param');
+                fn(param !== null ? param : undefined, e);
+            }
+            ['click', 'change', 'input', 'submit'].forEach(function (type) {
+                document.addEventListener(type, function (e) {
+                    const el = e.target.closest && e.target.closest('[data-action]');
+                    if (el && el.getAttribute('data-action-on') === type) dispatch(e);
+                    else if (el && type === 'click' && !el.getAttribute('data-action-on')) dispatch(e);
+                });
+            });
+        })();
 
         // Debugging error handlers
         window.onerror = function(message, source, lineno, colno, error) {
