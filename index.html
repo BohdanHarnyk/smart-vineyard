@@ -349,16 +349,16 @@
             </div>
         </div>
         <div class="sidebar-section">Головне</div>
-        <button onclick="switchTab('overview')" id="nav-overview" class="sidebar-nav-item"><i data-lucide="layout-dashboard"></i><span>Огляд</span></button>
-        <button onclick="switchTab('phases')" id="nav-phases" class="sidebar-nav-item active"><i data-lucide="calendar-days"></i><span>Календар фаз</span></button>
-        <button onclick="switchTab('analytics')" id="nav-analytics" class="sidebar-nav-item"><i data-lucide="trending-up"></i><span>Смарт-аналітика</span></button>
-        <button onclick="switchTab('calculators')" id="nav-calculators" class="sidebar-nav-item"><i data-lucide="calculator"></i><span>Калькулятори</span></button>
-        <button onclick="switchTab('safety')" id="nav-safety" class="sidebar-nav-item"><i data-lucide="flask-conical"></i><span>Лабораторія &amp; ГК</span></button>
+        <button data-action="switchTab" data-action-param="overview" id="nav-overview" class="sidebar-nav-item"><i data-lucide="layout-dashboard"></i><span>Огляд</span></button>
+        <button data-action="switchTab" data-action-param="phases" id="nav-phases" class="sidebar-nav-item active"><i data-lucide="calendar-days"></i><span>Календар фаз</span></button>
+        <button data-action="switchTab" data-action-param="analytics" id="nav-analytics" class="sidebar-nav-item"><i data-lucide="trending-up"></i><span>Смарт-аналітика</span></button>
+        <button data-action="switchTab" data-action-param="calculators" id="nav-calculators" class="sidebar-nav-item"><i data-lucide="calculator"></i><span>Калькулятори</span></button>
+        <button data-action="switchTab" data-action-param="safety" id="nav-safety" class="sidebar-nav-item"><i data-lucide="flask-conical"></i><span>Лабораторія &amp; ГК</span></button>
         <div class="sidebar-section">Знання</div>
-        <button onclick="switchTab('varieties')" id="nav-varieties" class="sidebar-nav-item"><i data-lucide="grape"></i><span>Бібліотека сортів</span></button>
-        <button onclick="switchTab('products')" id="nav-products" class="sidebar-nav-item"><i data-lucide="database"></i><span>База препаратів</span></button>
-        <button onclick="switchTab('ai-assistant')" id="nav-ai-assistant" class="sidebar-nav-item"><i data-lucide="bot"></i><span>AI помічник</span></button>
-        <button onclick="switchTab('guide')" id="nav-guide" class="sidebar-nav-item"><i data-lucide="book-open"></i><span>Інструкція</span></button>
+        <button data-action="switchTab" data-action-param="varieties" id="nav-varieties" class="sidebar-nav-item"><i data-lucide="grape"></i><span>Бібліотека сортів</span></button>
+        <button data-action="switchTab" data-action-param="products" id="nav-products" class="sidebar-nav-item"><i data-lucide="database"></i><span>База препаратів</span></button>
+        <button data-action="switchTab" data-action-param="ai-assistant" id="nav-ai-assistant" class="sidebar-nav-item"><i data-lucide="bot"></i><span>AI помічник</span></button>
+        <button data-action="switchTab" data-action-param="guide" id="nav-guide" class="sidebar-nav-item"><i data-lucide="book-open"></i><span>Інструкція</span></button>
     </aside>
     <div class="sidebar-main-area">
     <div class="mobile-topbar">
@@ -2616,10 +2616,10 @@
     </div><!-- /.app-shell -->
 
     <nav class="bottom-nav" aria-label="Мобільна навігація">
-        <button onclick="switchTab('overview')" id="bnav-overview" class="bottom-nav-item"><i data-lucide="layout-dashboard"></i><span>Огляд</span></button>
-        <button onclick="switchTab('phases')" id="bnav-phases" class="bottom-nav-item active"><i data-lucide="sprout"></i><span>Виноградник</span></button>
-        <button onclick="switchTab('calculators')" id="bnav-calculators" class="bottom-nav-item"><i data-lucide="flask-conical"></i><span>Агрохімія</span></button>
-        <button onclick="switchTab('ai-assistant')" id="bnav-ai-assistant" class="bottom-nav-item"><i data-lucide="bot"></i><span>AI</span></button>
+        <button data-action="switchTab" data-action-param="overview" id="bnav-overview" class="bottom-nav-item"><i data-lucide="layout-dashboard"></i><span>Огляд</span></button>
+        <button data-action="switchTab" data-action-param="phases" id="bnav-phases" class="bottom-nav-item active"><i data-lucide="sprout"></i><span>Виноградник</span></button>
+        <button data-action="switchTab" data-action-param="calculators" id="bnav-calculators" class="bottom-nav-item"><i data-lucide="flask-conical"></i><span>Агрохімія</span></button>
+        <button data-action="switchTab" data-action-param="ai-assistant" id="bnav-ai-assistant" class="bottom-nav-item"><i data-lucide="bot"></i><span>AI</span></button>
     </nav>
 
     <!-- Sprint 5: Quick Log FAB + modal -->
@@ -2665,6 +2665,36 @@
                 .replace(/>/g, '&gt;')
                 .replace(/"/g, '&quot;')
                 .replace(/'/g, '&#39;');
+        }
+
+        // Делегування подій (O8): елемент з data-action викликає глобальну функцію за іменем.
+        // Працює і для динамічно доданих елементів (спливання) → можна ставити data-action
+        // навіть у JS-шаблони. Співіснує з рештою inline-обробників під час поетапної міграції.
+        // Мета — прибрати inline-обробники, щоб згодом зняти 'unsafe-inline' зі script-src CSP.
+        (function initEventDelegation() {
+            function dispatch(e) {
+                const el = e.target.closest('[data-action]');
+                if (!el) return;
+                const fn = window[el.getAttribute('data-action')];
+                if (typeof fn !== 'function') return;
+                const param = el.getAttribute('data-action-param');
+                fn(param !== null ? param : undefined, e);
+            }
+            document.addEventListener('click', function (e) {
+                const el = e.target.closest && e.target.closest('[data-action]');
+                if (el && (el.getAttribute('data-action-on') || 'click') === 'click') dispatch(e);
+            });
+            ['change', 'input', 'submit'].forEach(function (type) {
+                document.addEventListener(type, function (e) {
+                    const el = e.target.closest && e.target.closest('[data-action]');
+                    if (el && el.getAttribute('data-action-on') === type) dispatch(e);
+                });
+            });
+        })();
+
+        // Перерендер Lucide-іконок (після динамічних вставок у DOM)
+        function refreshLucide() {
+            if (window.lucide && typeof window.lucide.createIcons === 'function') window.lucide.createIcons();
         }
 
         // Debugging error handlers
@@ -3125,7 +3155,7 @@
                             <p class="threat-name">${escapeHtml(r.d.name)}</p>
                             <p class="threat-desc">${escapeHtml(r.d.desc)}</p>
                         </div>
-                        <button class="threat-action" onclick="switchTab('phases')">Протокол</button>
+                        <button class="threat-action" data-action="switchTab" data-action-param="phases">Протокол</button>
                     </div>
                 `).join('');
             } else {
