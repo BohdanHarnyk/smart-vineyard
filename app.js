@@ -4166,13 +4166,13 @@
         }
 
         function deleteProtectionMixerRow(id) {
-            protectionMixerItems = protectionMixerItems.filter(item => item.id !== id);
+            protectionMixerItems = protectionMixerItems.filter(item => item.id != id);
             renderProtectionMixer();
             runFoliarStep2();
         }
 
         function updateMixerItem(id, field, value) {
-            const item = protectionMixerItems.find(i => i.id === id);
+            const item = protectionMixerItems.find(i => i.id == id);
             if (item) {
                 item[field] = field === 'dose' ? (parseFloat(value) || 0) : value;
                 runFoliarStep2();
@@ -5673,7 +5673,7 @@ Return ONLY a valid raw JSON object matching this structure, with no markdown wr
         }
 
         function toggleTodoItem(id) {
-            const item = todoList.find(t => t.id === id);
+            const item = todoList.find(t => t.id == id);
             if (item) {
                 item.completed = !item.completed;
                 if (item.completed) {
@@ -5717,7 +5717,7 @@ Return ONLY a valid raw JSON object matching this structure, with no markdown wr
         }
 
         function updateTodoCompletedDate(id, newDate) {
-            const item = todoList.find(t => t.id === id);
+            const item = todoList.find(t => t.id == id);
             if (item) {
                 item.completedDate = newDate;
                 localStorage.setItem('vineyardTodo', JSON.stringify(todoList));
@@ -5726,7 +5726,7 @@ Return ONLY a valid raw JSON object matching this structure, with no markdown wr
         }
 
         function deleteTodoItem(id) {
-            todoList = todoList.filter(t => t.id !== id);
+            todoList = todoList.filter(t => t.id != id);
             localStorage.setItem('vineyardTodo', JSON.stringify(todoList));
             renderTodos();
         }
