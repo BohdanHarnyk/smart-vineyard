@@ -9,8 +9,8 @@ Agents should optimize for: keeping the app fully serverless and offline-capable
 user data in `localStorage`, and making minimal, scoped changes to a large single-file app.
 
 ## Repository shape
-- Type: single-file, client-only SPA (no backend, no build step)
-- Main components (all inside `index.html`):
+- Type: client-only SPA (no backend, no runtime bundler). Full version = `index.html` (markup) + `app.js` (logic); lite = `index_clean.html` (still inline)
+- Main components (markup in `index.html`, logic in `app.js`):
   - Vegetation-phase calendar & checklists
   - deAgro Smart Diary (voice input + Gemini parsing, meteo-logging)
   - Adaptive analytics & AI auditor (САТ/GDD, Chart.js)
@@ -20,8 +20,11 @@ user data in `localStorage`, and making minimal, scoped changes to a large singl
   - Calculator center (NPK, tank mixes, gibberellic acid)
   - AI agro-chat assistant
 - Important files/directories:
-  - `index.html` — full version; new features are developed and tested here first
-  - `index_clean.html` — lite version, manually kept in sync (see ADR 0005)
+  - `index.html` — full version markup + CSP (NO inline JS — all logic is in `app.js`)
+  - `app.js` — full version logic: event-delegation dispatcher, renders, data, calculators (see ADR 0009)
+  - `sw-register.js` — externalized service-worker registration
+  - `index_clean.html` — lite version (older UI, still inline JS; out of scope of redesign/O8 — see ADR 0005)
+  - `styles.css` — compiled Tailwind, committed (regenerate via `npm run build:css`)
   - `manifest.webmanifest`, `sw.js`, `icon.svg`, `icon-maskable.svg` — PWA shell (see ADR 0008)
   - `src/calc.js` — pure agro formulas (UMD: `window.Calc` in browser, `require` in Node); single source for SAT/SET, GA, disease-risk
   - `test/calc.test.js` — Vitest tests for `src/calc.js`
@@ -36,12 +39,13 @@ user data in `localStorage`, and making minimal, scoped changes to a large singl
 
 ## Stack and tooling
 - Languages/frameworks: HTML5, Vanilla JavaScript (ES6+)
-- Styling: Tailwind CSS compiled to a committed `styles.css` (no Play CDN; see ADR 0007)
-- Libraries (all via CDN, no package manager): Chart.js, twemoji, heic2any
+- Styling: Tailwind compiled to a committed `styles.css` (no Play CDN; see ADR 0007); design tokens + Golos Text + Lucide icons (see ADR 0010)
+- Libraries (pinned CDN): Chart.js, twemoji, heic2any, Lucide
+- Security: hardened CSP — `script-src 'self' https://cdn.jsdelivr.net`, no `unsafe-inline`/`unsafe-eval` (see ADR 0009)
 - Persistence: browser `localStorage` (namespace `viticulture-*`)
 - Integrations: Open-Meteo (forecast + archive APIs), Google Gemini API (browser-side,
   user-supplied key)
-- Infrastructure/runtime: static hosting (GitHub Pages and/or Vercel)
+- Infrastructure/runtime: static hosting — canonical **Vercel** (see ADR 0006)
 
 ## Preferred commands
 - Install: `npm install` (dev-only: Vitest, ESLint — not shipped)
@@ -52,9 +56,9 @@ user data in `localStorage`, and making minimal, scoped changes to a large singl
 - Build: none for runtime/hosting (HTML + committed `styles.css` served as-is; `src/calc.js` is a plain UMD script)
 
 ## Working rules for agents
-- Prefer minimal, scoped changes — `index.html` is ~9,400 lines; avoid broad rewrites.
-- When you change shared data logic (CRUD, localStorage, calculators), apply the same change
-  to `index_clean.html` in the same commit (ADR 0005).
+- Prefer minimal, scoped changes — `app.js` is large (~7k lines); avoid broad rewrites.
+- Full version: markup in `index.html`, logic in `app.js`. Interaction uses `data-action` + the delegation dispatcher — **never** inline `on*=` handlers (CSP blocks them). Complex args go through `dlg_*` wrappers reading `data-*`/event (ADR 0009).
+- `index_clean.html` (lite) is a separate older artifact; `test/sync.test.js` enforces shared *logic* invariants across full↔lite, not UI.
 - Keep new persistence keys under the `viticulture-*` namespace (ADR 0002).
 - Never hardcode or commit real API keys; the Gemini key is user-supplied (ADR 0003).
 - Pin CDN dependency versions when adding or updating them (ADR 0007).
@@ -67,11 +71,13 @@ user data in `localStorage`, and making minimal, scoped changes to a large singl
 - Do not introduce a build step, backend, or new architecture without checking ADRs first.
 
 ## Architecture notes
-The entire runtime is the browser. UI, business logic, and persistence live in one HTML file;
-state is serialized per-module into `localStorage`. External calls go directly from the
-browser to Open-Meteo (weather/САТ) and Gemini (AI features) — there is no server boundary.
-The lite `index_clean.html` shares the same storage keys, so data is compatible across both
-entry points.
+The entire runtime is the browser. Full version: `index.html` holds markup + a hardened CSP and
+loads `app.js` (all logic) and `sw-register.js`; lite `index_clean.html` keeps logic inline.
+State is serialized per-module into `localStorage`; external calls go directly to Open-Meteo
+(weather/САТ) and Gemini (AI) — no server boundary. UI is a sidebar (desktop) / bottom-nav +
+drawer (mobile) with a Dashboard start screen (ADR 0010). All interaction is event-delegated via
+`data-action` (ADR 0009) — there are zero inline handlers/scripts in the full version. Both entry
+points share the same `localStorage` keys, so data is compatible.
 
 ## ADR index
 - [0001 — Single-file vanilla SPA, no build step](docs/adr/0001-single-file-vanilla-spa.md) — the core dev model
@@ -82,6 +88,8 @@ entry points.
 - [0006 — Static deployment topology](docs/adr/0006-static-deployment-topology.md) — GitHub Pages + Vercel (canonical TBD)
 - [0007 — CDN dependencies, no vendoring](docs/adr/0007-cdn-dependencies.md) — runtime CDN reliance
 - [0008 — PWA offline service worker](docs/adr/0008-pwa-offline-service-worker.md) — installability + offline caching strategy
+- [0009 — Event delegation + CSP hardening](docs/adr/0009-event-delegation-csp-hardening.md) — externalized JS, zero inline, strict CSP
+- [0010 — UI redesign: sidebar + dashboard](docs/adr/0010-ui-redesign-sidebar-dashboard.md) — navigation/dashboard/design system
 
 ## Decision precedence
 1. Accepted ADRs (`docs/adr/`)
