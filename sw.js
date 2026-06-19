@@ -8,7 +8,7 @@
  *  - API-запити (Open-Meteo, Gemini) НЕ кешуються — дані мають бути свіжими.
  * Версію кешу піднімати при зміні app shell або стратегії.
  */
-const VERSION = 'v3';
+const VERSION = 'v4';
 const APP_CACHE = `sv-app-${VERSION}`;
 const RUNTIME_CACHE = `sv-runtime-${VERSION}`;
 
@@ -21,6 +21,8 @@ const APP_SHELL = [
   './icon-maskable.svg',
   './src/calc.js',
   './styles.css',
+  './app.js',
+  './sw-register.js',
 ];
 
 // Хости, чиї відповіді кешуємо у runtime для офлайн-роботи UI.
