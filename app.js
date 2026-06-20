@@ -504,20 +504,21 @@
         function renderDashboard() {
             if (!document.getElementById('tab-overview')) return;
             const sat = Math.round(totalSAT || 0);
-            const phaseId = getRecommendedPhaseId(totalSAT || 0);
-            const uppers = { 1: 200, 2: 450, 3: 800, 4: 1000, 5: 1500, 6: 2000 };
+            const set = Math.round(totalSET || 0);
+            const phaseId = getRecommendedPhaseId(totalSET || 0);
+            const uppers = { 1: 60, 2: 150, 3: 340, 4: 550, 5: 850, 6: 1150 };
             const phaseName = (phasesData[phaseId] && phasesData[phaseId].title) || ('Фаза ' + phaseId);
 
             document.getElementById('dash-sat').textContent = sat + '°';
-            document.getElementById('dash-sat-sub').textContent = 'накопичено за сезон';
+            document.getElementById('dash-sat-sub').textContent = 'СЕТ ' + set + '° · фаза за СЕТ';
             document.getElementById('dash-phase-badge').textContent = 'Фаза ' + phaseId + ' · ' + phaseName;
 
             const nextEl = document.getElementById('dash-next');
             const nextSub = document.getElementById('dash-next-sub');
             if (phaseId < 7 && uppers[phaseId]) {
-                nextEl.textContent = Math.max(0, uppers[phaseId] - sat) + '°';
+                nextEl.textContent = Math.max(0, uppers[phaseId] - set) + '°';
                 const np = phasesData[phaseId + 1];
-                nextSub.textContent = np ? ('далі: ' + np.title) : '';
+                nextSub.textContent = np ? ('далі: ' + np.title + ' (СЕТ)') : '';
             } else {
                 nextEl.textContent = '—';
                 nextSub.textContent = 'Фінальна фаза сезону';
@@ -687,14 +688,17 @@
         }
 
         // --- SEASONS & PHASES CHECKLIST LOGIC ---
-        function getRecommendedPhaseId(sat) {
-            if (sat < 200) return 1;
-            if (sat < 450) return 2;
-            if (sat < 800) return 3;
-            if (sat < 1000) return 4;
-            if (sat < 1500) return 5;
-            if (sat < 2000) return 6;
-            return 7;
+        // Рекомендована фенофаза за СЕТ (сума ефективних температур, GDD, база 10°C).
+        // СЕТ краще відстежує фенологію винограду, ніж САТ: цвітіння ~340° GDD, верайзон ~1100° GDD.
+        // Пороги орієнтовні — за потреби відкалібруйте під локальні спостереження.
+        function getRecommendedPhaseId(setGdd) {
+            if (setGdd < 60) return 1;    // Пробудження бруньок
+            if (setGdd < 150) return 2;   // Старт вегетації
+            if (setGdd < 340) return 3;   // Перед цвітінням
+            if (setGdd < 550) return 4;   // Цвітіння → формування ягоди (горошина)
+            if (setGdd < 850) return 5;   // Змикання ягід у гроні
+            if (setGdd < 1150) return 6;  // Дозрівання
+            return 7;                     // Осіння підготовка
         }
 
                 // --- PHASE THREATS DATABASE ---
@@ -2114,7 +2118,7 @@
 
         function renderPhaseNav() {
             const nav = document.getElementById('phase-nav-container');
-            const recPhaseId = getRecommendedPhaseId(totalSAT);
+            const recPhaseId = getRecommendedPhaseId(totalSET);
             const items = Object.keys(phasesData).map(k => {
                 const kn = Number(k);
                 const s = phasesData[k];
@@ -2131,7 +2135,7 @@
                 const status = kn < recPhaseId ? 'done' : (kn === recPhaseId ? 'current' : 'upcoming');
                 let pill;
                 if (status === 'done') pill = '<span class="vt-pill done">Завершено</span>';
-                else if (status === 'current') pill = `<span class="vt-pill">САТ ${Math.round(totalSAT)}°</span>`;
+                else if (status === 'current') pill = `<span class="vt-pill">СЕТ ${Math.round(totalSET)}°</span>`;
                 else pill = '<span class="vt-pill upcoming">Попереду</span>';
 
                 // Risk chips на обраній фазі
@@ -2540,11 +2544,12 @@
             
             adviceEl.innerText = advice;
             badge.innerText = risk === 'high' ? 'Високий' : (risk === 'medium' ? 'Середній' : 'Низький');
-            
-            // Class resets
-            card.className = "p-4 rounded-3xl border transition-all duration-300 ";
-            badge.className = "px-3 py-1 rounded-full text-[10px] font-black uppercase border ";
-            
+
+            // Toggle ONLY the colour classes — preserve structural classes from the markup
+            // (flex/padding/radius/badge size). Reassigning className dropped them and shifted layout.
+            card.classList.remove('bg-rose-950/20', 'border-rose-500/50', 'bg-amber-950/20', 'border-amber-500/50', 'bg-white/5', 'border-white/10');
+            badge.classList.remove('bg-rose-500/20', 'text-rose-400', 'border-rose-500/30', 'bg-amber-500/20', 'text-amber-400', 'border-amber-500/30', 'bg-emerald-500/20', 'text-emerald-400', 'border-emerald-500/30');
+
             if (risk === 'high') {
                 card.classList.add('bg-rose-950/20', 'border-rose-500/50');
                 badge.classList.add('bg-rose-500/20', 'text-rose-400', 'border-rose-500/30');
@@ -7265,7 +7270,7 @@ ${JSON.stringify(completedLogs, null, 2)}
             } catch(e) { console.error("Error loading phase swaps", e); }
             
             // Render components
-            selectStep(getRecommendedPhaseId(totalSAT));
+            selectStep(getRecommendedPhaseId(totalSET));
             initEncyclopediaData();
             calculateCounters();
             renderVarietiesList();
