@@ -2099,40 +2099,56 @@
 
         function renderPhaseNav() {
             const nav = document.getElementById('phase-nav-container');
-            nav.innerHTML = Object.keys(phasesData).map(k => {
+            const recPhaseId = getRecommendedPhaseId(totalSAT);
+            const items = Object.keys(phasesData).map(k => {
+                const kn = Number(k);
                 const s = phasesData[k];
-                const active = Number(k) === currentActivePhase;
-                
+                const selected = kn === currentActivePhase;
+
                 // Calculate completion
                 if (!phaseChecklists[k] || phaseChecklists[k].length !== s.protectionActions.length) phaseChecklists[k] = Array(s.protectionActions.length).fill(false);
                 if (!phaseNutritionChecklists[k] || phaseNutritionChecklists[k].length !== s.nutritionActions.length) phaseNutritionChecklists[k] = Array(s.nutritionActions.length).fill(false);
-                
                 const totalSteps = s.protectionActions.length + s.nutritionActions.length;
                 const checkedCount = phaseChecklists[k].filter(Boolean).length + phaseNutritionChecklists[k].filter(Boolean).length;
                 const percent = totalSteps ? Math.round((checkedCount / totalSteps) * 100) : 0;
-                
-                const recPhaseId = getRecommendedPhaseId(totalSAT);
-                const isRecommended = Number(k) === recPhaseId;
-                const recommendedBadge = isRecommended ? `<span class="bg-amber-500 text-white text-[9px] font-black px-1.5 py-0.5 rounded-md animate-pulse ml-2">🎯 Рекомендовано</span>` : '';
-                
+
+                // Status by accumulated heat (САТ): пройдене / поточне / попереду
+                const status = kn < recPhaseId ? 'done' : (kn === recPhaseId ? 'current' : 'upcoming');
+                let pill;
+                if (status === 'done') pill = '<span class="vt-pill done">Завершено</span>';
+                else if (status === 'current') pill = `<span class="vt-pill">САТ ${Math.round(totalSAT)}°</span>`;
+                else pill = '<span class="vt-pill upcoming">Попереду</span>';
+
+                // Risk chips на обраній фазі
+                let riskRow = '';
+                if (selected && typeof phaseThreats !== 'undefined' && phaseThreats[kn]) {
+                    const th = phaseThreats[kn];
+                    const chips = [
+                        th.pathogens ? `<span class="risk-chip high">${escapeHtml(th.pathogens.name)}</span>` : '',
+                        th.disorders ? `<span class="risk-chip med">${escapeHtml(th.disorders.name)}</span>` : '',
+                        th.pests ? `<span class="risk-chip med">${escapeHtml(th.pests.name)}</span>` : ''
+                    ].join('');
+                    if (chips) riskRow = `<div class="risk-chip-row">${chips}</div>`;
+                }
+
+                const dotInner = status === 'done' ? '<i data-lucide="check"></i>' : '';
+                const dim = (status === 'upcoming' && !selected) ? ' style="opacity:0.6"' : '';
                 return `
-                    <button data-action="selectStep" data-action-param="${k}" class="w-full text-left p-4 rounded-[26px] border-2 transition-all ${active ? 'step-active border-emerald-600 bg-white' : 'border-transparent bg-stone-100/50 hover:bg-stone-100'}">
-                        <div class="flex items-center justify-between">
-                            <div class="flex items-center gap-3">
-                                <span class="text-2xl">${s.icon}</span>
-                                <div>
-                                    <div class="flex items-center">
-                                        <p class="text-[9px] font-black uppercase text-emerald-600">Фаза ${k}</p>
-                                        ${recommendedBadge}
-                                    </div>
-                                    <p class="text-xs font-bold text-emerald-950">${s.title}</p>
-                                </div>
+                    <div class="vt-item">
+                        <div class="vt-dot ${status}">${dotInner}</div>
+                        <button data-action="selectStep" data-action-param="${k}" class="vt-card ${selected ? 'selected' : ''}"${dim}>
+                            <div class="vt-title-row">
+                                <span class="vt-title">${escapeHtml(s.title)}</span>
+                                ${pill}
                             </div>
-                            ${percent > 0 ? `<span class="text-[9px] font-black bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded-full">${percent}%</span>` : ''}
-                        </div>
-                    </button>
+                            <div class="vt-meta">Фаза ${k}${s.time ? ' · ' + escapeHtml(s.time) : ''}${percent > 0 ? ' · ' + percent + '%' : ''}</div>
+                            ${riskRow}
+                        </button>
+                    </div>
                 `;
             }).join('');
+            nav.innerHTML = `<div class="vert-timeline">${items}</div>`;
+            refreshLucide();
         }
 
         // --- SAT TRACKER LOGIC ---

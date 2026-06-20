@@ -55,10 +55,36 @@
             --color-danger: #C94040;
             --color-warning: #E8A020;
             --color-success: #2E7A50;
+            --color-danger-bg: #FDECEC; --color-danger-text: #A02020;
+            --color-warning-bg: #FDF4E3; --color-warning-text: #8A5A0A;
+            --color-success-bg: #E6F5EC; --color-success-text: #1A7A40;
         }
         body { font-family: 'Golos Text', 'Plus Jakarta Sans', sans-serif; }
         /* Інлайн Lucide-іконки масштабуються за розміром тексту контейнера */
         .lucide { width: 1em; height: 1em; display: inline-block; vertical-align: -0.12em; }
+
+        /* Sprint 3: вертикальний timeline фаз */
+        .vert-timeline { position: relative; padding-left: 28px; }
+        .vert-timeline::before { content: ''; position: absolute; left: 9px; top: 6px; bottom: 6px; width: 2px; background: var(--color-border); }
+        .vt-item { position: relative; padding-bottom: 14px; }
+        .vt-dot { position: absolute; left: -28px; top: 4px; width: 18px; height: 18px; border-radius: 50%; background: var(--color-card); border: 2px solid var(--color-border); display: flex; align-items: center; justify-content: center; color: #fff; }
+        .vt-dot .lucide { width: 11px; height: 11px; }
+        .vt-dot.done { border-color: var(--color-accent); background: var(--color-accent); }
+        .vt-dot.current { border-color: var(--color-primary-mid); box-shadow: 0 0 0 4px rgba(26,92,58,.12); }
+        .vt-dot.current::after { content: ''; width: 7px; height: 7px; border-radius: 50%; background: var(--color-primary-mid); }
+        .vt-card { display: block; width: 100%; text-align: left; background: var(--color-card); border: 1px solid var(--color-border); border-radius: 10px; padding: 10px 14px; cursor: pointer; transition: border-color .15s; }
+        .vt-card:hover { border-color: rgba(0,0,0,0.18); }
+        .vt-card.selected { border-color: var(--color-primary-mid); background: #F0F8F3; }
+        .vt-title-row { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+        .vt-title { font-size: 13px; font-weight: 600; color: var(--color-text-primary); }
+        .vt-meta { font-size: 11px; color: var(--color-text-muted); margin-top: 2px; }
+        .vt-pill { font-size: 10px; padding: 2px 7px; border-radius: 4px; font-weight: 600; background: var(--color-warning-bg); color: var(--color-warning-text); white-space: nowrap; }
+        .vt-pill.done { background: var(--color-success-bg); color: var(--color-success-text); }
+        .vt-pill.upcoming { background: var(--color-surface); color: var(--color-text-muted); }
+        .risk-chip-row { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 8px; }
+        .risk-chip { font-size: 10px; padding: 3px 8px; border-radius: 5px; }
+        .risk-chip.high { background: var(--color-danger-bg); color: var(--color-danger-text); }
+        .risk-chip.med { background: var(--color-warning-bg); color: var(--color-warning-text); }
 
         /* App shell: sidebar (desktop) + main */
         .app-shell { display: flex; min-height: 100vh; }
