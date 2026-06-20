@@ -2654,11 +2654,15 @@
 
         function generateVarBtn(v) {
             const qty = vineyardQuantities[v.name] || 0;
-            const qtyBadge = qty > 0 ? ` <span class="bg-emerald-100 text-emerald-800 text-[9px] px-1.5 py-0.5 rounded-full ml-1 font-black">x${qty}</span>` : '';
+            const qtyBadge = qty > 0 ? `<span class="v-count">×${qty}</span>` : '';
+            const color = colorMap[v.col] || '#9A9A9A';
+            const sub = [v.taste, v.rip].filter(Boolean).join(' · ');
             return `
-                <button data-action="selectVar" data-action-param="${v.name}" data-variety="${v.name}" class="variety-grid-btn px-4 py-3.5 text-left text-xs font-bold border border-stone-200 rounded-2xl text-stone-900 bg-white shadow-sm hover:bg-emerald-50 hover:border-emerald-300 flex items-center justify-between">
-                    <span class="truncate flex items-center">${grapeSVG(colorMap[v.col])} <span class="ml-1 truncate">${v.name}</span></span>
+                <button data-action="selectVar" data-action-param="${v.name}" data-variety="${v.name}" class="variety-grid-btn">
+                    <span class="v-color-bar" style="background:${color}"></span>
                     ${qtyBadge}
+                    <span class="v-name truncate">${escapeHtml(v.name)}</span>
+                    <span class="v-sub truncate">${escapeHtml(sub)}</span>
                 </button>
             `;
         }
