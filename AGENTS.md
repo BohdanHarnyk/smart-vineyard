@@ -64,6 +64,7 @@ user data in `localStorage`, and making minimal, scoped changes to a large singl
 - Pin CDN dependency versions when adding or updating them (ADR 0007).
 - When changing the app shell or caching strategy, bump `VERSION` in `sw.js` (ADR 0008).
 - Agro formulas (SAT/SET, GA, disease risk) live in `src/calc.js` — change them there and update `test/calc.test.js`; call `Calc.*` from the HTML rather than re-inlining the math.
+- Phenology phase thresholds use **СЕТ/GDD** (base 10°C) in `getRecommendedPhaseId` (app.js). Scientific basis + sourced anchors + calibration notes: [docs/thermal-model-set-gdd.md](docs/thermal-model-set-gdd.md).
 - Run `npm test` and `npm run lint` before considering a change to formulas done.
 - After adding/removing Tailwind classes in the HTML, run `npm run build:css` and commit the updated `styles.css` (ADR 0007). Build classes as whole literal strings — never concatenate class names (`'bg-' + x`), or the build will purge them.
 - New external origins must be added to the CSP meta in both HTML files (ADR 0003).
