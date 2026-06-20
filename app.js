@@ -83,6 +83,21 @@
         function dlg_chatFile(p, e) { handleChatFileSelect(e); }
         function dlg_soilMoistInput(p, e) { const v = e.target.value; document.getElementById('soil-moist-val-display').innerText = v + '%'; document.getElementById('soil-moist-lbl-display').innerText = getMoistureLabel(v); }
         function dlg_soilPhInput(p, e) { const v = e.target.value; const d = document.getElementById('soil-ph-val-display'); d.innerText = v; d.className = 'text-xs font-black px-2 py-0.5 rounded-md ' + getPhBadgeClass(v); document.getElementById('soil-ph-lbl-display').innerText = getPhLabel(v); }
+        // Combined live handlers (update display + persist on input) — sliders need both without double data-action
+        function dlg_soilPhLive(p, e, el) {
+            const v = e.target.value;
+            const d = document.getElementById('soil-ph-val-display');
+            d.innerText = v;
+            d.className = 'text-xs font-black px-2 py-0.5 rounded-md flex-shrink-0 whitespace-nowrap ' + getPhBadgeClass(v);
+            document.getElementById('soil-ph-lbl-display').innerText = getPhLabel(v);
+            updateSoilStatus(el.dataset.name, v, document.getElementById('soil-moisture-slider').value);
+        }
+        function dlg_soilMoistLive(p, e, el) {
+            const v = e.target.value;
+            document.getElementById('soil-moist-val-display').innerText = v + '%';
+            document.getElementById('soil-moist-lbl-display').innerText = getMoistureLabel(v);
+            updateSoilStatus(el.dataset.name, document.getElementById('soil-ph-slider').value, v);
+        }
         function dlg_mixerDose(p, e, el) { updateMixerItem(el.dataset.id, 'dose', e.target.value); }
         function dlg_mixerName(p, e, el) { updateMixerItem(el.dataset.id, 'name', e.target.value); }
         function dlg_npkDose(p, e, el) { updateNPKDose(parseInt(el.dataset.idx), e.target.value); }
@@ -2778,34 +2793,32 @@
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
                             <!-- pH Slider & Badge -->
                             <div class="space-y-2 bg-white p-3.5 rounded-2xl border border-stone-200/40 shadow-sm">
-                                <div class="flex justify-between items-center">
-                                    <div>
+                                <div class="flex justify-between items-center gap-2">
+                                    <div class="min-w-0">
                                         <span class="text-[9px] font-black text-stone-400 uppercase block">pH Кислотність</span>
-                                        <span id="soil-ph-lbl-display" class="text-[10px] font-bold text-stone-600 mt-0.5 block">${getPhLabel(ph)}</span>
+                                        <span id="soil-ph-lbl-display" class="text-[10px] font-bold text-stone-600 mt-0.5 block truncate">${getPhLabel(ph)}</span>
                                     </div>
-                                    <span id="soil-ph-val-display" class="text-xs font-black px-2 py-0.5 rounded-md ${getPhBadgeClass(ph)}">${ph}</span>
+                                    <span id="soil-ph-val-display" class="text-xs font-black px-2 py-0.5 rounded-md flex-shrink-0 whitespace-nowrap ${getPhBadgeClass(ph)}">${ph}</span>
                                 </div>
                                 <div class="flex items-center gap-2 mt-1">
-                                    <input type="range" min="4.5" max="8.5" step="0.1" value="${ph}" 
-                                           data-action="dlg_soilPhInput" data-action-on="input"
-                                           data-action="dlg_soilPh" data-action-on="change" data-name="${name}"
+                                    <input type="range" min="4.5" max="8.5" step="0.1" value="${ph}"
+                                           data-action="dlg_soilPhLive" data-action-on="input" data-name="${name}"
                                            class="w-full h-1.5 bg-stone-100 rounded-lg appearance-none cursor-pointer accent-emerald-600" id="soil-ph-slider">
                                 </div>
                             </div>
                             
                             <!-- Moisture Slider & Value -->
                             <div class="space-y-2 bg-white p-3.5 rounded-2xl border border-stone-200/40 shadow-sm">
-                                <div class="flex justify-between items-center">
-                                    <div>
+                                <div class="flex justify-between items-center gap-2">
+                                    <div class="min-w-0">
                                         <span class="text-[9px] font-black text-stone-400 uppercase block">Вологість ґрунту</span>
-                                        <span id="soil-moist-lbl-display" class="text-[10px] font-bold text-stone-600 mt-0.5 block">${getMoistureLabel(moist)}</span>
+                                        <span id="soil-moist-lbl-display" class="text-[10px] font-bold text-stone-600 mt-0.5 block truncate">${getMoistureLabel(moist)}</span>
                                     </div>
-                                    <span id="soil-moist-val-display" class="text-xs font-black text-sky-600 bg-sky-50 border border-sky-150 px-2 py-0.5 rounded-md">${moist}%</span>
+                                    <span id="soil-moist-val-display" class="text-xs font-black text-sky-600 bg-sky-50 border border-sky-200 px-2 py-0.5 rounded-md flex-shrink-0 whitespace-nowrap">${moist}%</span>
                                 </div>
                                 <div class="flex items-center gap-2 mt-1">
-                                    <input type="range" min="10" max="90" step="5" value="${moist}" 
-                                           data-action="dlg_soilMoistInput" data-action-on="input"
-                                           data-action="dlg_soilMoist" data-action-on="change" data-name="${name}"
+                                    <input type="range" min="10" max="90" step="5" value="${moist}"
+                                           data-action="dlg_soilMoistLive" data-action-on="input" data-name="${name}"
                                            class="w-full h-1.5 bg-stone-100 rounded-lg appearance-none cursor-pointer accent-sky-500" id="soil-moisture-slider">
                                 </div>
                             </div>
